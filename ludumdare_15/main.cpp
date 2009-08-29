@@ -8,6 +8,7 @@
 #include <SFML/Graphics.hpp>
 #include <AntTweakBar.h>
 #include <Box2D.h>
+#include <boost/smart_ptr.hpp>
 
 #ifdef NDEBUG
 #pragma comment(lib, "sfml-main.lib")
@@ -151,7 +152,9 @@ bool SfmlHandle(const sf::Event& event)
 
 struct Images
 {
+	Image cloud;
 	Image grass;
+	Image dirt;
 
 	// player
 	Image bodyclosed;
@@ -165,7 +168,9 @@ struct Images
 
 	Images()
 	{
+		LoadImage(&cloud, "..\\cloud.png");
 		LoadImage(&grass, "..\\grass.png");
+		LoadImage(&dirt, "..\\dirt.png");
 
 		LoadImage(&bodyclosed, "..\\player\\bodyclosed.png");
 		LoadImage(&bodyopen, "..\\player\\bodyopen.png");
@@ -186,7 +191,178 @@ void RenderAt(Sprite* sp, RenderWindow* rw, const Vector2f& pos)
 float kTimePerFlap = 0.3f;
 float kPukeTime = 0.7f;
 
-struct Player
+RenderWindow* gWindow = 0; // yuck!
+float gTime = 0; // double yuck!!
+
+void DrawSprite(const Sprite& s)
+{
+	if( gWindow ) gWindow->Draw(s);
+}
+
+const int kTileSize = 80;
+const int kTileSpace = 10;
+
+const float kExtraPhysics = 100.0f;
+
+struct Level;
+
+struct Object
+{
+	Object(Level* l)
+		: level(l)
+		, doRemove(false)
+	{
+	}
+
+	virtual ~Object()
+	{
+	}
+
+	virtual void update(float delta) = 0;
+
+	virtual void draw(RenderWindow* rw) = 0;
+
+	bool shouldRemove() const
+	{
+		return doRemove;
+	}
+
+	Level* level;
+	bool doRemove;
+};
+
+void DrawObject(boost::shared_ptr<Object> obj)
+{
+	obj->draw(gWindow);
+}
+
+
+void UpdateObject(boost::shared_ptr<Object> obj)
+{
+	obj->update(gTime);
+}
+
+bool ShouldRemoveObject(boost::shared_ptr<Object> obj)
+{
+	return obj->shouldRemove();
+}
+
+
+struct Level
+{
+	Level(Images& imgs, const std::string& level)
+	{
+		std::ifstream f(level.c_str());
+		if( f.good() == false ) throw level + " - file not found";
+
+		int w=0; int h=0;
+
+		f >> w;
+		f >> h;
+
+		b2AABB worldAABB;
+		worldAABB.lowerBound.Set(-kExtraPhysics, -h*kTileSize - kExtraPhysics);
+		worldAABB.upperBound.Set(w*kTileSize + kExtraPhysics, kExtraPhysics);
+
+		b2World world(worldAABB, b2Vec2(0.0f, -10.0f), true);
+
+		if( f.good() == false ) throw level + " - failed to load size";
+
+		for(int y=h-1; y>=0; --y)
+		{
+			for(int x=0; x<w; ++x)
+			{
+				int type = 0;
+				f >> type;
+
+				Vector2f pos(x*kTileSize, (h-y)*kTileSize);
+
+				Sprite sprite;
+				sprite.SetPosition(pos);
+				sprite.SetCenter(kTileSpace, kTileSpace);
+
+				switch(type)
+				{
+				case 0: // air
+					break;
+				case 1: // cloud
+					sprite.SetImage(imgs.cloud);
+					sprites.push_back( sprite );
+					break;
+				case 2: // grass
+					sprite.SetImage(imgs.grass);
+					sprites.push_back( sprite );
+					break;
+				case 3: // dirt
+					sprite.SetImage(imgs.dirt);
+					sprites.push_back( sprite );
+					break;
+				}
+			}
+
+			if( f.fail() )
+			{
+				std::stringstream ss;
+				ss << level << " - failed to load row" << y << "(" << w << ", "<< h << ")";
+				throw ss.str();
+			}
+		}
+	}
+
+	void draw(RenderWindow* rw)
+	{
+		gWindow = rw;
+		std::for_each(sprites.begin(), sprites.end(), DrawSprite);
+		std::for_each(objects.begin(), objects.end(), DrawObject);
+		gWindow = 0;
+	}
+
+	void update(float delta)
+	{
+		gTime = delta;
+		std::for_each(objects.begin(), objects.end(), UpdateObject);
+		objects.erase(std::remove_if(objects.begin(), objects.end(), ShouldRemoveObject), objects.end());
+	}
+
+	void add(boost::shared_ptr<Object> o)
+	{
+		objects.push_back(o);
+	}
+private:
+	std::vector<Sprite> sprites;
+	std::auto_ptr<b2World> pworld;
+	std::vector<boost::shared_ptr<Object> > objects;
+};
+
+const float LengthOf(const Vector2f& source)
+{
+	return sqrt((source.x * source.x) + (source.y * source.y));
+}
+
+const Vector2f operator+(const Vector2f& l, const Vector2f& r)
+{
+	return Vector2f(l.x+r.x, l.y + r.y);
+}
+const Vector2f operator*(const Vector2f& l, float s)
+{
+	return Vector2f(l.x*s, l.y * s);
+}
+const Vector2f operator*(float s, const Vector2f& l)
+{
+	return Vector2f(l.x*s, l.y * s);
+}
+const Vector2f operator/(const Vector2f& l, float s)
+{
+	return Vector2f(l.x/s, l.y / s);
+}
+float Within(float min, float v, float max)
+{
+	if( v < min ) return min;
+	else if( v > max ) return max;
+	else return v;
+}
+
+struct Player : Object
 {
 	Sprite bodyclosed;
 	Sprite bodyopen;
@@ -197,14 +373,16 @@ struct Player
 	Sprite wingsup;
 
 	sf::Vector2f position;
+	sf::Vector2f target;
 
 	float flaptime;
 	float puketime;
 	float flapbonus;
 	bool facingLeft;
 
-	Player(Images& imgs)
-		: bodyclosed(imgs.bodyclosed)
+	Player(Level* l, Images& imgs)
+		: Object(l)
+		, bodyclosed(imgs.bodyclosed)
 		, bodyopen(imgs.bodyopen)
 		, headleft(imgs.headleft)
 		, headright(imgs.headright)
@@ -212,6 +390,7 @@ struct Player
 		, wingsmiddle(imgs.wingsmiddle)
 		, wingsup(imgs.wingsup)
 		, position(0,0)
+		, target(0,0)
 		, flaptime(0)
 		, puketime(0)
 		, flapbonus(0)
@@ -226,7 +405,7 @@ struct Player
 		drawHead(rw);
 	}
 
-	void step(float delta)
+	void update(float delta)
 	{
 		if( puketime > 0 ) puketime -= delta;
 
@@ -234,6 +413,13 @@ struct Player
 		else flaptime += delta;
 
 		if( flapbonus > 0 ) flapbonus -= flapbonus * delta;
+		
+		const float bonus = Within(1, flapbonus+1, 5);
+
+		const Vector2f dd =target - position;
+		const float length = LengthOf(dd);
+		const Vector2f direction = (dd / length) * Within(0.5f, length/150, 1) * 30 * delta;
+		position += direction * bonus;
 	}
 
 private:
@@ -275,66 +461,6 @@ private:
 	}
 };
 
-RenderWindow* gWindow = 0; // yuck!
-
-void DrawSprite(const Sprite& s)
-{
-	if( gWindow ) gWindow->Draw(s);
-}
-
-struct Level
-{
-	Level(const std::string& level)
-	{
-		std::ifstream f(level.c_str());
-		if( f.good() == false ) throw level + " - file not found";
-
-		int width=0; int height=0;
-
-		f >> width;
-		f >> height;
-
-		if( f.good() == false ) throw level + " - failed to load size";
-
-		for(int y=h-1; y>=0; --y)
-		{
-			for(int x==0; x<w; ++x)
-			{
-				int type = 0;
-				f >> type;
-
-				switch(type)
-				{
-				case 0: // air
-					break;
-				case 1: // cloud
-					break;
-				case 2: // grass
-					break;
-				case 3: // dirt
-					break;
-				}
-			}
-
-			if( f.good() == false )
-			{
-				std::stringstream ss;
-				ss << level << " - failed to load row" << y << "(" << w << ", "<< h << ")";
-				throw ss.str();
-			}
-		}
-	}
-
-	void drawHead(RenderWindow* rw)
-	{
-		gWindow = rw;
-		std::for_each(sprites.begin(), sprites.end(), DrawSprite);
-		gWindow = 0;
-	}
-private:
-	std::vector<Sprite> sprites;
-};
-
 void game()
 {
 	TwHandleErrors(BreakOnError);
@@ -343,25 +469,19 @@ void game()
 
 	TwBar* bar = TwNewBar("main");
 	TwWindowSize(800, 600); // call this or get a bad-size error on draw
-
-	b2AABB worldAABB;
-	worldAABB.lowerBound.Set(-100.0f, -100.0f);
-	worldAABB.upperBound.Set(100.0f, 100.0f);
-
+	const sf::Vector2f HalfSize(400, 300);
+	RenderWindow App(sf::VideoMode(800, 600, 32), "SFML Graphics");
 
 	TwAddVarRW(bar, "Time per flap", TW_TYPE_FLOAT, &kTimePerFlap, " min=0.05 max=1 step=0.01 ");
 	TwAddVarRW(bar, "Puke time", TW_TYPE_FLOAT, &kPukeTime,        " min=0.05 max=2 step=0.01 ");
-	b2Vec2 gravity(0.0f, -10.0f);
-	bool doSleep = true;
-	b2World world(worldAABB, gravity, doSleep);
 
-
-	RenderWindow App(sf::VideoMode(800, 600, 32), "SFML Graphics");
 	Color bkg(25, 115, 201);
 	Images img;
 
-	Sprite grass(img.grass);
-	Player player(img);
+	Level level(img, "..\\game.lvl");
+
+	boost::shared_ptr<Player> player( new Player(&level, img) );
+	level.add(player);
 
 	sf::Clock Clock;
 
@@ -416,24 +536,24 @@ void game()
 
 		if( !debug )
 		{
-			if( pukes > 0 && player.puketime < 0.1f)
+			if( pukes > 0 && player->puketime < 0.1f)
 			{
-				player.puketime = kPukeTime;
+				player->puketime = kPukeTime;
 			}
 
 			if( flaps > 0)
 			{
-				player.flapbonus += flaps;
+				player->flapbonus += flaps;
 			}
 
-			player.position = Vector2f( static_cast<float>(App.GetInput().GetMouseX()),
-				static_cast<float>(App.GetInput().GetMouseY()));
-			player.step(delta);
+			player->target = App.ConvertCoords(App.GetInput().GetMouseX(), App.GetInput().GetMouseY());
+			App.SetView( View(player->position, HalfSize) );
+			
+			level.update(delta);
 		}
 
 		App.Clear(bkg);
-		App.Draw(grass);
-		player.draw(&App);
+		level.draw(&App);
 
 		if( debug ) TwDraw();
 
