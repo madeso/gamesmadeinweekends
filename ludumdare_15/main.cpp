@@ -182,6 +182,8 @@ struct Images
 	Image wingsmiddle;
 	Image wingsup;
 
+	Image puke;
+
 
 	Images()
 	{
@@ -196,6 +198,8 @@ struct Images
 		LoadImage(&wingsdown, "..\\player\\wingsdown.png");
 		LoadImage(&wingsmiddle, "..\\player\\wingsmiddle.png");
 		LoadImage(&wingsup, "..\\player\\wingsup.png");
+
+		LoadImage(&puke, "..\\puke.png");
 	}
 };
 
@@ -350,19 +354,22 @@ struct Level
 		}
 
 		gTime = delta;
+		objects.insert(objects.end(), objectstoadd.begin(), objectstoadd.end());
+		objectstoadd.resize(0);
 		std::for_each(objects.begin(), objects.end(), UpdateObject);
 		objects.erase(std::remove_if(objects.begin(), objects.end(), ShouldRemoveObject), objects.end());
 	}
 
 	void add(boost::shared_ptr<Object> o)
 	{
-		objects.push_back(o);
+		objectstoadd.push_back(o);
 	}
 
 	std::auto_ptr<b2World> pworld;
 private:
 	std::vector<Sprite> sprites;
 	std::vector<boost::shared_ptr<Object> > objects;
+	std::vector<boost::shared_ptr<Object> > objectstoadd;
 	float phystime;
 };
 
@@ -394,8 +401,65 @@ float Within(float min, float v, float max)
 	else return v;
 }
 
+struct Puke : Object
+{
+	b2Body* body;
+	float time;
+	Sprite sp;
+
+	Puke(Level* l, Images& img, sf::Vector2f p, sf::Vector2f dir)
+		: Object(l)
+		, body(0)
+		, time(9)
+		, sp(img.puke)
+	{
+		sp.SetCenter(13, 13);
+		b2BodyDef bodyDef;
+		bodyDef.position.Set( world2physics(p.x), world2physics(p.y) );
+		body = l->pworld->CreateBody(&bodyDef);
+
+		b2CircleDef shapeDef;
+		shapeDef.radius = world2physics(10.0f);
+		shapeDef.localPosition.Set(0.0f, 0.0f);
+		shapeDef.density = 0.7f;
+		shapeDef.friction = 0.3f;
+		shapeDef.restitution = 0.8f; // bouncyness
+		body->CreateShape(&shapeDef);
+		body->SetMassFromShapes();
+	}
+
+	~Puke()
+	{
+		level->pworld->DestroyBody(body);
+	}
+
+	virtual void update(float delta)
+	{
+		if( time > 0 )
+		{
+			time -= delta;
+		}
+		else
+		{
+			doRemove = true;
+			return;
+		}
+
+		b2Vec2 pos = body->GetPosition();
+
+		sp.SetPosition( physics2world(pos.x), physics2world(pos.y));
+	}
+
+	virtual void draw(RenderWindow* rw)
+	{
+		rw->Draw(sp);
+	}
+};
+
 struct Player : Object
 {
+	Images& images;
+
 	Sprite bodyclosed;
 	Sprite bodyopen;
 	Sprite headleft;
@@ -413,9 +477,11 @@ struct Player : Object
 	bool facingLeft;
 	b2Body* body;
 	int flaps;
+	int pukes;
 
 	Player(Level* l, Images& imgs)
 		: Object(l)
+		, images(imgs)
 		, bodyclosed(imgs.bodyclosed)
 		, bodyopen(imgs.bodyopen)
 		, headleft(imgs.headleft)
@@ -431,6 +497,7 @@ struct Player : Object
 		, facingLeft(false)
 		, body(0)
 		, flaps(0)
+		, pukes(0)
 	{
 		b2BodyDef bodyDef;
 		bodyDef.position.Set(position.x, position.y);
@@ -440,6 +507,7 @@ struct Player : Object
 		shapeDef.SetAsBox(world2physics(49.0f), world2physics(57.0f));
 		shapeDef.density = 0.3f;
 		shapeDef.friction = 0.3f;
+		shapeDef.restitution = 0.4f; // bouncyness
 		body->CreateShape(&shapeDef);
 		body->SetMassFromShapes();
 	}
@@ -472,13 +540,20 @@ struct Player : Object
 		
 		const float bonus = Within(1, flapbonus+1, 5);
 
+		const Vector2f dd = position - target;
+		const float length = LengthOf(dd);
+		const Vector2f direction = (dd / length) * Within(0.5f, length/150, 1) * -kGravity * 600;
+
 		for(int i=0; i<flaps; ++i)
 		{
-			const Vector2f dd = position - target;
-			const float length = LengthOf(dd);
-			const Vector2f direction = (dd / length) * Within(0.5f, length/150, 1) * -kGravity * 600;
-
 			body->ApplyImpulse( b2Vec2(world2physics(direction.x), world2physics(direction.y)), body->GetWorldCenter());
+		}
+
+		if( pukes > 0 && puketime < 0.1f)
+		{
+			puketime = kPukeTime;
+			boost::shared_ptr<Puke> p( new Puke(level, images, position + (-dd/length) * world2physics(350), direction) );
+			level->add(p);
 		}
 
 		b2Vec2 p = body->GetPosition();
@@ -601,12 +676,8 @@ void game()
 
 		if( !debug )
 		{
-			if( pukes > 0 && player->puketime < 0.1f)
-			{
-				player->puketime = kPukeTime;
-			}
-
 			player->flaps = flaps;
+			player->pukes = pukes;
 
 			player->target = App.ConvertCoords(App.GetInput().GetMouseX(), App.GetInput().GetMouseY());
 			App.SetView( View(player->position, HalfSize) );
