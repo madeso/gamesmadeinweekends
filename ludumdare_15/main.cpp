@@ -26,6 +26,23 @@
 
 using namespace sf;
 
+const float kPhysicsScale = 5.0f; // pixels is 1 meter
+const int kTileSize = 80;
+const int kTileSpace = 10;
+const float kExtraPhysics = 600.0f;
+const float kPhysTime = 0.01f;
+
+float physics2world(float p)
+{
+	return p * kPhysicsScale;
+}
+float world2physics(float p)
+{
+	return p / kPhysicsScale;
+}
+
+const float kGravity = 8.0f;
+
 struct ExceptionInformation
 {
 	std::string message;
@@ -199,11 +216,6 @@ void DrawSprite(const Sprite& s)
 	if( gWindow ) gWindow->Draw(s);
 }
 
-const int kTileSize = 80;
-const int kTileSpace = 10;
-
-const float kExtraPhysics = 100.0f;
-
 struct Level;
 
 struct Object
@@ -251,6 +263,7 @@ bool ShouldRemoveObject(boost::shared_ptr<Object> obj)
 struct Level
 {
 	Level(Images& imgs, const std::string& level)
+		: phystime(0)
 	{
 		std::ifstream f(level.c_str());
 		if( f.good() == false ) throw level + " - file not found";
@@ -261,10 +274,10 @@ struct Level
 		f >> h;
 
 		b2AABB worldAABB;
-		worldAABB.lowerBound.Set(-kExtraPhysics, -h*kTileSize - kExtraPhysics);
-		worldAABB.upperBound.Set(w*kTileSize + kExtraPhysics, kExtraPhysics);
+		worldAABB.lowerBound.Set( world2physics(-kExtraPhysics), world2physics(- kExtraPhysics));
+		worldAABB.upperBound.Set(world2physics(w*kTileSize + kExtraPhysics), world2physics(h*kTileSize + kExtraPhysics));
 
-		b2World world(worldAABB, b2Vec2(0.0f, -10.0f), true);
+		pworld.reset( new b2World(worldAABB, b2Vec2(0.0f, kGravity), true) );
 
 		if( f.good() == false ) throw level + " - failed to load size";
 
@@ -276,6 +289,7 @@ struct Level
 				f >> type;
 
 				Vector2f pos(x*kTileSize, (h-y)*kTileSize);
+				b2Vec2 ppos( world2physics(pos.x), world2physics(pos.y + kTileSize) );
 
 				Sprite sprite;
 				sprite.SetPosition(pos);
@@ -290,8 +304,17 @@ struct Level
 					sprites.push_back( sprite );
 					break;
 				case 2: // grass
-					sprite.SetImage(imgs.grass);
-					sprites.push_back( sprite );
+					{
+						sprite.SetImage(imgs.grass);
+						sprites.push_back( sprite );
+
+						b2BodyDef groundBodyDef;
+						groundBodyDef.position = ppos;
+						b2Body* groundBody = pworld->CreateBody(&groundBodyDef);
+						b2PolygonDef groundShapeDef;
+						groundShapeDef.SetAsBox( world2physics(kTileSize), world2physics(kTileSize));
+						groundBody->CreateShape(&groundShapeDef);
+					}
 					break;
 				case 3: // dirt
 					sprite.SetImage(imgs.dirt);
@@ -319,6 +342,13 @@ struct Level
 
 	void update(float delta)
 	{
+		phystime += delta;
+		while( phystime > kPhysTime ) 
+		{
+			pworld->Step(kPhysTime, 10);
+			phystime -= kPhysTime;
+		}
+
 		gTime = delta;
 		std::for_each(objects.begin(), objects.end(), UpdateObject);
 		objects.erase(std::remove_if(objects.begin(), objects.end(), ShouldRemoveObject), objects.end());
@@ -328,10 +358,12 @@ struct Level
 	{
 		objects.push_back(o);
 	}
+
+	std::auto_ptr<b2World> pworld;
 private:
 	std::vector<Sprite> sprites;
-	std::auto_ptr<b2World> pworld;
 	std::vector<boost::shared_ptr<Object> > objects;
+	float phystime;
 };
 
 const float LengthOf(const Vector2f& source)
@@ -379,6 +411,8 @@ struct Player : Object
 	float puketime;
 	float flapbonus;
 	bool facingLeft;
+	b2Body* body;
+	int flaps;
 
 	Player(Level* l, Images& imgs)
 		: Object(l)
@@ -395,7 +429,19 @@ struct Player : Object
 		, puketime(0)
 		, flapbonus(0)
 		, facingLeft(false)
+		, body(0)
+		, flaps(0)
 	{
+		b2BodyDef bodyDef;
+		bodyDef.position.Set(position.x, position.y);
+		body = l->pworld->CreateBody(&bodyDef);
+
+		b2PolygonDef shapeDef;
+		shapeDef.SetAsBox(world2physics(49.0f), world2physics(57.0f));
+		shapeDef.density = 0.3f;
+		shapeDef.friction = 0.3f;
+		body->CreateShape(&shapeDef);
+		body->SetMassFromShapes();
 	}
 
 	void draw(RenderWindow* rw)
@@ -403,10 +449,20 @@ struct Player : Object
 		drawBody(rw);
 		drawWings(rw);
 		drawHead(rw);
+
+		std::stringstream ss;
+		ss << position.x << ", " << position.y;
+
+		/*String Text(ss.str().c_str());
+		Text.SetPosition(position);
+		Text.SetColor(sf::Color(0,0,0));
+		rw->Draw(Text);*/
 	}
 
 	void update(float delta)
 	{
+		flapbonus += flaps;
+
 		if( puketime > 0 ) puketime -= delta;
 
 		if( flapbonus > 0 ) flaptime += delta * (flapbonus + 1);
@@ -416,10 +472,19 @@ struct Player : Object
 		
 		const float bonus = Within(1, flapbonus+1, 5);
 
-		const Vector2f dd =target - position;
-		const float length = LengthOf(dd);
-		const Vector2f direction = (dd / length) * Within(0.5f, length/150, 1) * 30 * delta;
-		position += direction * bonus;
+		for(int i=0; i<flaps; ++i)
+		{
+			const Vector2f dd = position - target;
+			const float length = LengthOf(dd);
+			const Vector2f direction = (dd / length) * Within(0.5f, length/150, 1) * -kGravity * 600;
+
+			body->ApplyImpulse( b2Vec2(world2physics(direction.x), world2physics(direction.y)), body->GetWorldCenter());
+		}
+
+		b2Vec2 p = body->GetPosition();
+		position = Vector2f(physics2world(p.x), physics2world(p.y));
+
+		facingLeft = target.x < position.x;
 	}
 
 private:
@@ -541,10 +606,7 @@ void game()
 				player->puketime = kPukeTime;
 			}
 
-			if( flaps > 0)
-			{
-				player->flapbonus += flaps;
-			}
+			player->flaps = flaps;
 
 			player->target = App.ConvertCoords(App.GetInput().GetMouseX(), App.GetInput().GetMouseY());
 			App.SetView( View(player->position, HalfSize) );
