@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <AntTweakBar.h>
 #include <Box2D.h>
 #include <boost/smart_ptr.hpp>
@@ -15,12 +16,14 @@
 #pragma comment(lib, "sfml-system.lib")
 #pragma comment(lib, "sfml-window.lib")
 #pragma comment(lib, "sfml-graphics.lib")
+#pragma comment(lib, "sfml-audio.lib")
 #pragma comment(lib, "box2d.lib")
 #else
 #pragma comment(lib, "sfml-main-d.lib")
 #pragma comment(lib, "sfml-system-d.lib")
 #pragma comment(lib, "sfml-window-d.lib")
 #pragma comment(lib, "sfml-graphics-d.lib")
+#pragma comment(lib, "sfml-audio-d.lib")
 #pragma comment(lib, "box2d_d.lib")
 #endif
 
@@ -362,6 +365,62 @@ bool SfmlHandle(const sf::Event& event)
 	return handled;
 }
 
+void LoadSound(SoundBuffer* buff, const std::string& file)
+{
+	bool result = buff->LoadFromFile(file);
+	if( result ) return;
+	std::string message = "Failed to load sound " + file;
+	throw message;
+}
+
+bool IsSoundStopped(boost::shared_ptr<Sound> sound)
+{
+	return sound->GetStatus() == sf::Sound::Stopped;
+}
+
+struct SoundPlayer
+{
+	SoundBuffer buttonchange;
+	SoundBuffer explosionbomb;
+	SoundBuffer explosiondirt;
+	SoundBuffer flap;
+	SoundBuffer newlevel;
+	SoundBuffer pauseenter;
+	SoundBuffer pauseleave;
+	SoundBuffer puke;
+
+	SoundPlayer()
+	{
+		LoadSound(&buttonchange, "..\\audio\\buttonchange.ogg");
+		LoadSound(&explosionbomb, "..\\audio\\explosion1.ogg");
+		LoadSound(&explosiondirt, "..\\audio\\explosion2.ogg");
+		LoadSound(&flap, "..\\audio\\flap.ogg");
+		LoadSound(&newlevel, "..\\audio\\newlevel.ogg");
+		LoadSound(&pauseenter, "..\\audio\\pauseenter.ogg");
+		LoadSound(&pauseleave, "..\\audio\\pauseleave.ogg");
+		LoadSound(&puke, "..\\audio\\puke.ogg");
+	}
+
+	Sound sound;
+
+	void play(SoundBuffer& buffer)
+	{
+		boost::shared_ptr<Sound> sound( new Sound(buffer));
+		sound->Play();
+		playing.push_back(sound);
+	}
+
+	void update()
+	{
+		playing.erase(std::remove_if(playing.begin(), playing.end(), IsSoundStopped), playing.end());
+	}
+
+private:
+	std::vector<boost::shared_ptr<Sound> > playing;
+};
+
+SoundPlayer* gSoundPlayer = 0;
+
 struct Images
 {
 	Image cloud;
@@ -565,6 +624,7 @@ struct Destroyable : Object
 		if( sq < (max*max) )
 		{
 			doRemove = true;
+			gSoundPlayer->play(gSoundPlayer->explosiondirt);
 		}
 	}
 };
@@ -791,6 +851,8 @@ struct Puke : Object
 				level->add(bang);
 
 				level->explode(sfpos, kExplosionRadiusMin, kExplosionRadiusMax, kExplosionForce);
+
+				gSoundPlayer->play(gSoundPlayer->explosionbomb);
 			}
 			doRemove = true;
 			return;
@@ -986,6 +1048,8 @@ void game()
 
 	Color bkg(25, 115, 201);
 	Images img;
+	SoundPlayer splayer;
+	gSoundPlayer = &splayer;
 
 	Level level(img, kLevelName);
 
@@ -1050,14 +1114,20 @@ void game()
 				else if (Event.Key.Code == sf::Key::Escape )
 				{
 					if( paused ) App.Close();
-					else paused = true;
+					else
+					{
+						paused = true;
+						splayer.play(splayer.pauseenter);
+					}
 				}
 				else if( Event.Key.Code == sf::Key::Space )
 				{
 					flipbuttons = !flipbuttons;
+					splayer.play(splayer.buttonchange);
 				}
 				else if ( Event.Key.Code == sf::Key::R )
 				{
+					splayer.play(splayer.newlevel);
 					player.reset();
 					level.load(img, kLevelName);
 					player.reset( new Player(&level, img) );
@@ -1076,18 +1146,35 @@ void game()
 					if( paused )
 					{
 						paused = false;
+						splayer.play(splayer.pauseleave);
 					}
 					else
 					{
 						if( Event.MouseButton.Button == Mouse::Left )
 						{
-							if( flipbuttons ) ++pukes;
-							else ++flaps;
+							if( flipbuttons )
+							{
+								++pukes;
+								splayer.play(splayer.puke);
+							}
+							else
+							{
+								++flaps;
+								splayer.play(splayer.flap);
+							}
 						}
 						else if( Event.MouseButton.Button == Mouse::Right )
 						{
-							if( flipbuttons ) ++flaps;
-							else ++pukes;
+							if( flipbuttons )
+							{
+								++flaps;
+								splayer.play(splayer.flap);
+							}
+							else
+							{
+								++pukes;
+								splayer.play(splayer.puke);
+							}
 						}
 					}
 				}
@@ -1106,8 +1193,11 @@ void game()
 			debugdraw.SetFlags(flags);
 		}
 
+		splayer.update();
+
 		if( paused ) App.Clear( sf::Color(16,75,130) );
 		else App.Clear(bkg);
+
 		level.draw(&App);
 
 		if( !debug && paused == false)
