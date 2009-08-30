@@ -45,7 +45,7 @@ float kExplosionForce = 50;
 
 const float kPlayerBouncy = 0.4f;
 float kTimePerFlap = 0.3f;
-float kPukeTime = 2.0f;
+float kPukeTime = 1.5f;
 
 const int kBufferSize = 10;
 
@@ -979,6 +979,7 @@ struct Player : Object
 			puketime = kPukeTime;
 			boost::shared_ptr<Puke> p( new Puke(level, images, position + (-dd/length) * world2physics(150), direction * kPukeImpule) );
 			level->add(p);
+			gSoundPlayer->play(gSoundPlayer->puke);
 		}
 
 		b2Vec2 p = body->GetPosition();
@@ -1030,7 +1031,7 @@ private:
 	}
 };
 
-void game()
+void game(int arg)
 {
 	TwHandleErrors(BreakOnError);
 
@@ -1039,7 +1040,8 @@ void game()
 	TwBar* bar = TwNewBar("main");
 	TwWindowSize(800, 600); // call this or get a bad-size error on draw
 	const sf::Vector2f HalfSize(400, 300);
-	RenderWindow App(sf::VideoMode(800, 600, 32), "Let's go cave burrowing - a awwesome game by sirGustav");
+
+	RenderWindow App(sf::VideoMode(800, 600, 32), "Let's go cave burrowing - a awwesome game by sirGustav", arg!=2 ? Style::Fullscreen : Style::Close );
 
 	TwAddVarRW(bar, "Time per flap", TW_TYPE_FLOAT, &kTimePerFlap, " min=0.05 max=1 step=0.01 ");
 	TwAddVarRW(bar, "Puke time", TW_TYPE_FLOAT, &kPukeTime,        " min=0.05 max=2 step=0.01 ");
@@ -1155,7 +1157,6 @@ void game()
 							if( flipbuttons )
 							{
 								++pukes;
-								splayer.play(splayer.puke);
 							}
 							else
 							{
@@ -1173,7 +1174,6 @@ void game()
 							else
 							{
 								++pukes;
-								splayer.play(splayer.puke);
 							}
 						}
 					}
@@ -1223,12 +1223,12 @@ void game()
 	}
 }
 
-void main()
+int main(int argc, char** argv)
 {
 #ifdef NDEBUG
 	try 
 	{
-		game();
+		game(argc);
 	}
 	catch(...)
 	{
@@ -1236,6 +1236,8 @@ void main()
 		MessageBox(0, e.message.c_str(), "Failed", MB_OK);
 	}
 #else
-	game(); // let msvc catch thoose exceptions instead
+	game(argc); // let msvc catch thoose exceptions instead
 #endif
+
+	return 0;
 }
