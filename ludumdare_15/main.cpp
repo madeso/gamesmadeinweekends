@@ -898,6 +898,10 @@ void game()
 				{
 					App.Close();
 				}
+				else if( Event.Key.Code == sf::Key::Space )
+				{
+					flipbuttons = !flipbuttons;
+				}
 			}
 
 			if( debug )
