@@ -445,7 +445,7 @@ struct Level
 
 				Sprite sprite;
 				sprite.SetPosition(pos);
-				sprite.SetCenter(kTileSpace, kTileSpace);
+				sprite.SetCenter(kTileSpace*5, -kTileSpace*4);
 
 				switch(type)
 				{
@@ -464,7 +464,7 @@ struct Level
 						groundBodyDef.position = ppos;
 						b2Body* groundBody = pworld->CreateBody(&groundBodyDef);
 						b2PolygonDef groundShapeDef;
-						groundShapeDef.SetAsBox( world2physics(kTileSize), world2physics(kTileSize));
+						groundShapeDef.SetAsBox( world2physics(kTileSize/2), world2physics(kTileSize/2));
 						groundBody->CreateShape(&groundShapeDef);
 					}
 					break;
@@ -628,6 +628,8 @@ struct Puke : Object
 		shapeDef.restitution = 0.8f; // bouncyness
 		body->CreateShape(&shapeDef);
 		body->SetMassFromShapes();
+
+		body->ApplyImpulse(b2Vec2(world2physics(dir.x), world2physics(dir.y)), body->GetWorldCenter());
 	}
 
 	~Puke()
@@ -763,7 +765,7 @@ struct Player : Object
 
 		const Vector2f dd = position - target;
 		const float length = LengthOf(dd);
-		const Vector2f direction = (dd / length) * Within(0.5f, length/150, 1) * -kGravity * 600;
+		const Vector2f direction = (dd / length) * Within(0.5f, length/150, 1) * -kGravity * 100;
 
 		for(int i=0; i<flaps; ++i)
 		{
@@ -773,7 +775,7 @@ struct Player : Object
 		if( pukes > 0 && puketime < 0.1f)
 		{
 			puketime = kPukeTime;
-			boost::shared_ptr<Puke> p( new Puke(level, images, position + (-dd/length) * world2physics(350), direction) );
+			boost::shared_ptr<Puke> p( new Puke(level, images, position + (-dd/length) * world2physics(150), direction * 3) );
 			level->add(p);
 		}
 
