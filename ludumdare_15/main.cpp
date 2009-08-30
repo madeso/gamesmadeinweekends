@@ -327,6 +327,8 @@ struct Images
 	Image wingsup;
 
 	Image puke;
+	Image explosion;
+	Image bang;
 
 
 	Images()
@@ -344,6 +346,8 @@ struct Images
 		LoadImage(&wingsup, "..\\player\\wingsup.png");
 
 		LoadImage(&puke, "..\\puke.png");
+		LoadImage(&explosion, "..\\explosion.png");
+		LoadImage(&bang, "..\\bang.png");
 	}
 };
 
@@ -545,17 +549,71 @@ float Within(float min, float v, float max)
 	else return v;
 }
 
+struct Fading : Object
+{
+	/*
+	alpha: 1         1     ...          0
+	time:  0 ... fadestart ... fadestart+fadetime <- remove
+	*/
+	float time;
+	float fadestart;
+	float fadetime;
+	Sprite sp;
+	Vector2f mo;
+	float r;
+
+	Fading(Level* l, Image& img, const Vector2f& p, const Vector2f& center, const Vector2f& move, const float rot, float fstart, float ftime)
+		: Object(l)
+		, time(0)
+		, fadestart(fstart)
+		, fadetime(ftime)
+		, sp(img, p)
+		, mo(move)
+		, r(rot)
+	{
+		sp.SetCenter(center);
+	}
+
+	void update(float delta)
+	{
+		sp.SetPosition(sp.GetPosition() + mo*delta);
+		sp.SetRotation(sp.GetRotation() + r*delta);
+		time += delta;
+		if( time > (fadestart + fadetime) )
+		{
+			doRemove = true;
+		}
+		else if( time > fadestart && fadetime > 0)
+		{
+			const float alpha = 1 - ((time - fadestart) / fadetime);
+			if( alpha < -0.1f || alpha > 1.1f )
+			{
+				throw "oh noes!";
+			}
+			sp.SetColor(sf::Color(255,255,255, static_cast<Uint8>(255*alpha)));
+		}
+	}
+
+	void draw(RenderWindow* rw)
+	{
+		rw->Draw(sp);
+	}
+};
+
+
 struct Puke : Object
 {
 	b2Body* body;
 	float time;
 	Sprite sp;
+	Images& imgs;
 
 	Puke(Level* l, Images& img, sf::Vector2f p, sf::Vector2f dir)
 		: Object(l)
 		, body(0)
 		, time(9)
 		, sp(img.puke)
+		, imgs(img)
 	{
 		sp.SetCenter(13, 13);
 		b2BodyDef bodyDef;
@@ -579,19 +637,28 @@ struct Puke : Object
 
 	virtual void update(float delta)
 	{
+		b2Vec2 pos = body->GetPosition();
+		Vector2f sfpos( physics2world(pos.x), physics2world(pos.y) );
+
 		if( time > 0 )
 		{
 			time -= delta;
 		}
 		else
 		{
+			if( shouldRemove() == false )
+			{
+				boost::shared_ptr<Fading> explosion( new Fading(level, imgs.explosion, sfpos, Vector2f(45,40), Vector2f(0,-5), 0, 3, 3));
+				level->add(explosion);
+
+				boost::shared_ptr<Fading> bang( new Fading(level, imgs.bang, sfpos, Vector2f(60,50), Vector2f(0,-15), 0, 2, 2));
+				level->add(bang);
+			}
 			doRemove = true;
 			return;
 		}
 
-		b2Vec2 pos = body->GetPosition();
-
-		sp.SetPosition( physics2world(pos.x), physics2world(pos.y));
+		sp.SetPosition( sfpos );
 	}
 
 	virtual void draw(RenderWindow* rw)
