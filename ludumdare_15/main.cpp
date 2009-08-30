@@ -44,6 +44,10 @@ const float kPlayerBouncy = 0.4f;
 float kTimePerFlap = 0.3f;
 float kPukeTime = 2.0f;
 
+const int kBufferSize = 10;
+
+const std::string kLevelName = "..\\game.lvl";
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const float LengthOfSquared(const Vector2f& source)
@@ -364,6 +368,7 @@ struct Images
 	Image grass;
 	Image dirt;
 	Image stone;
+	Image cake;
 
 	// player
 	Image bodyclosed;
@@ -385,6 +390,7 @@ struct Images
 		LoadImage(&grass, "..\\grass.png");
 		LoadImage(&dirt, "..\\dirt.png");
 		LoadImage(&stone, "..\\stone.png");
+		LoadImage(&cake, "..\\cake.png");
 
 		LoadImage(&bodyclosed, "..\\player\\bodyclosed.png");
 		LoadImage(&bodyopen, "..\\player\\bodyopen.png");
@@ -462,7 +468,13 @@ bool ShouldRemoveObject(boost::shared_ptr<Object> obj)
 
 struct Level
 {
-	Level(Images& imgs, const std::string& level);
+	Level(Images& imgs, const std::string& level)
+		: phystime(0)
+	{
+		load(imgs, level);
+	}
+
+	void load(Images& imgs, const std::string& level);
 
 	void draw(RenderWindow* rw)
 	{
@@ -498,7 +510,6 @@ struct Level
 		b2AABB aabb;
 		aabb.lowerBound.Set(world2physics(pos.x - max), world2physics(pos.y - max));
 		aabb.upperBound.Set(world2physics(pos.x + max), world2physics(pos.y + max));
-		const int32 kBufferSize = 10;
 		b2Shape* buffer[kBufferSize];
 		const int32 count = pworld->Query(aabb, buffer, kBufferSize);
 		for (int32 i = 0; i < count; ++i)
@@ -554,9 +565,13 @@ struct Destroyable : Object
 	}
 };
 
-Level::Level(Images& imgs, const std::string& level)
-	: phystime(0)
+void Level::load(Images& imgs, const std::string& level)
 {
+	sprites.resize(0);
+	objects.resize(0);
+	objectstoadd.resize(0);
+	pworld.reset();
+
 	std::ifstream f(level.c_str());
 	if( f.good() == false ) throw level + " - file not found";
 
@@ -637,6 +652,10 @@ Level::Level(Images& imgs, const std::string& level)
 					groundShapeDef.SetAsBox( world2physics(kTileSize/2), world2physics(kTileSize/2));
 					groundBody->CreateShape(&groundShapeDef);
 				}
+				break;
+			case 5:
+				sprite.SetImage(imgs.cake);
+				sprites.push_back( sprite );
 				break;
 			}
 		}
@@ -954,7 +973,7 @@ void game()
 	TwBar* bar = TwNewBar("main");
 	TwWindowSize(800, 600); // call this or get a bad-size error on draw
 	const sf::Vector2f HalfSize(400, 300);
-	RenderWindow App(sf::VideoMode(800, 600, 32), "SFML Graphics");
+	RenderWindow App(sf::VideoMode(800, 600, 32), "Let's go cave burrowing - a awwesome game by sirGustav");
 
 	TwAddVarRW(bar, "Time per flap", TW_TYPE_FLOAT, &kTimePerFlap, " min=0.05 max=1 step=0.01 ");
 	TwAddVarRW(bar, "Puke time", TW_TYPE_FLOAT, &kPukeTime,        " min=0.05 max=2 step=0.01 ");
@@ -964,7 +983,7 @@ void game()
 	Color bkg(25, 115, 201);
 	Images img;
 
-	Level level(img, "..\\game.lvl");
+	Level level(img, kLevelName);
 
 	boost::shared_ptr<Player> player( new Player(&level, img) );
 	level.add(player);
@@ -998,6 +1017,8 @@ void game()
 	DEBUG_BOOL(com);
 #undef DEBUG_BOOL
 
+	bool paused = false;
+
 	while (App.IsOpened())
 	{
 		Event Event;
@@ -1021,11 +1042,19 @@ void game()
 				}
 				else if (Event.Key.Code == sf::Key::Escape )
 				{
-					App.Close();
+					if( paused ) App.Close();
+					else paused = true;
 				}
 				else if( Event.Key.Code == sf::Key::Space )
 				{
 					flipbuttons = !flipbuttons;
+				}
+				else if ( Event.Key.Code == sf::Key::R )
+				{
+					player.reset();
+					level.load(img, kLevelName);
+					player.reset( new Player(&level, img) );
+					level.add(player);
 				}
 			}
 
@@ -1037,15 +1066,22 @@ void game()
 			{
 				if( Event.Type == sf::Event::MouseButtonReleased )
 				{
-					if( Event.MouseButton.Button == Mouse::Left )
+					if( paused )
 					{
-						if( flipbuttons ) ++pukes;
-						else ++flaps;
+						paused = false;
 					}
-					else if( Event.MouseButton.Button == Mouse::Right )
+					else
 					{
-						if( flipbuttons ) ++flaps;
-						else ++pukes;
+						if( Event.MouseButton.Button == Mouse::Left )
+						{
+							if( flipbuttons ) ++pukes;
+							else ++flaps;
+						}
+						else if( Event.MouseButton.Button == Mouse::Right )
+						{
+							if( flipbuttons ) ++flaps;
+							else ++pukes;
+						}
 					}
 				}
 			}
@@ -1063,10 +1099,11 @@ void game()
 			debugdraw.SetFlags(flags);
 		}
 
-		App.Clear(bkg);
+		if( paused ) App.Clear( sf::Color(16,75,130) );
+		else App.Clear(bkg);
 		level.draw(&App);
 
-		if( !debug )
+		if( !debug && paused == false)
 		{
 			player->flaps = flaps;
 			player->pukes = pukes;
