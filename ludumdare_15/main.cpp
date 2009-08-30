@@ -24,6 +24,8 @@
 #pragma comment(lib, "box2d_d.lib")
 #endif
 
+#pragma comment(lib, "opengl32.lib")
+
 using namespace sf;
 
 const float kPhysicsScale = 5.0f; // pixels is 1 meter
@@ -42,6 +44,148 @@ float world2physics(float p)
 }
 
 const float kGravity = 8.0f;
+
+void trVertex2f(float x, float y)
+{
+	glVertex2f(physics2world(x), physics2world(y));
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// from box2d samples
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// This class implements debug drawing callbacks that are invoked
+// inside b2World::Step.
+class DebugDraw : public b2DebugDraw
+{
+public:
+	void DrawPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color& color);
+
+	void DrawSolidPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color& color);
+
+	void DrawCircle(const b2Vec2& center, float32 radius, const b2Color& color);
+
+	void DrawSolidCircle(const b2Vec2& center, float32 radius, const b2Vec2& axis, const b2Color& color);
+
+	void DrawSegment(const b2Vec2& p1, const b2Vec2& p2, const b2Color& color);
+
+	void DrawXForm(const b2XForm& xf);
+};
+
+void DebugDraw::DrawPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color& color)
+{
+	glColor3f(color.r, color.g, color.b);
+	glBegin(GL_LINE_LOOP);
+	for (int32 i = 0; i < vertexCount; ++i)
+	{
+		trVertex2f( vertices[i].x, vertices[i].y);
+	}
+	glEnd();
+}
+
+void DebugDraw::DrawSolidPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color& color)
+{
+	glEnable(GL_BLEND);
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glColor4f(0.5f * color.r, 0.5f * color.g, 0.5f * color.b, 0.5f);
+	glBegin(GL_TRIANGLE_FAN);
+	for (int32 i = 0; i < vertexCount; ++i)
+	{
+		trVertex2f(vertices[i].x, vertices[i].y);
+	}
+	glEnd();
+	glDisable(GL_BLEND);
+
+	glColor4f(color.r, color.g, color.b, 1.0f);
+	glBegin(GL_LINE_LOOP);
+	for (int32 i = 0; i < vertexCount; ++i)
+	{
+		trVertex2f(vertices[i].x, vertices[i].y);
+	}
+	glEnd();
+}
+
+void DebugDraw::DrawCircle(const b2Vec2& center, float32 radius, const b2Color& color)
+{
+	const float32 k_segments = 16.0f;
+	const float32 k_increment = 2.0f * b2_pi / k_segments;
+	float32 theta = 0.0f;
+	glColor3f(color.r, color.g, color.b);
+	glBegin(GL_LINE_LOOP);
+	for (int32 i = 0; i < k_segments; ++i)
+	{
+		b2Vec2 v = center + radius * b2Vec2(cosf(theta), sinf(theta));
+		trVertex2f(v.x, v.y);
+		theta += k_increment;
+	}
+	glEnd();
+}
+
+void DebugDraw::DrawSolidCircle(const b2Vec2& center, float32 radius, const b2Vec2& axis, const b2Color& color)
+{
+	const float32 k_segments = 16.0f;
+	const float32 k_increment = 2.0f * b2_pi / k_segments;
+	float32 theta = 0.0f;
+	glEnable(GL_BLEND);
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glColor4f(0.5f * color.r, 0.5f * color.g, 0.5f * color.b, 0.5f);
+	glBegin(GL_TRIANGLE_FAN);
+	for (int32 i = 0; i < k_segments; ++i)
+	{
+		b2Vec2 v = center + radius * b2Vec2(cosf(theta), sinf(theta));
+		trVertex2f(v.x, v.y);
+		theta += k_increment;
+	}
+	glEnd();
+	glDisable(GL_BLEND);
+
+	theta = 0.0f;
+	glColor4f(color.r, color.g, color.b, 1.0f);
+	glBegin(GL_LINE_LOOP);
+	for (int32 i = 0; i < k_segments; ++i)
+	{
+		b2Vec2 v = center + radius * b2Vec2(cosf(theta), sinf(theta));
+		trVertex2f(v.x, v.y);
+		theta += k_increment;
+	}
+	glEnd();
+
+	b2Vec2 p = center + radius * axis;
+	glBegin(GL_LINES);
+	trVertex2f(center.x, center.y);
+	trVertex2f(p.x, p.y);
+	glEnd();
+}
+
+void DebugDraw::DrawSegment(const b2Vec2& p1, const b2Vec2& p2, const b2Color& color)
+{
+	glColor3f(color.r, color.g, color.b);
+	glBegin(GL_LINES);
+	trVertex2f(p1.x, p1.y);
+	trVertex2f(p2.x, p2.y);
+	glEnd();
+}
+
+void DebugDraw::DrawXForm(const b2XForm& xf)
+{
+	b2Vec2 p1 = xf.position, p2;
+	const float32 k_axisScale = 0.4f;
+	glBegin(GL_LINES);
+	
+	glColor3f(1.0f, 0.0f, 0.0f);
+	trVertex2f(p1.x, p1.y);
+	p2 = p1 + k_axisScale * xf.R.col1;
+	trVertex2f(p2.x, p2.y);
+
+	glColor3f(0.0f, 1.0f, 0.0f);
+	trVertex2f(p1.x, p1.y);
+	p2 = p1 + k_axisScale * xf.R.col2;
+	trVertex2f(p2.x, p2.y);
+
+	glEnd();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct ExceptionInformation
 {
@@ -499,12 +643,22 @@ struct Player : Object
 		, flaps(0)
 		, pukes(0)
 	{
+		Vector2f center(25,25);
+		bodyclosed.SetCenter(center);
+		bodyopen.SetCenter(center);
+		headleft.SetCenter(center);
+		headright.SetCenter(center);
+		wingsdown.SetCenter(center);
+		wingsmiddle.SetCenter(center);
+		wingsup.SetCenter(center);
+
 		b2BodyDef bodyDef;
 		bodyDef.position.Set(position.x, position.y);
 		body = l->pworld->CreateBody(&bodyDef);
 
-		b2PolygonDef shapeDef;
-		shapeDef.SetAsBox(world2physics(49.0f), world2physics(57.0f));
+		b2CircleDef shapeDef;
+		shapeDef.radius = world2physics(20.0f);
+		shapeDef.localPosition.Set(0.0f, 0.0f);
 		shapeDef.density = 0.3f;
 		shapeDef.friction = 0.3f;
 		shapeDef.restitution = 0.4f; // bouncyness
@@ -628,6 +782,30 @@ void game()
 	bool flipbuttons = false;
 	bool debug = false;
 
+	DebugDraw debugdraw;
+	level.pworld->SetDebugDraw(&debugdraw);
+
+	bool phys_all = false;
+	bool phys_shape = false;
+	bool phys_join  = false;
+	bool phys_coreshape = false;
+	bool phys_aabb = false;
+	bool phys_obb = false;
+	bool phys_pair = false;
+	bool phys_com = false;
+
+	TwBar* bar_phys = TwNewBar("physics debug");
+#define DEBUG_BOOL(x) TwAddVarRW(bar_phys, #x, TW_TYPE_BOOL8, &phys_##x, "");
+	DEBUG_BOOL(all);
+	DEBUG_BOOL(shape);
+	DEBUG_BOOL(join);
+	DEBUG_BOOL(coreshape);
+	DEBUG_BOOL(aabb);
+	DEBUG_BOOL(obb);
+	DEBUG_BOOL(pair);
+	DEBUG_BOOL(com);
+#undef DEBUG_BOOL
+
 	while (App.IsOpened())
 	{
 		Event Event;
@@ -655,7 +833,10 @@ void game()
 				}
 			}
 
-			if( debug ) SfmlHandle(Event);
+			if( debug )
+			{
+				SfmlHandle(Event);
+			}
 			else 
 			{
 				if( Event.Type == sf::Event::MouseButtonReleased )
@@ -674,6 +855,21 @@ void game()
 			}
 		}
 
+		{
+			uint32 flags = 0;
+			if( phys_all || phys_shape)      flags += b2DebugDraw::e_shapeBit;
+			if( phys_all || phys_join )      flags += b2DebugDraw::e_jointBit;
+			if( phys_all || phys_coreshape)  flags += b2DebugDraw::e_coreShapeBit;
+			if( phys_all || phys_aabb)       flags += b2DebugDraw::e_aabbBit;
+			if( phys_all || phys_obb)        flags += b2DebugDraw::e_obbBit;
+			if( phys_all || phys_pair)       flags += b2DebugDraw::e_pairBit;
+			if( phys_all || phys_com)        flags += b2DebugDraw::e_centerOfMassBit;
+			debugdraw.SetFlags(flags);
+		}
+
+		App.Clear(bkg);
+		level.draw(&App);
+
 		if( !debug )
 		{
 			player->flaps = flaps;
@@ -684,9 +880,6 @@ void game()
 			
 			level.update(delta);
 		}
-
-		App.Clear(bkg);
-		level.draw(&App);
 
 		if( debug ) TwDraw();
 
