@@ -370,6 +370,8 @@ struct Images
 	Image stone;
 	Image cake;
 
+	Image pause;
+
 	// player
 	Image bodyclosed;
 	Image bodyopen;
@@ -391,6 +393,8 @@ struct Images
 		LoadImage(&dirt, "..\\dirt.png");
 		LoadImage(&stone, "..\\stone.png");
 		LoadImage(&cake, "..\\cake.png");
+
+		LoadImage(&pause, "..\\pausescreen.png");
 
 		LoadImage(&bodyclosed, "..\\player\\bodyclosed.png");
 		LoadImage(&bodyopen, "..\\player\\bodyopen.png");
@@ -1005,6 +1009,9 @@ void game()
 	bool phys_pair = false;
 	bool phys_com = false;
 
+	Sprite pausesp(img.pause);
+	pausesp.SetCenter(HalfSize);
+
 	TwBar* bar_phys = TwNewBar("physics debug");
 #define DEBUG_BOOL(x) TwAddVarRW(bar_phys, #x, TW_TYPE_BOOL8, &phys_##x, "");
 	DEBUG_BOOL(all);
@@ -1112,6 +1119,12 @@ void game()
 			App.SetView( View(player->position, HalfSize) );
 			
 			level.update(delta);
+		}
+
+		if( paused )
+		{
+			pausesp.SetPosition( player->position );
+			App.Draw(pausesp);
 		}
 
 		if( debug ) TwDraw();
