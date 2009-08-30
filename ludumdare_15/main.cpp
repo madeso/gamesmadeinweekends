@@ -31,10 +31,10 @@ using namespace sf;
 const float kPhysicsScale = 5.0f; // pixels is 1 meter
 const int kTileSize = 80;
 const int kTileSpace = 10;
-const float kExtraPhysics = 600.0f;
+const float kExtraPhysics = 100.0f;
 const float kPhysTime = 0.01f;
 float kPukeImpule = 3;
-float kPukeBouncy = 0.8f;
+float kPukeBouncy = 0.4f;
 
 float kExplosionRadiusMin = 50;
 float kExplosionRadiusMax = 100;
@@ -42,7 +42,7 @@ float kExplosionForce = 50;
 
 const float kPlayerBouncy = 0.4f;
 float kTimePerFlap = 0.3f;
-float kPukeTime = 0.7f;
+float kPukeTime = 2.0f;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -363,6 +363,7 @@ struct Images
 	Image cloud;
 	Image grass;
 	Image dirt;
+	Image stone;
 
 	// player
 	Image bodyclosed;
@@ -383,6 +384,7 @@ struct Images
 		LoadImage(&cloud, "..\\cloud.png");
 		LoadImage(&grass, "..\\grass.png");
 		LoadImage(&dirt, "..\\dirt.png");
+		LoadImage(&stone, "..\\stone.png");
 
 		LoadImage(&bodyclosed, "..\\player\\bodyclosed.png");
 		LoadImage(&bodyopen, "..\\player\\bodyopen.png");
@@ -493,11 +495,16 @@ struct Level
 
 	void explode(const Vector2f& pos, float min, float max, float force)
 	{
-		// this should really be rewritten to be more effective and less ugly...
-		const size_t m = objects.size();
-		for(size_t i=0; i<m; ++i)
+		b2AABB aabb;
+		aabb.lowerBound.Set(world2physics(pos.x - max), world2physics(pos.y - max));
+		aabb.upperBound.Set(world2physics(pos.x + max), world2physics(pos.y + max));
+		const int32 kBufferSize = 10;
+		b2Shape* buffer[kBufferSize];
+		const int32 count = pworld->Query(aabb, buffer, kBufferSize);
+		for (int32 i = 0; i < count; ++i)
 		{
-			objects[i]->onExplosion(pos, min, max, force);
+			Object* o = reinterpret_cast<Object*>(buffer[i]->GetBody()->GetUserData());
+			if( o ) o->onExplosion(pos, min, max, force);
 		}
 	}
 
@@ -519,6 +526,7 @@ struct Destroyable : Object
 		, s(sp)
 		, b(bo)
 	{
+		b->SetUserData(this);
 	}
 
 	~Destroyable()
@@ -615,6 +623,19 @@ Level::Level(Images& imgs, const std::string& level)
 
 					boost::shared_ptr<Destroyable> d( new Destroyable(this, sprite, groundBody) );
 					add( d );
+				}
+				break;
+			case 4: // stone
+				{
+					sprite.SetImage(imgs.stone);
+					sprites.push_back( sprite );
+					
+					b2BodyDef groundBodyDef;
+					groundBodyDef.position = ppos;
+					b2Body* groundBody = pworld->CreateBody(&groundBodyDef);
+					b2PolygonDef groundShapeDef;
+					groundShapeDef.SetAsBox( world2physics(kTileSize/2), world2physics(kTileSize/2));
+					groundBody->CreateShape(&groundShapeDef);
 				}
 				break;
 			}
@@ -798,7 +819,7 @@ struct Player : Object
 		, wingsdown(imgs.wingsdown)
 		, wingsmiddle(imgs.wingsmiddle)
 		, wingsup(imgs.wingsup)
-		, position(0,0)
+		, position(200,100)
 		, target(0,0)
 		, flaptime(0)
 		, puketime(0)
