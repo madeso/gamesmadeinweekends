@@ -33,6 +33,53 @@ const int kTileSize = 80;
 const int kTileSpace = 10;
 const float kExtraPhysics = 600.0f;
 const float kPhysTime = 0.01f;
+float kPukeImpule = 3;
+float kPukeBouncy = 0.8f;
+
+float kExplosionRadiusMin = 50;
+float kExplosionRadiusMax = 100;
+float kExplosionForce = 50;
+
+const float kPlayerBouncy = 0.4f;
+float kTimePerFlap = 0.3f;
+float kPukeTime = 0.7f;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const float LengthOfSquared(const Vector2f& source)
+{
+	return (source.x * source.x) + (source.y * source.y);
+}
+
+const float LengthOf(const Vector2f& source)
+{
+	return sqrt(LengthOfSquared(source));
+}
+
+const Vector2f operator+(const Vector2f& l, const Vector2f& r)
+{
+	return Vector2f(l.x+r.x, l.y + r.y);
+}
+const Vector2f operator*(const Vector2f& l, float s)
+{
+	return Vector2f(l.x*s, l.y * s);
+}
+const Vector2f operator*(float s, const Vector2f& l)
+{
+	return Vector2f(l.x*s, l.y * s);
+}
+const Vector2f operator/(const Vector2f& l, float s)
+{
+	return Vector2f(l.x/s, l.y / s);
+}
+float Within(float min, float v, float max)
+{
+	if( v < min ) return min;
+	else if( v > max ) return max;
+	else return v;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 float physics2world(float p)
 {
@@ -357,9 +404,6 @@ void RenderAt(Sprite* sp, RenderWindow* rw, const Vector2f& pos)
 	rw->Draw(*sp);
 }
 
-float kTimePerFlap = 0.3f;
-float kPukeTime = 0.7f;
-
 RenderWindow* gWindow = 0; // yuck!
 float gTime = 0; // double yuck!!
 
@@ -385,6 +429,8 @@ struct Object
 	virtual void update(float delta) = 0;
 
 	virtual void draw(RenderWindow* rw) = 0;
+
+	virtual void onExplosion(const Vector2f& pos, float min, float max, float force) = 0;
 
 	bool shouldRemove() const
 	{
@@ -414,75 +460,7 @@ bool ShouldRemoveObject(boost::shared_ptr<Object> obj)
 
 struct Level
 {
-	Level(Images& imgs, const std::string& level)
-		: phystime(0)
-	{
-		std::ifstream f(level.c_str());
-		if( f.good() == false ) throw level + " - file not found";
-
-		int w=0; int h=0;
-
-		f >> w;
-		f >> h;
-
-		b2AABB worldAABB;
-		worldAABB.lowerBound.Set( world2physics(-kExtraPhysics), world2physics(- kExtraPhysics));
-		worldAABB.upperBound.Set(world2physics(w*kTileSize + kExtraPhysics), world2physics(h*kTileSize + kExtraPhysics));
-
-		pworld.reset( new b2World(worldAABB, b2Vec2(0.0f, kGravity), true) );
-
-		if( f.good() == false ) throw level + " - failed to load size";
-
-		for(int y=h-1; y>=0; --y)
-		{
-			for(int x=0; x<w; ++x)
-			{
-				int type = 0;
-				f >> type;
-
-				Vector2f pos(x*kTileSize, (h-y)*kTileSize);
-				b2Vec2 ppos( world2physics(pos.x), world2physics(pos.y + kTileSize) );
-
-				Sprite sprite;
-				sprite.SetPosition(pos);
-				sprite.SetCenter(kTileSpace*5, -kTileSpace*4);
-
-				switch(type)
-				{
-				case 0: // air
-					break;
-				case 1: // cloud
-					sprite.SetImage(imgs.cloud);
-					sprites.push_back( sprite );
-					break;
-				case 2: // grass
-					{
-						sprite.SetImage(imgs.grass);
-						sprites.push_back( sprite );
-
-						b2BodyDef groundBodyDef;
-						groundBodyDef.position = ppos;
-						b2Body* groundBody = pworld->CreateBody(&groundBodyDef);
-						b2PolygonDef groundShapeDef;
-						groundShapeDef.SetAsBox( world2physics(kTileSize/2), world2physics(kTileSize/2));
-						groundBody->CreateShape(&groundShapeDef);
-					}
-					break;
-				case 3: // dirt
-					sprite.SetImage(imgs.dirt);
-					sprites.push_back( sprite );
-					break;
-				}
-			}
-
-			if( f.fail() )
-			{
-				std::stringstream ss;
-				ss << level << " - failed to load row" << y << "(" << w << ", "<< h << ")";
-				throw ss.str();
-			}
-		}
-	}
+	Level(Images& imgs, const std::string& level);
 
 	void draw(RenderWindow* rw)
 	{
@@ -513,6 +491,16 @@ struct Level
 		objectstoadd.push_back(o);
 	}
 
+	void explode(const Vector2f& pos, float min, float max, float force)
+	{
+		// this should really be rewritten to be more effective and less ugly...
+		const size_t m = objects.size();
+		for(size_t i=0; i<m; ++i)
+		{
+			objects[i]->onExplosion(pos, min, max, force);
+		}
+	}
+
 	std::auto_ptr<b2World> pworld;
 private:
 	std::vector<Sprite> sprites;
@@ -521,32 +509,124 @@ private:
 	float phystime;
 };
 
-const float LengthOf(const Vector2f& source)
+struct Destroyable : Object
 {
-	return sqrt((source.x * source.x) + (source.y * source.y));
-}
+	Sprite s;
+	b2Body* b;
 
-const Vector2f operator+(const Vector2f& l, const Vector2f& r)
+	Destroyable(Level* l, Sprite sp, b2Body* bo)
+		: Object(l)
+		, s(sp)
+		, b(bo)
+	{
+	}
+
+	~Destroyable()
+	{
+		level->pworld->DestroyBody(b);
+	}
+
+	virtual void update(float delta)
+	{
+	}
+
+	virtual void draw(RenderWindow* rw)
+	{
+		rw->Draw(s);
+	}
+
+	void onExplosion(const Vector2f& pos, float min, float max, float force)
+	{
+		const Vector2f center = s.GetPosition() + Vector2f(40,40);
+		const float sq = LengthOfSquared(center - pos);
+		if( sq < (max*max) )
+		{
+			doRemove = true;
+		}
+	}
+};
+
+Level::Level(Images& imgs, const std::string& level)
+	: phystime(0)
 {
-	return Vector2f(l.x+r.x, l.y + r.y);
-}
-const Vector2f operator*(const Vector2f& l, float s)
-{
-	return Vector2f(l.x*s, l.y * s);
-}
-const Vector2f operator*(float s, const Vector2f& l)
-{
-	return Vector2f(l.x*s, l.y * s);
-}
-const Vector2f operator/(const Vector2f& l, float s)
-{
-	return Vector2f(l.x/s, l.y / s);
-}
-float Within(float min, float v, float max)
-{
-	if( v < min ) return min;
-	else if( v > max ) return max;
-	else return v;
+	std::ifstream f(level.c_str());
+	if( f.good() == false ) throw level + " - file not found";
+
+	int w=0; int h=0;
+
+	f >> w;
+	f >> h;
+
+	b2AABB worldAABB;
+	worldAABB.lowerBound.Set( world2physics(-kExtraPhysics), world2physics(- kExtraPhysics));
+	worldAABB.upperBound.Set(world2physics(w*kTileSize + kExtraPhysics), world2physics(h*kTileSize + kExtraPhysics));
+
+	pworld.reset( new b2World(worldAABB, b2Vec2(0.0f, kGravity), true) );
+
+	if( f.good() == false ) throw level + " - failed to load size";
+
+	for(int y=h-1; y>=0; --y)
+	{
+		for(int x=0; x<w; ++x)
+		{
+			int type = 0;
+			f >> type;
+
+			Vector2f pos( static_cast<float>(x*kTileSize), static_cast<float>((h-y)*kTileSize));
+			b2Vec2 ppos( world2physics(pos.x), world2physics(pos.y + kTileSize) );
+
+			Sprite sprite;
+			sprite.SetPosition(pos);
+			sprite.SetCenter(kTileSpace*5, -kTileSpace*4);
+
+			switch(type)
+			{
+			case 0: // air
+				break;
+			case 1: // cloud
+				sprite.SetImage(imgs.cloud);
+				sprites.push_back( sprite );
+				break;
+			case 2: // grass
+				{
+					sprite.SetImage(imgs.grass);
+
+					b2BodyDef groundBodyDef;
+					groundBodyDef.position = ppos;
+					b2Body* groundBody = pworld->CreateBody(&groundBodyDef);
+					b2PolygonDef groundShapeDef;
+					groundShapeDef.SetAsBox( world2physics(kTileSize/2), world2physics(kTileSize/2));
+					groundBody->CreateShape(&groundShapeDef);
+
+					boost::shared_ptr<Destroyable> d( new Destroyable(this, sprite, groundBody) );
+					add( d );
+				}
+				break;
+			case 3: // dirt
+				{
+					sprite.SetImage(imgs.dirt);
+					
+					b2BodyDef groundBodyDef;
+					groundBodyDef.position = ppos;
+					b2Body* groundBody = pworld->CreateBody(&groundBodyDef);
+					b2PolygonDef groundShapeDef;
+					groundShapeDef.SetAsBox( world2physics(kTileSize/2), world2physics(kTileSize/2));
+					groundBody->CreateShape(&groundShapeDef);
+
+					boost::shared_ptr<Destroyable> d( new Destroyable(this, sprite, groundBody) );
+					add( d );
+				}
+				break;
+			}
+		}
+
+		if( f.fail() )
+		{
+			std::stringstream ss;
+			ss << level << " - failed to load row" << y << "(" << w << ", "<< h << ")";
+			throw ss.str();
+		}
+	}
 }
 
 struct Fading : Object
@@ -554,19 +634,22 @@ struct Fading : Object
 	/*
 	alpha: 1         1     ...          0
 	time:  0 ... fadestart ... fadestart+fadetime <- remove
+	scale: 1                          1+scale
 	*/
 	float time;
 	float fadestart;
 	float fadetime;
+	float scale;
 	Sprite sp;
 	Vector2f mo;
 	float r;
 
-	Fading(Level* l, Image& img, const Vector2f& p, const Vector2f& center, const Vector2f& move, const float rot, float fstart, float ftime)
+	Fading(Level* l, Image& img, const Vector2f& p, const Vector2f& center, const Vector2f& move, const float rot, float sc, float fstart, float ftime)
 		: Object(l)
 		, time(0)
 		, fadestart(fstart)
 		, fadetime(ftime)
+		, scale(sc)
 		, sp(img, p)
 		, mo(move)
 		, r(rot)
@@ -592,11 +675,18 @@ struct Fading : Object
 			}
 			sp.SetColor(sf::Color(255,255,255, static_cast<Uint8>(255*alpha)));
 		}
+
+		const float s = (time*scale) / (fadestart+fadetime);
+		sp.SetScale(1+s, 1+s);
 	}
 
 	void draw(RenderWindow* rw)
 	{
 		rw->Draw(sp);
+	}
+
+	void onExplosion(const Vector2f& pos, float min, float max, float force)
+	{
 	}
 };
 
@@ -625,7 +715,7 @@ struct Puke : Object
 		shapeDef.localPosition.Set(0.0f, 0.0f);
 		shapeDef.density = 0.7f;
 		shapeDef.friction = 0.3f;
-		shapeDef.restitution = 0.8f; // bouncyness
+		shapeDef.restitution = kPukeBouncy;
 		body->CreateShape(&shapeDef);
 		body->SetMassFromShapes();
 
@@ -650,11 +740,13 @@ struct Puke : Object
 		{
 			if( shouldRemove() == false )
 			{
-				boost::shared_ptr<Fading> explosion( new Fading(level, imgs.explosion, sfpos, Vector2f(45,40), Vector2f(0,-5), 0, 3, 3));
+				boost::shared_ptr<Fading> explosion( new Fading(level, imgs.explosion, sfpos, Vector2f(45,40), Vector2f(0,-5), 0, 1.5f, 3, 3));
 				level->add(explosion);
 
-				boost::shared_ptr<Fading> bang( new Fading(level, imgs.bang, sfpos, Vector2f(60,50), Vector2f(0,-15), 0, 2, 2));
+				boost::shared_ptr<Fading> bang( new Fading(level, imgs.bang, sfpos, Vector2f(60,50), Vector2f(0,-15), 0, 1, 2, 2));
 				level->add(bang);
+
+				level->explode(sfpos, kExplosionRadiusMin, kExplosionRadiusMax, kExplosionForce);
 			}
 			doRemove = true;
 			return;
@@ -666,6 +758,10 @@ struct Puke : Object
 	virtual void draw(RenderWindow* rw)
 	{
 		rw->Draw(sp);
+	}
+
+	void onExplosion(const Vector2f& pos, float min, float max, float force)
+	{
 	}
 };
 
@@ -730,7 +826,7 @@ struct Player : Object
 		shapeDef.localPosition.Set(0.0f, 0.0f);
 		shapeDef.density = 0.3f;
 		shapeDef.friction = 0.3f;
-		shapeDef.restitution = 0.4f; // bouncyness
+		shapeDef.restitution = kPlayerBouncy; // bouncyness
 		body->CreateShape(&shapeDef);
 		body->SetMassFromShapes();
 	}
@@ -775,7 +871,7 @@ struct Player : Object
 		if( pukes > 0 && puketime < 0.1f)
 		{
 			puketime = kPukeTime;
-			boost::shared_ptr<Puke> p( new Puke(level, images, position + (-dd/length) * world2physics(150), direction * 3) );
+			boost::shared_ptr<Puke> p( new Puke(level, images, position + (-dd/length) * world2physics(150), direction * kPukeImpule) );
 			level->add(p);
 		}
 
@@ -783,6 +879,10 @@ struct Player : Object
 		position = Vector2f(physics2world(p.x), physics2world(p.y));
 
 		facingLeft = target.x < position.x;
+	}
+
+	void onExplosion(const Vector2f& pos, float min, float max, float force)
+	{
 	}
 
 private:
@@ -837,6 +937,8 @@ void game()
 
 	TwAddVarRW(bar, "Time per flap", TW_TYPE_FLOAT, &kTimePerFlap, " min=0.05 max=1 step=0.01 ");
 	TwAddVarRW(bar, "Puke time", TW_TYPE_FLOAT, &kPukeTime,        " min=0.05 max=2 step=0.01 ");
+	TwAddVarRW(bar, "Puke impulse", TW_TYPE_FLOAT, &kPukeImpule,        " min=0.05 max=9 step=0.01 ");
+	TwAddVarRW(bar, "Puke bouncy", TW_TYPE_FLOAT, &kPukeBouncy,        " min=0.01 max=0.99 step=0.01 ");
 
 	Color bkg(25, 115, 201);
 	Images img;
