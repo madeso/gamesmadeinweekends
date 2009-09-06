@@ -1041,7 +1041,7 @@ void game(int arg)
 	TwWindowSize(800, 600); // call this or get a bad-size error on draw
 	const sf::Vector2f HalfSize(400, 300);
 
-	RenderWindow App(sf::VideoMode(800, 600, 32), "Let's go cave burrowing - a awwesome game by sirGustav", arg!=2 ? Style::Fullscreen : Style::Close );
+	RenderWindow App(sf::VideoMode(800, 600, 32), "Let's go cave burrowing - a awesome game by sirGustav", arg!=2 ? Style::Fullscreen : Style::Close );
 
 	TwAddVarRW(bar, "Time per flap", TW_TYPE_FLOAT, &kTimePerFlap, " min=0.05 max=1 step=0.01 ");
 	TwAddVarRW(bar, "Puke time", TW_TYPE_FLOAT, &kPukeTime,        " min=0.05 max=2 step=0.01 ");
