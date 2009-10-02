@@ -28,12 +28,38 @@ class Tri
 {
 public:
 	std::vector<sf::Vector2f> points;
+	sf::Shape shape;
+
+	void compile()
+	{
+		shape = sf::Shape();
+		BOOST_FOREACH(const sf::Vector2f& p, points)
+		{
+			shape.AddPoint(p, sf::Color(0, 255, 0) );
+		}
+	}
 };
 
 class TriList
 {
 public:
 	std::vector<Tri> tris;
+
+	void compile()
+	{
+		BOOST_FOREACH(Tri& t, tris)
+		{
+			t.compile();
+		}
+	}
+
+	void draw(sf::RenderTarget* target)
+	{
+		BOOST_FOREACH(const Tri& t, tris)
+		{
+			target->Draw(t.shape);
+		}
+	}
 };
 
 class MyPolygon
@@ -43,6 +69,8 @@ public:
 	{
 		const std::size_t size = positions.size();
 		if( size < 1 ) return;
+
+		if( tris ) tris->draw(target);
 
 		sf::Vector2f first = positions[0];
 		sf::Vector2f second = first;
@@ -63,7 +91,7 @@ public:
 		return positions.size() > 2;
 	}
 
-	void triangulate()
+	void compile()
 	{
 		typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
 		typedef CGAL::Partition_traits_2<K>                         Traits;
@@ -79,6 +107,11 @@ public:
 		{
 			polygon.push_back(Point_2(pos.x, pos.y));
 		}
+
+		/*if( orientation_2(polygon.begin(), polygon.end(), Traits) == COUNTERCLOCKWISE )
+		{
+			std::reverse(polygon.begin(), polygon.end());
+		}*/
 
 		CGAL::y_monotone_partition_2(polygon.vertices_begin(),
 			polygon.vertices_end(),
@@ -101,6 +134,8 @@ public:
 			}*/
 			tris->tris.push_back(tri);
 		}
+
+		tris->compile();
 	}
 
 	std::vector<sf::Vector2f> positions;
@@ -173,6 +208,7 @@ private :
 		{
 			if( current.isValid() )
 			{
+				current.compile();
 				polygons.push_back(current);
 			}
 			current = MyPolygon();
