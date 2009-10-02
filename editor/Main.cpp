@@ -7,6 +7,12 @@
 #include <SFML/OpenGL.hpp>
 #include <boost/foreach.hpp>
 #include <iostream>
+#include <boost/shared_ptr.hpp>
+
+#include <CGAL/basic.h>
+#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+#include <CGAL/Partition_traits_2.h>
+#include <CGAL/partition_2.h>
 
 #ifdef _DEBUG
 #define OPTIONS "-s-d"
@@ -18,9 +24,17 @@
 #pragma comment(lib, "sfml-system" OPTIONS ".lib")
 #pragma comment(lib, "sfml-window" OPTIONS ".lib")
 
-////////////////////////////////////////////////////////////
-/// Custom SFML canvas
-////////////////////////////////////////////////////////////
+class Tri
+{
+public:
+	std::vector<sf::Vector2f> points;
+};
+
+class TriList
+{
+public:
+	std::vector<Tri> tris;
+};
 
 class MyPolygon
 {
@@ -42,8 +56,6 @@ public:
 
 		second = last ? *last : positions[0];
 		target->Draw(sf::Shape::Line(first.x, first.y, second.x, second.y, 1, sf::Color(0,0,0)));
-
-		glEnd();
 	}
 
 	bool isValid() const
@@ -51,7 +63,49 @@ public:
 		return positions.size() > 2;
 	}
 
+	void triangulate()
+	{
+		typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
+		typedef CGAL::Partition_traits_2<K>                         Traits;
+		typedef Traits::Point_2                                     Point_2;
+		typedef Traits::Polygon_2                                   Polygon_2;
+		typedef std::list<Polygon_2>                                Polygon_list;
+		typedef CGAL::Creator_uniform_2<int, Point_2>               Creator;
+
+		Polygon_2    polygon;
+		Polygon_list partition_polys;
+
+		BOOST_FOREACH(const sf::Vector2f& pos, positions)
+		{
+			polygon.push_back(Point_2(pos.x, pos.y));
+		}
+
+		CGAL::y_monotone_partition_2(polygon.vertices_begin(),
+			polygon.vertices_end(),
+			std::back_inserter(partition_polys));
+
+		if( tris ) tris->tris.resize(0);
+		else tris.reset( new TriList() );
+
+		BOOST_FOREACH(const Polygon_2& poly, partition_polys)
+		{
+			Tri tri;
+			int i = 0;
+			for(Polygon_2::Vertex_iterator p = poly.vertices_begin(); p != poly.vertices_end(); ++p)
+			{
+				tri.points.push_back( sf::Vector2f(p->x(), p->y()) );
+			}
+			/*for(int i=0; i<3; ++i)
+			{
+				tri.points[i] = sf::Vector2f(poly[i].x(), poly[i].y());
+			}*/
+			tris->tris.push_back(tri);
+		}
+	}
+
 	std::vector<sf::Vector2f> positions;
+	std::vector<sf::Shape> shapes;
+	boost::shared_ptr<TriList> tris;
 };
 
 class MyCanvas : public wxSFMLCanvas
