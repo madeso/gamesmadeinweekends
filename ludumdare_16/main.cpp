@@ -39,6 +39,7 @@ struct Graphics
 {
 	Img Unknown;
 	Img Over;
+	Img Player;
 
 	Img Water[kNumberOfSubs];
 	Img Grass[kNumberOfSubs];
@@ -47,12 +48,16 @@ struct Graphics
 	{
 		Unknown = LoadImage("unknown.png");
 		Over = LoadImage("over.png");
+		Player = LoadImage("player.png");
 		for(int i=0; i<kNumberOfSubs; ++i)
 			Water[i] = LoadImage( (Streamer() << "water" << (i+1) << ".png").ss.str() );
 		for(int i=0; i<kNumberOfSubs; ++i)
 			Grass[i] = LoadImage( (Streamer() << "grass" << (i+1) << ".png").ss.str() );
 	}
 };
+
+const int Width = 24;
+const int Height = 18;
 
 struct Random
 {
@@ -62,15 +67,23 @@ private:
 	Rng rng;
 	boost::uniform_int<> water;
 	boost::uniform_int<> index;
+	boost::uniform_int<> worldx;
+	boost::uniform_int<> worldy;
 public:
 	boost::variate_generator<Rng&, boost::uniform_int<> > waterGen;
 	boost::variate_generator<Rng&, boost::uniform_int<> > indexGen;
+	boost::variate_generator<Rng&, boost::uniform_int<> > worldxGen;
+	boost::variate_generator<Rng&, boost::uniform_int<> > worldyGen;
 
 	Random()
 		: water(0,2)
 		, index(0, kNumberOfSubs-1)
+		, worldx(0, Width-1)
+		, worldy(0, Height-1)
 		, waterGen(rng, water)
 		, indexGen(rng, index)
+		, worldxGen(rng, worldx)
+		, worldyGen(rng, worldy)
 	{
 	}
 };
@@ -80,6 +93,14 @@ const int kHalfBlockSize = kBlockSize / 2;
 
 const int kOffsetX = 32;
 const int kOffsetY = 28;
+
+sf::Sprite CreateSprite(int x, int y)
+{
+	sf::Sprite sp;
+	sp.SetPosition(static_cast<float>(kBlockSize*x + kOffsetX), static_cast<float>(kBlockSize*y + kOffsetY));
+	sp.SetOrigin(static_cast<float>(kHalfBlockSize), static_cast<float>(kHalfBlockSize));
+	return sp;
+}
 
 struct Block
 {
@@ -101,17 +122,9 @@ struct Block
 		index = r->indexGen();
 	}
 
-	sf::Sprite createSprite()
-	{
-		sf::Sprite sp;
-		sp.SetPosition(static_cast<float>(kBlockSize*x + kOffsetX), static_cast<float>(kBlockSize*y + kOffsetY));
-		sp.SetOrigin(static_cast<float>(kHalfBlockSize), static_cast<float>(kHalfBlockSize));
-		return sp;
-	}
-
 	void draw(sf::RenderWindow* app, Graphics* g, bool over)
 	{
-		sf::Sprite sp = createSprite();
+		sf::Sprite sp = CreateSprite(x,y);
 		sp.SetImage(img(g));
 		app->Draw(sp);
 		if( over )
@@ -145,15 +158,84 @@ struct Block
 	int index;
 };
 
-const int Width = 24;
-const int Height = 18;
+struct Pos
+{
+	Pos()
+		: x(0)
+		, y(0)
+	{
+	}
+
+	Pos(int ax, int ay)
+		: x(ax)
+		, y(ay)
+	{
+	}
+
+	Pos change(int cx,int cy) const
+	{
+		return Pos(x+cx, y+cy);
+	}
+
+	bool operator==(const Pos& p) const
+	{
+		return x==p.x && y==p.y;
+	}
+
+	int x;
+	int y;
+};
+
+struct Player
+{
+	int x;
+	int y;
+
+	Player()
+		: x(0)
+		, y(0)
+	{
+	}
+
+	void setup(Random* r)
+	{
+		x = r->worldxGen();
+		y = r->worldyGen();
+	}
+
+	void draw(sf::RenderWindow* app, Graphics* g)
+	{
+		sf::Sprite sp = CreateSprite(x,y);
+		sp.SetImage(*g->Player);
+		app->Draw(sp);
+	}
+
+	bool nextTo(const Block& b)
+	{
+		const Pos me(x,y);
+		const Pos bl(b.x, b.y);
+
+		return me.change(1,0) == bl
+			|| me.change(0, 1) == bl
+			|| me.change(-1, 0) == bl
+			|| me.change(0, -1) == bl;
+	}
+	void moveTo(const Block& b)
+	{
+		x = b.x;
+		y = b.y;
+	}
+};
 
 struct Level
 {
 	Block block[Width][Height];
 
+	Player player;
+
 	void setup(Random* r)
 	{
+		player.setup(r);
 		for(int w=0; w<Width; ++w)
 		{
 			for(int h=0; h<Height; ++h)
@@ -173,6 +255,8 @@ struct Level
 				b->draw(app, g, b==bov);
 			}
 		}
+
+		player.draw(app, g);
 	}
 
 	Block* over(int x, int y)
@@ -231,14 +315,19 @@ void main()
 		mb = down;
 
 		Block* bov = l.over(MX(App), MY(App));
+		Player* player = &l.player;
 
 		if( click ) 
 		{
 			if( bov )
 			{
-				if( bov->visible == false )
+				if( player->nextTo(*bov) )
 				{
-					bov->visible = true;
+					player->moveTo(*bov);
+					if( bov->visible == false )
+					{
+						bov->visible = true;
+					}
 				}
 			}
 		}
