@@ -40,6 +40,7 @@ struct Graphics
 	Img Unknown;
 	Img Over;
 	Img Player;
+	Img Steps;
 
 	Img Water[kNumberOfSubs];
 	Img Grass[kNumberOfSubs];
@@ -49,6 +50,7 @@ struct Graphics
 		Unknown = LoadImage("unknown.png");
 		Over = LoadImage("over.png");
 		Player = LoadImage("player.png");
+		Steps = LoadImage("steps.png");
 		for(int i=0; i<kNumberOfSubs; ++i)
 			Water[i] = LoadImage( (Streamer() << "water" << (i+1) << ".png").ss.str() );
 		for(int i=0; i<kNumberOfSubs; ++i)
@@ -226,16 +228,19 @@ struct Player
 	std::vector<Pos> listMovement(Block* b)
 	{
 		std::vector<Pos> m;
-		for(int x=this->x; x<b->x; ++x) m.push_back(Pos(1,0));
-		for(int x=this->x; x>b->x; --x) m.push_back(Pos(-1,0));
-		for(int y=this->y; y<b->y; ++y) m.push_back(Pos(0,1));
-		for(int y=this->y; y>b->y; --y) m.push_back(Pos(0,-1));
+		int mx = this->x;
+		int my = this->y;
+		for(int x=mx+1; x<=b->x; ++x) m.push_back(Pos(x,my));
+		for(int x=mx-1; x>=b->x; --x) m.push_back(Pos(x,my));
+		mx = b->x;
+		for(int y=my+1; y<=b->y; ++y) m.push_back(Pos(mx,y));
+		for(int y=my-1; y>=b->y; --y) m.push_back(Pos(mx,y));
 		return m;
 	}
 
 	void move(Level* l, const Pos& p)
 	{
-		Block* b = At(l, x+p.x, y+p.y);
+		Block* b = At(l, p.x, p.y);
 		moveTo(b);
 	}
 
@@ -266,7 +271,7 @@ struct Level
 		player.setup(r, this);
 	}
 
-	void draw(sf::RenderWindow* app, Graphics* g, Block* bov)
+	void draw(sf::RenderWindow* app, Graphics* g, Block* bov, std::vector<Pos>& path)
 	{
 		for(int w=0; w<Width; ++w)
 		{
@@ -275,6 +280,13 @@ struct Level
 				Block* b = &(block[w][h]);
 				b->draw(app, g, b==bov);
 			}
+		}
+
+		for(std::size_t i=0; i<path.size(); ++i)
+		{
+			sf::Sprite sp = CreateSprite(path[i].x, path[i].y);
+			sp.SetImage(*g->Steps);
+			app->Draw(sp);
 		}
 
 		player.draw(app, g);
@@ -343,19 +355,24 @@ void main()
 		Block* bov = l.over(MX(App), MY(App));
 		Player* player = &l.player;
 
+		std::vector<Pos> path;
+		if( bov )
+		{
+			path = player->listMovement(bov);
+		}
+
 		if( click ) 
 		{
 			if( bov )
 			{
-				std::vector<Pos> m = player->listMovement(bov);
-				if( !m.empty() )
-					player->move(&l, m[0]);
+				if( !path.empty() )
+					player->move(&l, path[0]);
 			}
 		}
 
 		App.Clear();
 
-		l.draw(&App, &g, bov);
+		l.draw(&App, &g, bov, path);
 
 		App.Display();
 	}
