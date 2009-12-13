@@ -44,6 +44,7 @@ struct Graphics
 	Img Steps;
 	Img Action;
 	Img Logo;
+	Img Completed;
 
 	Img Treasure[kNumberOfTreasures];
 
@@ -58,6 +59,7 @@ struct Graphics
 		Steps = LoadImage("steps.png");
 		Action = LoadImage("action.png");
 		Logo = LoadImage("logo.png");
+		Completed = LoadImage("complete.png");
 
 		for(int i=0; i<kNumberOfTreasures; ++i)
 			Treasure[i] = LoadImage( (Streamer() << "treasure" << (i+1) << ".png").ss.str() );
@@ -353,6 +355,19 @@ struct Level
 {
 	Block block[Width][Height];
 
+	bool HasHidden()
+	{
+		for(int w=0; w<Width; ++w)
+		{
+			for(int h=0; h<Height; ++h)
+			{
+				if( block[w][h].visible == false ) return true;
+			}
+		}
+
+		return false;
+	}
+
 	void setup(Random* r)
 	{
 		playerindex = 0;
@@ -510,9 +525,19 @@ AI SelectHumanAi()
 	return ai;
 }
 
+void Print(sf::RenderWindow* app, int x, int y, const std::string& text, int size = 30)
+{
+	sf::String t;
+	t.SetFont(sf::Font::GetDefaultFont());
+	t.SetText(text);
+	t.SetPosition(x, y);
+	t.SetSize(size);
+	app->Draw(t);
+}
+
 void main()
 {
-	sf::RenderWindow App(sf::VideoMode(800, 600, 32), "Exploration game");
+	sf::RenderWindow App(sf::VideoMode(800, 600, 32), "Xplore!");
 
 	Graphics g;
 	Random r;
@@ -526,6 +551,8 @@ void main()
 
 	bool mb = false;
 	bool menu = true;
+	bool completed = false;
+	bool newgame = false;
 
 	while (App.IsOpened())
 	{
@@ -543,15 +570,26 @@ void main()
 				switch(Event.Key.Code)
 				{
 				case sf::Key::R:
-					l.setup(&r);
+					newgame = true;
 					break;
 				case sf::Key::Space:
 					input.skip = true;
 					break;
 				case sf::Key::Escape:
 					menu = !menu;
+					break;
+				case sf::Key::D:
+					completed = true;
+					break;
 				}
 			}
+		}
+
+		if( newgame )
+		{
+			l.setup(&r);
+			completed = false;
+			newgame = false;
 		}
 
 		const bool down = App.GetInput().IsMouseButtonDown(sf::Mouse::Left);
@@ -563,15 +601,26 @@ void main()
 		}
 		else
 		{
-			bool next = l.updateCurrentPlayer(input, &App);
-			if( next )
+			if( completed )
 			{
-				l.selectNextPlayer();
+			}
+			else
+			{
+				bool next = l.updateCurrentPlayer(input, &App);
+				if( next )
+				{
+					l.selectNextPlayer();
+				}
+
+				if( l.HasHidden() == false )
+				{
+					completed = true;
+				}
 			}
 		}
 
 		App.Clear();
-		l.draw(&App, &g, menu);
+		l.draw(&App, &g, completed || menu);
 		if( menu )
 		{
 			App.Draw(sf::Shape::Rectangle(0, 0, 800, 600, sf::Color(0,0,0,150)));
@@ -582,6 +631,27 @@ void main()
 				sp.SetOrigin(196, 0);
 				App.Draw(sp);
 			}
+
+			Print(&App, 275, 290, "space - skip your round");
+			Print(&App, 275, 330, "R - restart");
+			Print(&App, 275, 370, "esc - menu");
+
+			Print(&App, 600, 550, "made by sirGustav", 20);
+		}
+		else if( completed )
+		{
+			App.Draw(sf::Shape::Rectangle(0, 0, 800, 600, sf::Color(0,0,0,150)));
+			{
+				sf::Sprite sp;
+				sp.SetImage(*g.Completed);
+				sp.SetPosition(400, 30);
+				sp.SetOrigin(196, 0);
+				App.Draw(sp);
+			}
+
+			Print(&App, 275, 290, "the world is explored");
+			Print(&App, 290, 330, "you can now retire in peace");
+			Print(&App, 290, 550, "<hit R to play again>", 20);
 		}
 		App.Display();
 	}
