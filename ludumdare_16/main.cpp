@@ -1,9 +1,14 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/random.hpp>
 #include <sstream>
 
+#ifdef NDEBUG
+#define SFML_DEBUG_EXTRA_NAME ""
+#else
 #define SFML_DEBUG_EXTRA_NAME "-d"
+#endif
 #define SFML(x) "sfml-" #x SFML_DEBUG_EXTRA_NAME ".lib"
 
 #pragma comment(lib, SFML(system) )
@@ -35,6 +40,51 @@ struct Streamer
 
 const int kNumberOfSubs = 1;
 const int kNumberOfTreasures = 1;
+
+struct SoundT
+{
+	SoundT(const std::string& path)
+	{
+		const bool loaded = buff.LoadFromFile(path);
+		if( loaded == false ) throw "unable to laod sound";
+		sound.SetBuffer(buff);
+	}
+
+	void play()
+	{
+		sound.Stop();
+		sound.Play();
+	}
+
+	sf::SoundBuffer buff;
+	sf::Sound sound;
+};
+
+typedef boost::shared_ptr<SoundT> Sound;
+
+Sound LoadSound(const std::string& path)
+{
+	Sound s(new SoundT(path));
+	return s;
+}
+
+struct SoundPlayer
+{
+	Sound Walk;
+	Sound Treasure;
+	Sound Water;
+	Sound Cantmove;
+
+	SoundPlayer()
+	{
+		Walk = LoadSound("walk.wav");
+		Treasure = LoadSound("treasure.wav");
+		Water = LoadSound("water.wav");
+		Cantmove = LoadSound("cantmove.wav");
+	}
+};
+
+SoundPlayer* soundplayer = 0;
 
 struct Graphics
 {
@@ -330,7 +380,9 @@ struct Player
 			Block* b = At(l, p.x, p.y);
 			moveTo(b);
 			steps -= stepsNeeded;
+			(at->isWater?soundplayer->Water:soundplayer->Walk)->play();
 		}
+		else soundplayer->Cantmove->play();
 	}
 
 	bool run(const Input& input, sf::RenderWindow* app, Level* l)
@@ -530,8 +582,8 @@ void Print(sf::RenderWindow* app, int x, int y, const std::string& text, int siz
 	sf::String t;
 	t.SetFont(sf::Font::GetDefaultFont());
 	t.SetText(text);
-	t.SetPosition(x, y);
-	t.SetSize(size);
+	t.SetPosition(static_cast<float>(x), static_cast<float>(y));
+	t.SetSize(static_cast<float>(size));
 	app->Draw(t);
 }
 
@@ -540,9 +592,12 @@ void main()
 	sf::RenderWindow App(sf::VideoMode(800, 600, 32), "Xplore!");
 
 	Graphics g;
+	SoundPlayer sp;
 	Random r;
 	Input input;
 	Level l;
+
+	soundplayer = &sp;
 
 	l.players.push_back(Player());
 	l.players.push_back(Player());
