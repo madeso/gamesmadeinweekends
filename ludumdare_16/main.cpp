@@ -43,6 +43,7 @@ struct Graphics
 	Img Player;
 	Img Steps;
 	Img Action;
+	Img Logo;
 
 	Img Treasure[kNumberOfTreasures];
 
@@ -56,6 +57,7 @@ struct Graphics
 		Player = LoadImage("player.png");
 		Steps = LoadImage("steps.png");
 		Action = LoadImage("action.png");
+		Logo = LoadImage("logo.png");
 
 		for(int i=0; i<kNumberOfTreasures; ++i)
 			Treasure[i] = LoadImage( (Streamer() << "treasure" << (i+1) << ".png").ss.str() );
@@ -143,6 +145,7 @@ struct Block
 	{
 		x = ax;
 		y = ay;
+		visible = false;
 		treasure = 0;
 		isWater = r->waterGen() == 0;
 		index = r->indexGen();
@@ -374,7 +377,7 @@ struct Level
 		}
 	}
 
-	void draw(sf::RenderWindow* app, Graphics* g)
+	void draw(sf::RenderWindow* app, Graphics* g, bool menu)
 	{
 		for(int w=0; w<Width; ++w)
 		{
@@ -388,7 +391,7 @@ struct Level
 		for(std::size_t i=0; i<players.size(); ++i)
 		{
 			Player* p = &players[i];
-			p->draw(app, g, this, p == currentPlayer());
+			p->draw(app, g, this, menu==false && p==currentPlayer());
 		}
 	}
 
@@ -522,13 +525,13 @@ void main()
 	l.setup(&r);
 
 	bool mb = false;
+	bool menu = true;
 
 	while (App.IsOpened())
 	{
 		sf::Event Event;
 
 		input.skip = false;
-
 		while (App.GetEvent(Event))
 		{
 			if (Event.Type == sf::Event::Closed)
@@ -542,9 +545,11 @@ void main()
 				case sf::Key::R:
 					l.setup(&r);
 					break;
-				case sf::Key::Escape:
+				case sf::Key::Space:
 					input.skip = true;
 					break;
+				case sf::Key::Escape:
+					menu = !menu;
 				}
 			}
 		}
@@ -553,16 +558,31 @@ void main()
 		input.click = down && !mb;
 		mb = down;
 
-		bool next = l.updateCurrentPlayer(input, &App);
-		if( next )
+		if( menu )
 		{
-			l.selectNextPlayer();
+		}
+		else
+		{
+			bool next = l.updateCurrentPlayer(input, &App);
+			if( next )
+			{
+				l.selectNextPlayer();
+			}
 		}
 
 		App.Clear();
-
-		l.draw(&App, &g);
-
+		l.draw(&App, &g, menu);
+		if( menu )
+		{
+			App.Draw(sf::Shape::Rectangle(0, 0, 800, 600, sf::Color(0,0,0,150)));
+			{
+				sf::Sprite sp;
+				sp.SetImage(*g.Logo);
+				sp.SetPosition(400, 30);
+				sp.SetOrigin(196, 0);
+				App.Draw(sp);
+			}
+		}
 		App.Display();
 	}
 }
