@@ -34,6 +34,7 @@ struct Streamer
 };
 
 const int kNumberOfSubs = 1;
+const int kNumberOfTreasures = 1;
 
 struct Graphics
 {
@@ -41,6 +42,8 @@ struct Graphics
 	Img Over;
 	Img Player;
 	Img Steps;
+
+	Img Treasure[kNumberOfTreasures];
 
 	Img Water[kNumberOfSubs];
 	Img Grass[kNumberOfSubs];
@@ -51,6 +54,8 @@ struct Graphics
 		Over = LoadImage("over.png");
 		Player = LoadImage("player.png");
 		Steps = LoadImage("steps.png");
+		for(int i=0; i<kNumberOfTreasures; ++i)
+			Treasure[i] = LoadImage( (Streamer() << "treasure" << (i+1) << ".png").ss.str() );
 		for(int i=0; i<kNumberOfSubs; ++i)
 			Water[i] = LoadImage( (Streamer() << "water" << (i+1) << ".png").ss.str() );
 		for(int i=0; i<kNumberOfSubs; ++i)
@@ -71,22 +76,28 @@ private:
 	boost::uniform_int<> index;
 	boost::uniform_int<> worldx;
 	boost::uniform_int<> worldy;
+	boost::uniform_int<> treasure;
 public:
 	boost::variate_generator<Rng&, boost::uniform_int<> > waterGen;
 	boost::variate_generator<Rng&, boost::uniform_int<> > indexGen;
 	boost::variate_generator<Rng&, boost::uniform_int<> > worldxGen;
 	boost::variate_generator<Rng&, boost::uniform_int<> > worldyGen;
+	boost::variate_generator<Rng&, boost::uniform_int<> > treasureGen;
 
 	Random()
 		: water(0,2)
 		, index(0, kNumberOfSubs-1)
 		, worldx(0, Width-1)
 		, worldy(0, Height-1)
+		, treasure(1, kNumberOfTreasures)
 		, waterGen(rng, water)
 		, indexGen(rng, index)
 		, worldxGen(rng, worldx)
 		, worldyGen(rng, worldy)
+		, treasureGen(rng, treasure)
 	{
+		// create a better startup seed
+		rng.seed(static_cast<unsigned int>(std::time(0)));
 	}
 };
 
@@ -96,10 +107,17 @@ const int kHalfBlockSize = kBlockSize / 2;
 const int kOffsetX = 32;
 const int kOffsetY = 28;
 
-sf::Sprite CreateSprite(int x, int y)
+sf::Sprite CreateSprite(int x, int y, bool offset=true)
 {
 	sf::Sprite sp;
-	sp.SetPosition(static_cast<float>(kBlockSize*x + kOffsetX), static_cast<float>(kBlockSize*y + kOffsetY));
+	if( offset )
+	{
+		sp.SetPosition(static_cast<float>(kBlockSize*x + kOffsetX), static_cast<float>(kBlockSize*y + kOffsetY));
+	}
+	else
+	{
+		sp.SetPosition(static_cast<float>(kBlockSize*x + kHalfBlockSize), static_cast<float>(kBlockSize*y + kHalfBlockSize));
+	}
 	sp.SetOrigin(static_cast<float>(kHalfBlockSize), static_cast<float>(kHalfBlockSize));
 	return sp;
 }
@@ -110,16 +128,19 @@ struct Block
 		: visible(false)
 		, isWater(false)
 		, index(0)
+		, treasure(0)
 	{
 	}
 
 	int x;
 	int y;
+	int treasure; // > 0 == treasure
 
 	void setup(Random* r, int ax, int ay)
 	{
 		x = ax;
 		y = ay;
+		treasure = 0;
 		isWater = r->waterGen() == 0;
 		index = r->indexGen();
 	}
@@ -196,6 +217,8 @@ struct Player
 	int x;
 	int y;
 
+	std::vector<int> treasures;
+
 	Player()
 		: x(0)
 		, y(0)
@@ -214,6 +237,17 @@ struct Player
 		app->Draw(sp);
 	}
 
+	void drawTreasures(sf::RenderWindow* app, Graphics* g)
+	{
+		for(std::size_t i=0; i<treasures.size(); ++i)
+		{
+			sf::Sprite sp = CreateSprite(static_cast<int>(i),0, false);
+			const int t = treasures[i]-1;
+			sp.SetImage(*g->Treasure[t]);
+			app->Draw(sp);
+		}
+	}
+
 	bool nextTo(const Block& b)
 	{
 		const Pos me(x,y);
@@ -227,6 +261,7 @@ struct Player
 
 	std::vector<Pos> listMovement(Block* b)
 	{
+		// a* would have been nice, i'll se if i can make it :)
 		std::vector<Pos> m;
 		int mx = this->x;
 		int my = this->y;
@@ -249,6 +284,11 @@ struct Player
 		x = b->x;
 		y = b->y;
 		b->visible = true;
+		if( b->treasure > 0 )
+		{
+			treasures.push_back(b->treasure);
+			b->treasure = 0;
+		}
 	}
 };
 
@@ -266,6 +306,12 @@ struct Level
 			{
 				block[w][h].setup(r, w, h);
 			}
+		}
+
+		for(int i=0; i<kNumberOfTreasures*2; ++i)
+		{
+			Block& b = block[r->worldxGen()][r->worldyGen()];
+			b.treasure = r->treasureGen();
 		}
 
 		player.setup(r, this);
@@ -334,9 +380,6 @@ void main()
 	Level l;
 	l.setup(&r);
 
-	sf::Sprite sp;
-	sp.SetImage(*g.Unknown);
-
 	bool mb = false;
 
 	while (App.IsOpened())
@@ -373,6 +416,7 @@ void main()
 		App.Clear();
 
 		l.draw(&App, &g, bov, path);
+		player->drawTreasures(&App, &g);
 
 		App.Display();
 	}
