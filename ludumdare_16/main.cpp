@@ -95,6 +95,7 @@ struct Graphics
 	Img Unknown;
 	Img Over;
 	Img Player;
+	Img OtherPlayer;
 	Img Steps;
 	Img Action;
 	Img Logo;
@@ -110,6 +111,7 @@ struct Graphics
 		Unknown = LoadImage("unknown.png");
 		Over = LoadImage("over.png");
 		Player = LoadImage("player.png");
+		OtherPlayer = LoadImage("otherplayer.png");
 		Steps = LoadImage("steps.png");
 		Action = LoadImage("action.png");
 		Logo = LoadImage("logo.png");
@@ -301,14 +303,17 @@ struct Player
 	int x;
 	int y;
 
+	bool first;
+
 	std::vector<int> treasures;
 	int steps;
 
 	AI ai;
 
-	Player()
+	Player(bool f)
 		: x(0)
 		, y(0)
+		, first(f)
 	{
 	}
 
@@ -323,7 +328,7 @@ struct Player
 	void draw(sf::RenderWindow* app, Graphics* g, Level* l, bool active)
 	{
 		sf::Sprite sp = CreateSprite(x,y);
-		sp.SetImage(*g->Player);
+		sp.SetImage(first ? *g->Player : *g->OtherPlayer);
 		app->Draw(sp);
 		if( active )
 		{
@@ -437,7 +442,7 @@ struct Level
 			}
 		}
 
-		for(int i=0; i<kNumberOfTreasures*2; ++i)
+		for(int i=0; i<kNumberOfTreasures*5; ++i)
 		{
 			Block& b = block[r->worldxGen()][r->worldyGen()];
 			b.treasure = r->treasureGen();
@@ -604,8 +609,8 @@ void main()
 
 	soundplayer = &sp;
 
-	l.players.push_back(Player());
-	l.players.push_back(Player());
+	l.players.push_back(Player(true));
+	l.players.push_back(Player(false));
 
 	l.setup(&r);
 
@@ -658,6 +663,7 @@ void main()
 
 		if( menu )
 		{
+			if( completed ) newgame = true;
 		}
 		else
 		{
@@ -713,6 +719,35 @@ void main()
 
 			Print(&App, 275, 290, "the world is explored");
 			Print(&App, 290, 330, "you can now retire in peace");
+
+			const std::size_t t1 = l.players[0].treasures.size();
+			const std::size_t t2 = l.players[1].treasures.size();
+
+			std::string text;
+			const float scale = 2.5f;
+			sf::Sprite sp = CreateSprite(5, 10);
+			sp.SetScale(scale, scale);
+
+			if( t1 == t2 )
+			{
+				text = "Both explorers collected the same ammount of treasures!";
+			}
+			else if( t1 > t2 )
+			{
+				text = "The first explorer got the most treasures!";
+
+				sp.SetImage(*g.Player);
+				App.Draw(sp);
+			}
+			else
+			{
+				text = "The second explorer got the most treasures!";
+				sp.SetImage(*g.OtherPlayer);
+				App.Draw(sp);
+			}
+
+			Print(&App, 200, 400, text, 20);
+
 			Print(&App, 290, 550, "<hit R to play again>", 20);
 		}
 		App.Display();
