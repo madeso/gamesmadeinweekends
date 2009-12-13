@@ -261,12 +261,15 @@ struct Player
 		ai = SelectHumanAi();
 	}
 
-	void draw(sf::RenderWindow* app, Graphics* g, Level* l)
+	void draw(sf::RenderWindow* app, Graphics* g, Level* l, bool active)
 	{
 		sf::Sprite sp = CreateSprite(x,y);
 		sp.SetImage(*g->Player);
 		app->Draw(sp);
-		ai->draw(app, g, l, this);
+		if( active )
+		{
+			ai->draw(app, g, l, this);
+		}
 	}
 
 	void drawTreasures(sf::RenderWindow* app, Graphics* g)
@@ -347,10 +350,10 @@ struct Level
 {
 	Block block[Width][Height];
 
-	Player player;
-
 	void setup(Random* r)
 	{
+		playerindex = 0;
+
 		for(int w=0; w<Width; ++w)
 		{
 			for(int h=0; h<Height; ++h)
@@ -365,7 +368,10 @@ struct Level
 			b.treasure = r->treasureGen();
 		}
 
-		player.setup(r, this);
+		for(std::size_t i=0; i<players.size(); ++i)
+		{
+			players[i].setup(r, this);
+		}
 	}
 
 	void draw(sf::RenderWindow* app, Graphics* g)
@@ -379,12 +385,19 @@ struct Level
 			}
 		}
 
-		player.draw(app, g, this);
+		for(std::size_t i=0; i<players.size(); ++i)
+		{
+			Player* p = &players[i];
+			p->draw(app, g, this, p == currentPlayer());
+		}
 	}
+
+	std::vector<Player> players;
+	std::size_t playerindex;
 
 	Player* currentPlayer()
 	{
-		return &player;
+		return &players[playerindex];
 	}
 
 	bool updateCurrentPlayer(const Input& input, sf::RenderWindow* app)
@@ -393,7 +406,9 @@ struct Level
 	}
 	void selectNextPlayer()
 	{
-		Player* p = &player;
+		++playerindex;
+		if( playerindex >= players.size()) playerindex = 0;
+		Player* p = currentPlayer();
 		p->steps = kMaxSteps;
 	}
 
@@ -477,6 +492,11 @@ struct HumanAi : public Ai
 		}
 	}
 
+	HumanAi()
+		: bov(0)
+	{
+	}
+
 	Block* bov;
 	std::vector<Pos> path;
 };
@@ -495,6 +515,10 @@ void main()
 	Random r;
 	Input input;
 	Level l;
+
+	l.players.push_back(Player());
+	l.players.push_back(Player());
+
 	l.setup(&r);
 
 	bool mb = false;
