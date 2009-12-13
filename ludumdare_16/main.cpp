@@ -74,6 +74,8 @@ struct SoundPlayer
 	Sound Treasure;
 	Sound Water;
 	Sound Cantmove;
+	Sound Change;
+	Sound Skip;
 
 	SoundPlayer()
 	{
@@ -81,6 +83,8 @@ struct SoundPlayer
 		Treasure = LoadSound("treasure.wav");
 		Water = LoadSound("water.wav");
 		Cantmove = LoadSound("cantmove.wav");
+		Change = LoadSound("change.wav");
+		Skip = LoadSound("skip.wav");
 	}
 };
 
@@ -399,6 +403,7 @@ struct Player
 		{
 			treasures.push_back(b->treasure);
 			b->treasure = 0;
+			soundplayer->Treasure->play();
 		}
 	}
 };
@@ -577,13 +582,13 @@ AI SelectHumanAi()
 	return ai;
 }
 
-void Print(sf::RenderWindow* app, int x, int y, const std::string& text, int size = 30)
+void Print(sf::RenderWindow* app, int x, int y, const std::string& text, unsigned int size = 30)
 {
-	sf::String t;
+	sf::Text t;
 	t.SetFont(sf::Font::GetDefaultFont());
-	t.SetText(text);
+	t.SetString(text);
 	t.SetPosition(static_cast<float>(x), static_cast<float>(y));
-	t.SetSize(static_cast<float>(size));
+	t.SetCharacterSize(size);
 	app->Draw(t);
 }
 
@@ -664,6 +669,8 @@ void main()
 				bool next = l.updateCurrentPlayer(input, &App);
 				if( next )
 				{
+					(input.skip ? sp.Skip : sp.Change)->play();
+
 					l.selectNextPlayer();
 				}
 
