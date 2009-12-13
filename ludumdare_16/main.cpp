@@ -42,6 +42,7 @@ struct Graphics
 	Img Over;
 	Img Player;
 	Img Steps;
+	Img Action;
 
 	Img Treasure[kNumberOfTreasures];
 
@@ -54,6 +55,8 @@ struct Graphics
 		Over = LoadImage("over.png");
 		Player = LoadImage("player.png");
 		Steps = LoadImage("steps.png");
+		Action = LoadImage("action.png");
+
 		for(int i=0; i<kNumberOfTreasures; ++i)
 			Treasure[i] = LoadImage( (Streamer() << "treasure" << (i+1) << ".png").ss.str() );
 		for(int i=0; i<kNumberOfSubs; ++i)
@@ -273,6 +276,14 @@ struct Player
 			sf::Sprite sp = CreateSprite(static_cast<int>(i),0, false);
 			const int t = treasures[i]-1;
 			sp.SetImage(*g->Treasure[t]);
+			app->Draw(sp);
+		}
+
+		for(int i=0; i<steps; ++i)
+		{
+			sf::Sprite sp = CreateSprite(i,0, false);
+			sp.SetPosition(sp.GetPosition().x, 600-kHalfBlockSize);
+			sp.SetImage(*g->Action);
 			app->Draw(sp);
 		}
 	}
