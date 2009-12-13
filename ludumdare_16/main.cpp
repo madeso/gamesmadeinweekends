@@ -186,6 +186,9 @@ struct Pos
 	int y;
 };
 
+struct Level;
+Block* At(Level* level, int x, int y);
+
 struct Player
 {
 	int x;
@@ -197,10 +200,9 @@ struct Player
 	{
 	}
 
-	void setup(Random* r)
+	void setup(Random* r, Level* l)
 	{
-		x = r->worldxGen();
-		y = r->worldyGen();
+		moveTo(At(l, r->worldxGen(), r->worldxGen()));
 	}
 
 	void draw(sf::RenderWindow* app, Graphics* g)
@@ -220,10 +222,28 @@ struct Player
 			|| me.change(-1, 0) == bl
 			|| me.change(0, -1) == bl;
 	}
-	void moveTo(const Block& b)
+
+	std::vector<Pos> listMovement(Block* b)
 	{
-		x = b.x;
-		y = b.y;
+		std::vector<Pos> m;
+		for(int x=this->x; x<b->x; ++x) m.push_back(Pos(1,0));
+		for(int x=this->x; x>b->x; --x) m.push_back(Pos(-1,0));
+		for(int y=this->y; y<b->y; ++y) m.push_back(Pos(0,1));
+		for(int y=this->y; y>b->y; --y) m.push_back(Pos(0,-1));
+		return m;
+	}
+
+	void move(Level* l, const Pos& p)
+	{
+		Block* b = At(l, x+p.x, y+p.y);
+		moveTo(b);
+	}
+
+	void moveTo(Block* b)
+	{
+		x = b->x;
+		y = b->y;
+		b->visible = true;
 	}
 };
 
@@ -235,7 +255,6 @@ struct Level
 
 	void setup(Random* r)
 	{
-		player.setup(r);
 		for(int w=0; w<Width; ++w)
 		{
 			for(int h=0; h<Height; ++h)
@@ -243,6 +262,8 @@ struct Level
 				block[w][h].setup(r, w, h);
 			}
 		}
+
+		player.setup(r, this);
 	}
 
 	void draw(sf::RenderWindow* app, Graphics* g, Block* bov)
@@ -272,6 +293,11 @@ struct Level
 		return 0;
 	}
 };
+
+Block* At(Level* l, int x, int y)
+{
+	return &l->block[x][y];
+}
 
 int MX(const sf::RenderWindow& app)
 {
@@ -321,14 +347,9 @@ void main()
 		{
 			if( bov )
 			{
-				if( player->nextTo(*bov) )
-				{
-					player->moveTo(*bov);
-					if( bov->visible == false )
-					{
-						bov->visible = true;
-					}
-				}
+				std::vector<Pos> m = player->listMovement(bov);
+				if( !m.empty() )
+					player->move(&l, m[0]);
 			}
 		}
 
