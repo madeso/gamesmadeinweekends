@@ -145,16 +145,11 @@ struct Block
 		index = r->indexGen();
 	}
 
-	void draw(sf::RenderWindow* app, Graphics* g, bool over)
+	void draw(sf::RenderWindow* app, Graphics* g)
 	{
 		sf::Sprite sp = CreateSprite(x,y);
 		sp.SetImage(img(g));
 		app->Draw(sp);
-		if( over )
-		{
-			sp.SetImage(*g->Over);
-			app->Draw(sp);
-		}
 	}
 
 	bool isOver(int ox, int oy)
@@ -212,12 +207,42 @@ struct Pos
 struct Level;
 Block* At(Level* level, int x, int y);
 
+const int kMaxSteps = 5;
+
+struct Player;
+
+struct Input
+{
+	Input()
+		: click(false)
+		, skip(false)
+	{
+	}
+
+	bool click;
+	bool skip;
+};
+
+struct Ai
+{
+	~Ai() {}
+	virtual bool run(const Input& input, sf::RenderWindow* app, Level* l, Player* player) = 0;
+	virtual void draw(sf::RenderWindow* app, Graphics* g, Level* l, Player* player) = 0;
+};
+
+typedef boost::shared_ptr<Ai> AI;
+
+AI SelectHumanAi();
+
 struct Player
 {
 	int x;
 	int y;
 
 	std::vector<int> treasures;
+	int steps;
+
+	AI ai;
 
 	Player()
 		: x(0)
@@ -228,13 +253,17 @@ struct Player
 	void setup(Random* r, Level* l)
 	{
 		moveTo(At(l, r->worldxGen(), r->worldxGen()));
+		steps = kMaxSteps;
+
+		ai = SelectHumanAi();
 	}
 
-	void draw(sf::RenderWindow* app, Graphics* g)
+	void draw(sf::RenderWindow* app, Graphics* g, Level* l)
 	{
 		sf::Sprite sp = CreateSprite(x,y);
 		sp.SetImage(*g->Player);
 		app->Draw(sp);
+		ai->draw(app, g, l, this);
 	}
 
 	void drawTreasures(sf::RenderWindow* app, Graphics* g)
@@ -275,8 +304,19 @@ struct Player
 
 	void move(Level* l, const Pos& p)
 	{
-		Block* b = At(l, p.x, p.y);
-		moveTo(b);
+		Block* at = At(l, x, y);
+		const int stepsNeeded = at->isWater ? 2 : 1;
+		if( steps >= stepsNeeded )
+		{
+			Block* b = At(l, p.x, p.y);
+			moveTo(b);
+			steps -= stepsNeeded;
+		}
+	}
+
+	bool run(const Input& input, sf::RenderWindow* app, Level* l)
+	{
+		return ai->run(input, app, l, this) || steps == 0;
 	}
 
 	void moveTo(Block* b)
@@ -317,25 +357,33 @@ struct Level
 		player.setup(r, this);
 	}
 
-	void draw(sf::RenderWindow* app, Graphics* g, Block* bov, std::vector<Pos>& path)
+	void draw(sf::RenderWindow* app, Graphics* g)
 	{
 		for(int w=0; w<Width; ++w)
 		{
 			for(int h=0; h<Height; ++h)
 			{
 				Block* b = &(block[w][h]);
-				b->draw(app, g, b==bov);
+				b->draw(app, g);
 			}
 		}
 
-		for(std::size_t i=0; i<path.size(); ++i)
-		{
-			sf::Sprite sp = CreateSprite(path[i].x, path[i].y);
-			sp.SetImage(*g->Steps);
-			app->Draw(sp);
-		}
+		player.draw(app, g, this);
+	}
 
-		player.draw(app, g);
+	Player* currentPlayer()
+	{
+		return &player;
+	}
+
+	bool updateCurrentPlayer(const Input& input, sf::RenderWindow* app)
+	{
+		return currentPlayer()->run(input, app, this);
+	}
+	void selectNextPlayer()
+	{
+		Player* p = &player;
+		p->steps = kMaxSteps;
 	}
 
 	Block* over(int x, int y)
@@ -371,12 +419,70 @@ int MY(const sf::RenderWindow& app)
 	return static_cast<int>(x*600);
 }
 
+struct HumanAi : public Ai
+{
+	bool run(const Input& input, sf::RenderWindow* app, Level* l, Player* player)
+	{
+		bov = l->over(MX(*app), MY(*app));
+		if( bov )
+		{
+			path = player->listMovement(bov);
+		}
+		else
+		{
+			path.clear();
+		}
+
+		if( input.click ) 
+		{
+			if( bov )
+			{
+				if( !path.empty() )
+				{
+					player->move(l, path[0]);
+				}
+			}
+		}
+
+		return input.skip;
+	}
+
+	void draw(sf::RenderWindow* app, Graphics* g, Level* l, Player* player)
+	{
+		for(std::size_t i=0; i<path.size(); ++i)
+		{
+			sf::Sprite sp = CreateSprite(path[i].x, path[i].y);
+			sp.SetImage(*g->Steps);
+			app->Draw(sp);
+		}
+
+		player->drawTreasures(app, g);
+
+		if( bov )
+		{
+			sf::Sprite sp = CreateSprite(bov->x, bov->y);
+			sp.SetImage(*g->Over);
+			app->Draw(sp);
+		}
+	}
+
+	Block* bov;
+	std::vector<Pos> path;
+};
+
+AI SelectHumanAi()
+{
+	AI ai( new HumanAi() );
+	return ai;
+}
+
 void main()
 {
 	sf::RenderWindow App(sf::VideoMode(800, 600, 32), "Exploration game");
 
 	Graphics g;
 	Random r;
+	Input input;
 	Level l;
 	l.setup(&r);
 
@@ -385,38 +491,42 @@ void main()
 	while (App.IsOpened())
 	{
 		sf::Event Event;
+
+		input.skip = false;
+
 		while (App.GetEvent(Event))
 		{
 			if (Event.Type == sf::Event::Closed)
+			{
 				App.Close();
+			}
+			if( Event.Type == sf::Event::KeyReleased)
+			{
+				switch(Event.Key.Code)
+				{
+				case sf::Key::R:
+					l.setup(&r);
+					break;
+				case sf::Key::Escape:
+					input.skip = true;
+					break;
+				}
+			}
 		}
 
 		const bool down = App.GetInput().IsMouseButtonDown(sf::Mouse::Left);
-		bool click = down && !mb;
+		input.click = down && !mb;
 		mb = down;
 
-		Block* bov = l.over(MX(App), MY(App));
-		Player* player = &l.player;
-
-		std::vector<Pos> path;
-		if( bov )
+		bool next = l.updateCurrentPlayer(input, &App);
+		if( next )
 		{
-			path = player->listMovement(bov);
-		}
-
-		if( click ) 
-		{
-			if( bov )
-			{
-				if( !path.empty() )
-					player->move(&l, path[0]);
-			}
+			l.selectNextPlayer();
 		}
 
 		App.Clear();
 
-		l.draw(&App, &g, bov, path);
-		player->drawTreasures(&App, &g);
+		l.draw(&App, &g);
 
 		App.Display();
 	}
