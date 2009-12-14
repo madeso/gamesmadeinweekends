@@ -1,3 +1,14 @@
+const int kMaxSteps = 10;
+const int kTreasureMultiplier = 6;
+const int kNumberOfSubs = 1;
+const int kNumberOfTreasures = 1;
+const int Width = 24;
+const int Height = 18;
+const int kBlockSize = 32;
+const int kHalfBlockSize = kBlockSize / 2;
+const int kOffsetX = 32;
+const int kOffsetY = 28;
+
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include <boost/shared_ptr.hpp>
@@ -37,9 +48,6 @@ struct Streamer
 		return *this;
 	}
 };
-
-const int kNumberOfSubs = 1;
-const int kNumberOfTreasures = 1;
 
 struct SoundT
 {
@@ -126,9 +134,6 @@ struct Graphics
 	}
 };
 
-const int Width = 24;
-const int Height = 18;
-
 struct Random
 {
 public:
@@ -163,12 +168,6 @@ public:
 		rng.seed(static_cast<unsigned int>(std::time(0)));
 	}
 };
-
-const int kBlockSize = 32;
-const int kHalfBlockSize = kBlockSize / 2;
-
-const int kOffsetX = 32;
-const int kOffsetY = 28;
 
 sf::Sprite CreateSprite(int x, int y, bool offset=true)
 {
@@ -271,8 +270,6 @@ struct Pos
 struct Level;
 Block* At(Level* level, int x, int y);
 
-const int kMaxSteps = 5;
-
 struct Player;
 
 struct Input
@@ -371,6 +368,7 @@ struct Player
 		: x(0)
 		, y(0)
 		, first(f)
+		, steps(0)
 	{
 	}
 
@@ -378,6 +376,7 @@ struct Player
 	{
 		moveTo(At(l, r->worldxGen(), r->worldxGen()));
 		steps = kMaxSteps;
+		treasures.clear();
 
 		ai = SelectHumanAi();
 	}
@@ -511,7 +510,7 @@ struct Level
 			}
 		}
 
-		for(int i=0; i<kNumberOfTreasures*5; ++i)
+		for(int i=0; i<kNumberOfTreasures*kTreasureMultiplier; ++i)
 		{
 			Block& b = block[r->worldxGen()][r->worldyGen()];
 			b.treasure = r->treasureGen();
