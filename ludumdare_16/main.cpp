@@ -298,6 +298,63 @@ typedef boost::shared_ptr<Ai> AI;
 
 AI SelectHumanAi();
 
+std::vector<Pos> Bresenham(const Pos& from, const Pos& to, bool special)
+{
+	using std::swap;
+
+	int x0 = from.x;
+	int x1 = to.x;
+	int y0 = from.y;
+	int y1 = to.y;
+
+	std::vector<Pos> m;
+
+	const bool steep = abs(y1 - y0) > abs(x1 - x0);
+	if(steep)
+	{
+		swap(x0, y0);
+		swap(x1, y1);
+	}
+	if (x0 > x1)
+	{
+		swap(x0, x1);
+		swap(y0, y1);
+	}
+	int deltax = x1 - x0;
+	int deltay = abs(y1 - y0);
+	float error = 0;
+	float deltaerr = static_cast<float>(deltay) / deltax;
+	int ystep;
+	int y = y0;
+	if (y0 < y1)
+		ystep = 1;
+	else
+		ystep = -1;
+
+	for (int x=x0; x<x1; ++x)
+	{
+		if(steep)
+			m.push_back(Pos(y,x));
+		else
+			m.push_back(Pos(x,y));
+		error = error + deltaerr;
+		if(error >= 0.5f)
+		{
+			y = y + ystep;
+			if( special )
+			{
+				if(steep)
+					m.push_back(Pos(y,x));
+				else
+					m.push_back(Pos(x,y));
+			}
+			error = error - 1.0f;
+		}
+	}
+
+	return m;
+}
+
 struct Player
 {
 	int x;
@@ -355,10 +412,9 @@ struct Player
 		}
 	}
 
-	bool nextTo(const Block& b)
+	bool nextTo(const Pos& bl)
 	{
 		const Pos me(x,y);
-		const Pos bl(b.x, b.y);
 
 		return me.change(1,0) == bl
 			|| me.change(0, 1) == bl
@@ -368,15 +424,28 @@ struct Player
 
 	std::vector<Pos> listMovement(Block* b)
 	{
-		// a* would have been nice, i'll se if i can make it :)
 		std::vector<Pos> m;
-		int mx = this->x;
+		/*int mx = this->x;
 		int my = this->y;
 		for(int x=mx+1; x<=b->x; ++x) m.push_back(Pos(x,my));
 		for(int x=mx-1; x>=b->x; --x) m.push_back(Pos(x,my));
 		mx = b->x;
 		for(int y=my+1; y<=b->y; ++y) m.push_back(Pos(mx,y));
-		for(int y=my-1; y>=b->y; --y) m.push_back(Pos(mx,y));
+		for(int y=my-1; y>=b->y; --y) m.push_back(Pos(mx,y));*/
+		Pos start = Pos(x, y);
+		Pos end = Pos(b->x, b->y);
+		m = Bresenham(end, start, true);
+
+		// clean up besenhams line to work with the game!
+		if( m.empty() == false && m[0] == start ) 
+		{
+			m.erase(m.begin());
+			m.push_back(end);
+		}
+		if( m.empty() == false && nextTo(m[0]) == false )
+		{
+			m = std::vector<Pos>(m.rbegin(), m.rend());
+		}
 		return m;
 	}
 
