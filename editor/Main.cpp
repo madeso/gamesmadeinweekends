@@ -20,6 +20,8 @@
 #pragma comment(lib, "sfml-graphics" OPTIONS ".lib")
 #pragma comment(lib, "sfml-system" OPTIONS ".lib")
 #pragma comment(lib, "sfml-window" OPTIONS ".lib")
+#pragma comment(lib, "opengl32.lib")
+#pragma comment(lib, "glu32.lib")
 
 // -------------------
 // Tesselation code
@@ -461,25 +463,68 @@ private :
 	std::vector<MyPolygon> polygons;
 };
 
+enum
+{
+    Menu_File_Quit = wxID_EXIT,
+	Menu_File_Save,
+	Menu_File_SaveAs
+};
 
 ////////////////////////////////////////////////////////////
 /// Our main window
 ////////////////////////////////////////////////////////////
 class MyFrame : public wxFrame
 {
-public :
+	MyCanvas* canvas;
+public:
+	MyFrame()
+		: wxFrame(NULL, wxID_ANY, wxT("Eddie 2d"), wxDefaultPosition, wxSize(800, 600))
+		, canvas(0)
+	{
+		// Let's create a SFML view
+		canvas = new MyCanvas(this, wxID_ANY, wxPoint(20, 20), wxSize(400, 200));
+		setupMenu();
+	}
 
-	////////////////////////////////////////////////////////////
-	/// Default constructor : setup the window
-	///
-	////////////////////////////////////////////////////////////
-	MyFrame() :
-	   wxFrame(NULL, wxID_ANY, wxT("Eddie 2d"), wxDefaultPosition, wxSize(800, 600))
-	   {
-		   // Let's create a SFML view
-		   new MyCanvas(this, wxID_ANY, wxPoint(20, 20), wxSize(400, 200));
-	   }
+protected:
+	void OnQuit(wxCommandEvent& WXUNUSED(event))
+	{
+		Close(true);
+	}
+	void OnSave(wxCommandEvent& WXUNUSED(event))
+	{
+	}
+	void OnSaveAs(wxCommandEvent& WXUNUSED(event))
+	{
+	}
+
+	DECLARE_EVENT_TABLE();
+
+private:
+	void setupMenu()
+	{
+		wxMenuBar* menuBar = new wxMenuBar( wxMB_DOCKABLE );
+		menuBar->Append(BuildFileMenu(), _T("&File"));
+		SetMenuBar(menuBar);
+	}
+
+	wxMenu* BuildFileMenu()
+	{
+		wxMenu* m = new wxMenu;
+
+		m->Append(Menu_File_Save, _T("&Save\tCtrl-S"));
+		m->Append(Menu_File_SaveAs, _T("Save &as..\tCtrl-Shift-S"));
+		m->Append(Menu_File_Quit, _T("E&xit\tAlt-X"));
+
+		return m;
+	}
 };
+
+BEGIN_EVENT_TABLE(MyFrame, wxFrame)
+	EVT_MENU(Menu_File_Quit, MyFrame::OnQuit)
+	EVT_MENU(Menu_File_Save, MyFrame::OnSave)
+	EVT_MENU(Menu_File_SaveAs, MyFrame::OnSaveAs)
+END_EVENT_TABLE()
 
 
 ////////////////////////////////////////////////////////////
