@@ -6,88 +6,18 @@
 #include <SFML/Graphics.hpp>
 #include "../upgrayedd/libraries.hpp"
 #include "../upgrayedd/sfml-math.hpp"
-#include <SOIL.h>
+#include "../upgrayedd/message.hpp"
+#include "../upgrayedd/imgpool.hpp"
+#include "../upgrayedd/ExceptionInformation.hpp"
+#include "../upgrayedd/debug.hpp"
+#include "../upgrayedd/input.hpp"
 
 using namespace upgrayedd;
 
-#ifdef _WINDOWS
-#define WIN32_LEAN_AND_MEAN
-#include "windows.h"
-#undef WIN32_LEAN_AND_MEAN
-#endif
-
-typedef boost::shared_ptr<sf::Image> Img;
-
-bool IsDebug()
-{
-#ifdef _DEBUG
-	return true;
-#else
-	return false;
-#endif
-}
-
-class StringBuilder : boost::noncopyable
-{
-public:
-	StringBuilder()
-	{
-	}
-
-	template<typename T>
-	StringBuilder& operator<<(const T& t)
-	{
-		ss << t;
-		return *this;
-	}
-
-	std::string str() const
-	{
-		return ss.str();
-	}
-
-	operator std::string() const
-	{
-		return str();
-	}
-private:
-	std::ostringstream ss;
-};
-
-// copied from sfml/src/SFML/Graphics/ImageLoader.cpp, modified to throw exception instead of printing to cerr, and loading to sf::Image instead of a color vector
-void LoadImageFromFile(const std::string& filename, sf::Image& img)
-{
-	int width, height, channels;
-	unsigned char* ptr = SOIL_load_image(filename.c_str(), &width, &height, &channels, SOIL_LOAD_RGBA);
-
-	if (ptr)
-	{
-		bool result = img.LoadFromPixels(width, height, ptr);
-		SOIL_free_image_data(ptr);
-
-		if( result == false ) throw (StringBuilder() << "Failed to load pixels from loaded \"" << filename << "\"").str();
-	}
-	else
-	{
-		throw (StringBuilder() << "Failed to load image \"" << filename << "\", reason : " << SOIL_last_result()).str();
-	}
-}
-
-Img Load(const std::string& path)
-{
-	Img img(new sf::Image());
-	LoadImageFromFile(path, *img);
-	return img;
-}
-
-float Key(sf::Window& App, sf::Key::Code key)
-{
-	return App.GetInput().IsKeyDown(key) ? 1.0f : 0.0f;
-}
-
 void game()
 {
-	sf::RenderWindow App(sf::VideoMode(800, 600, 32), "upgrayedd test");
+	const std::string title = std::string("upgrayedd-test") + (IsDebug()? " (debug build)" : "");
+	sf::RenderWindow App(sf::VideoMode(800, 600, 32), title);
 
 	Img img = Load("../gfx/bkg.jpg");
 	sf::Sprite sp(*img);
@@ -115,10 +45,10 @@ void game()
 		}
 
 		const float speed = App.GetInput().IsKeyDown(sf::Key::LShift) || App.GetInput().IsKeyDown(sf::Key::RShift)
-			? 70 : 25;
+			? 70.0f : 25.0f;
 
-		camera.Move(GetNormalized(sf::Vector2f(Key(App, sf::Key::Right) - Key(App, sf::Key::Left),
-			Key(App, sf::Key::Down) - Key(App, sf::Key::Up))) * delta * speed);
+		camera.Move(GetNormalized(sf::Vector2f(KeyFloat(App, sf::Key::Right, sf::Key::Left),
+			KeyFloat(App, sf::Key::Down, sf::Key::Up))) * delta * speed);
 
 
 		App.Clear();
@@ -126,31 +56,6 @@ void game()
 		App.Display();
 	}
 }
-
-struct ExceptionInformation
-{
-	ExceptionInformation()
-	{
-		try
-		{
-			throw;
-		}
-		catch(const std::string& str)
-		{
-			message = str;
-		}
-		catch(char* str)
-		{
-			message = str;
-		}
-		catch(...)
-		{
-			message = "unknown";
-		}
-	}
-
-	std::string message;
-};
 
 void main()
 {
@@ -167,11 +72,7 @@ void main()
 		else
 		{
 			ExceptionInformation ex;
-#if _WINDOWS
-			MessageBoxA(0, ex.message.c_str(), "Error!", MB_OK | MB_ICONERROR);
-#else
-			std::cerr << "Error: " << ex.message << std::endl;
-#endif
+			Message("Error!", ex.message());
 		}
 	}
 }
