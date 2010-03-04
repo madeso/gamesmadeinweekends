@@ -180,6 +180,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Loop.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Loop.hpp"
+			>
+		</File>
+		<File
 			RelativePath=".\message.cpp"
 			>
 		</File>
