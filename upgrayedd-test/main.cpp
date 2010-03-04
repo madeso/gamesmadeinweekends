@@ -11,37 +11,34 @@
 #include "../upgrayedd/ExceptionInformation.hpp"
 #include "../upgrayedd/debug.hpp"
 #include "../upgrayedd/input.hpp"
+#include "../upgrayedd/Loop.hpp"
 
 using namespace upgrayedd;
 
-void game()
+class GameLoop : public Loop
 {
-	const std::string title = std::string("upgrayedd-test") + (IsDebug()? " (debug build)" : "");
-	sf::RenderWindow App(sf::VideoMode(800, 600, 32), title);
-
-	Img img = Load("../gfx/bkg.jpg");
-	sf::Sprite sp(*img);
-	sp.Resize(640,480);
-
-	sf::View camera(sf::Vector2f(320,240), sf::Vector2f(640,480));
-
-	App.SetView(camera);
-
-	bool isRunning = true;
-
-	sf::Clock Clock;
-	while (isRunning)
+public:
+	GameLoop(sf::RenderWindow& app)
+		: App(app)
+		, img(Load("../gfx/bkg.jpg"))
+		, sp()
+		, camera(sf::Vector2f(320,240), sf::Vector2f(640,480))
 	{
-		const float delta = Clock.GetElapsedTime();
-		Clock.Reset();
+		sp.SetImage(*img);
+		sp.Resize(640,480);
+		App.SetView(camera);
+	}
 
+	void onUpdate(float delta)
+	{
 		sf::Event Event;
 		while (App.GetEvent(Event))
 		{
-			if (Event.Type == sf::Event::Closed) isRunning = false;
+			if (Event.Type == sf::Event::Closed)
+				abort();
 
 			if ((Event.Type == sf::Event::KeyPressed) && (Event.Key.Code == sf::Key::Escape))
-				isRunning = false;
+				abort();
 		}
 
 		const float speed = App.GetInput().IsKeyDown(sf::Key::LShift) || App.GetInput().IsKeyDown(sf::Key::RShift)
@@ -49,12 +46,28 @@ void game()
 
 		camera.Move(GetNormalized(sf::Vector2f(KeyFloat(App, sf::Key::Right, sf::Key::Left),
 			KeyFloat(App, sf::Key::Down, sf::Key::Up))) * delta * speed);
+	}
 
-
+	void onRender(float)
+	{
 		App.Clear();
 		App.Draw(sp);
 		App.Display();
 	}
+private:
+	sf::RenderWindow& App;
+	Img img;
+	sf::Sprite sp;
+	sf::View camera;
+};
+
+void game()
+{
+	const std::string title = std::string("upgrayedd-test") + (IsDebug()? " (debug build)" : "");
+	sf::RenderWindow App(sf::VideoMode(800, 600, 32), title);
+
+	GameLoop loop(App);
+	loop.run();
 }
 
 void main()
