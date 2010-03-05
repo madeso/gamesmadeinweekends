@@ -12,6 +12,7 @@
 #include "../upgrayedd/debug.hpp"
 #include "../upgrayedd/input.hpp"
 #include "../upgrayedd/Loop.hpp"
+#include "../upgrayedd/Sprite.hpp"
 
 using namespace upgrayedd;
 
@@ -20,12 +21,10 @@ class GameLoop : public Loop
 public:
 	GameLoop(sf::RenderWindow& app)
 		: App(app)
-		, img(Load("../gfx/bkg.jpg"))
-		, sp()
+		, sp(Load("../gfx/bkg.jpg"))
 		, camera(sf::Vector2f(320,240), sf::Vector2f(640,480))
 	{
-		sp.SetImage(*img);
-		sp.Resize(640,480);
+		sp->Resize(640,480);
 		App.SetView(camera);
 	}
 
@@ -56,8 +55,7 @@ public:
 	}
 private:
 	sf::RenderWindow& App;
-	Img img;
-	sf::Sprite sp;
+	Sprite sp;
 	sf::View camera;
 };
 
