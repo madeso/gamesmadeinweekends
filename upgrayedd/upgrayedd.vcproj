@@ -160,6 +160,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Img.hpp"
+			>
+		</File>
+		<File
 			RelativePath=".\ImgPool.cpp"
 			>
 		</File>
@@ -209,6 +213,14 @@
 		</File>
 		<File
 			RelativePath=".\sfml-math.hpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Sprite.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Sprite.hpp"
 			>
 		</File>
 		<File
