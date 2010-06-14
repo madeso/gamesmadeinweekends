@@ -4,10 +4,22 @@
 #include "Img.hpp"
 #include <string>
 
+#include <map>
+#include <boost/weak_ptr.hpp>
+
 namespace upgrayedd
 {
-	// todo: replace with an actual pool..
-	Img Load(const std::string& path);
+	class ImgPool
+	{
+	public:
+		Img load(const std::string& path);
+
+		class ImageRemover;
+	private:
+		typedef boost::weak_ptr<sf::Image> Imgw;
+		typedef std::map<std::string, Imgw> ImgwMap;
+		ImgwMap map;
+	};
 }
 
 #endif
