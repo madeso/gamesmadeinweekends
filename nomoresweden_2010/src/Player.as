@@ -25,6 +25,8 @@ package
 		private const kSlideMaxVelociy:int = 250;
 		private const kSlideVelocityReduction:Number = 5500;
 		
+		private const kRoundHouseTime : Number = 0.2;
+		
 		// -------------------------------------------------------
 		
 		private var onBottomTime : Number = 0;
@@ -35,6 +37,8 @@ package
 		
 		private var onRightTime : Number = 0;
 		private var onHitRight : Boolean = false;
+		
+		private var roundhouseTime : Number = kRoundHouseTime * 2; // less than kRoundhouseTime zero gravity -> were roundhousing
 		
 		// --------------------------------------------------------
 		
@@ -93,6 +97,8 @@ package
 		
 		private function updateStateTimers() : void
 		{
+			if ( roundhouseTime < kRoundHouseTime ) roundhouseTime += FlxG.elapsed;
+			
 			if ( onHitBottom )
 			{
 				onBottomTime = 0;
@@ -159,6 +165,16 @@ package
 			var jump : Boolean = FlxG.keys.justPressed("X");
 			if ( FlxG.keys.DOWN ) jump = false;
 			
+			var roundhouse : Boolean = FlxG.keys.justPressed("C");
+			
+			if ( onLeft || onRight ) roundhouse = false;
+			
+			if ( roundhouse ) 
+			{
+				roundhouseTime = 0;
+				FlxG.play(SndJump); // todo: update sound
+			}
+			
 			if ( jump )
 			{
 				if( onBottom )
@@ -214,7 +230,14 @@ package
 				play("jumping");
 			}
 			
-			acceleration.y = kGravity;
+			if ( roundhouseTime < kRoundHouseTime )
+			{
+				acceleration.y = kGravity / 4;
+			}
+			else
+			{
+				acceleration.y = kGravity;
+			}
 			super.update();
 		}
 		
