@@ -21,7 +21,7 @@ package
 		private const kJumpPushSpeed:int = 500;
 		private const kJumpPushAcceletation:int = 300;
 		
-		private const kReactionTime:Number = 0.05;
+		private const kReactionTime:Number = 0.1;
 		private const kSlideMaxVelociy:int = 250;
 		private const kSlideVelocityReduction:Number = 5500;
 		
