@@ -18,6 +18,9 @@ package
 		private const kJumpSpeed:int = 700;
 		private const kGravity:int = 2300;
 		
+		private const kRoundHouseGravity : Number = 10;
+		private const kRoundhouseMaxVel : Number = 250;
+		
 		private const kJumpPushSpeed:int = 500;
 		private const kJumpPushAcceletation:int = 300;
 		
@@ -232,7 +235,10 @@ package
 			
 			if ( roundhouseTime < kRoundHouseTime )
 			{
-				acceleration.y = kGravity / 4;
+				acceleration.y = kRoundHouseGravity;
+				
+				if ( velocity.y > kRoundhouseMaxVel ) velocity.y = kRoundhouseMaxVel;
+				if ( velocity.y < -kRoundhouseMaxVel ) velocity.y = -kRoundhouseMaxVel;
 			}
 			else
 			{

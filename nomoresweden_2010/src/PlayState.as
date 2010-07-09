@@ -57,7 +57,7 @@ package
 		
 		private function bugUpdateCamera() : void
 		{
-			FlxG.follow(player, 2.5);
+			FlxG.follow(player, 5.5);
 			FlxG.followBounds(0, 0, map.right, map.bottom);
 		}
 		
