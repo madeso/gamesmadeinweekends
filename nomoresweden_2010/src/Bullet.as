@@ -6,7 +6,11 @@ package
 	{
 		[Embed(source="bullet.png")] private var ImgBullet:Class;
 		[Embed(source="hit.mp3")] private var SndHit:Class;
-		[Embed(source="fire.mp3")] private var SndShoot:Class;
+		[Embed(source = "fire.mp3")] private var SndShoot:Class;
+		
+		private const kBounces : uint = 2;
+		
+		private var bounces : uint = 0;
 
 		public function Bullet()
 		{
@@ -20,6 +24,11 @@ package
 
 			addAnimation("idle",[0]);
 			addAnimation("poof",[1,2], 25, false);
+		}
+		
+		private function canBounce() : Boolean
+		{
+			return false;
 		}
 
 		override public function update():void
@@ -40,13 +49,31 @@ package
 		
 		override public function kill():void
 		{
-			if(dead) return;
-			velocity.x = 0;
-			velocity.y = 0;
-			if(onScreen()) FlxG.play(SndHit);
-			dead = true;
-			solid = false;
-			play("poof");
+			var doit : Boolean = true;
+			
+			if ( canBounce() )
+			{
+				if ( bounces < kBounces )
+				{
+					bounces += 1;
+					doit = false;
+					
+					velocity.x *= - 1;
+					velocity.y *= - 1;
+					if(onScreen()) FlxG.play(SndHit);
+				}
+			}
+			
+			if ( doit )
+			{
+				if(dead) return;
+				velocity.x = 0;
+				velocity.y = 0;
+				if(onScreen()) FlxG.play(SndHit);
+				dead = true;
+				solid = false;
+				play("poof");
+			}
 		}
 
 		public function shoot(X:int, Y:int, VelocityX:int, VelocityY:int):void
@@ -56,6 +83,7 @@ package
 			solid = true;
 			velocity.x = VelocityX;
 			velocity.y = VelocityY;
+			bounces = 0;
 			play("idle");
 		}
 	}

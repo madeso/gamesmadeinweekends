@@ -32,7 +32,7 @@ package
 			worldGroup = new FlxGroup();
 			playerBullets = new FlxGroup();
 			
-			for (var i:uint = 0; i < 20; ++i)
+			for (var i:uint = 0; i < 100; ++i)
 			{
 				playerBullets.add( new Bullet() );
 			}
