@@ -2,10 +2,14 @@ package
 {
 	import org.flixel.*;
 	
+		import net.pixelpracht.tmx.TmxMap;
+	import net.pixelpracht.tmx.TmxObject;
+	import net.pixelpracht.tmx.TmxObjectGroup;
+	
 	public class PlayState extends FlxState
 	{
-		[Embed(source = "example_map.txt", mimeType = "application/octet-stream")]
-		public static var data_map : Class;
+		[Embed(source = 'level.tmx', mimeType = "application/octet-stream")] 
+		private var data_map:Class;
 		
 		[Embed(source = "tiles.png")]
 		public static var data_tiles : Class;
@@ -27,8 +31,11 @@ package
 			
 			map = new FlxTilemap();
 			map.drawIndex = 1;
-			map.collideIndex = 1;
-			map.loadMap(new data_map, data_tiles, 48);
+			map.collideIndex = 42;
+			
+			var tmx:TmxMap = new TmxMap(new XML( new data_map ));
+			
+			map.loadMap(tmx.getLayer('map').toCsv(tmx.getTileSet('tiles')), data_tiles, 48);
 			map.x = map.y = 0;
 			
 			worldGroup.add(map);
