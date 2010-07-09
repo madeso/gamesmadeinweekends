@@ -46,9 +46,13 @@ package
 		
 		// --------------------------------------------------------
 		
-		public function Player(X:int, Y:int)
+		private var bullets : Array;
+		private var bulletsIndex : uint = 0;
+		
+		public function Player(X:int, Y:int, B : Array)
 		{
-			super(X, Y)
+			super(X, Y);
+			bullets = B;
 			loadGraphic(ImgPlayer, true, true, 48, 48);
 			drag.x = kFriction;
 			maxVelocity.x = kRunSpeed;
@@ -69,6 +73,25 @@ package
 			
 			facing = RIGHT;
 		}
+		
+		private function shoot(right : Boolean) : void
+		{
+			var xv : Number = 900;
+			var dx : Number = 0;
+			var dy : Number = 0;
+			if ( right )
+			{
+				dx = 12;
+			}
+			else
+			{
+				xv *= -1;
+			}
+			bullets[bulletsIndex].shoot(x+dx, y+dy, xv, 0);
+			bulletsIndex++;
+			if ( bulletsIndex >= bullets.length ) bulletsIndex = 0;
+		}
+	
 		
 		override public function hitBottom(Contact:FlxObject, Velocity:Number):void
 		{
@@ -165,6 +188,30 @@ package
 			{
 				move( -1);
 				facing = LEFT;
+			}
+			
+			if ( FlxG.keys.justPressed("Z") )
+			{
+				var fire : Boolean = true;
+				
+				if ( onLeftTime < kReactionTime)
+				{
+					fire = false;
+				}
+				if ( onRightTime < kReactionTime)
+				{
+					fire = false;
+				}
+				
+				if ( roundhouseTime < kRoundHouseTime )
+				{
+					fire = false;
+				}
+				
+				if ( fire )
+				{
+					shoot(facing == RIGHT);
+				}
 			}
 			
 			var jump : Boolean = FlxG.keys.justPressed("X");
