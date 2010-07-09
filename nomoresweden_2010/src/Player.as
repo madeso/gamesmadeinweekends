@@ -58,10 +58,11 @@ package
 			offset.x = 12;
 			offset.y = 15;
 			
-			addAnimation("moving", [0, 1, 2, 3], 10);
+			addAnimation("moving", [0, 1, 2, 1], 10);
 			addAnimation("jumping", [2]);
 			//addAnimation("attack", [4, 5, 6],10);
 			addAnimation("idle", [0]);
+			addAnimation("roundkick", [3,4], 7);
 			//addAnimation("hurt", [2, 7], 10);
 			//addAnimation("dead", [7, 7, 7], 5);
 			
@@ -217,20 +218,27 @@ package
 			onLeft = false;
 			onRight = false;
 			
-			if ( velocity.y == 0 )
+			if ( roundhouseTime < kRoundHouseTime )
 			{
-				if ( velocity.x == 0 )
+				play("roundkick");
+			}
+			else
+			{			
+				if ( velocity.y == 0 )
 				{
-					play("idle");
+					if ( velocity.x == 0 )
+					{
+						play("idle");
+					}
+					else
+					{
+						play("moving");
+					}
 				}
 				else
 				{
-					play("moving");
+					play("jumping");
 				}
-			}
-			else
-			{
-				play("jumping");
 			}
 			
 			if ( roundhouseTime < kRoundHouseTime )
