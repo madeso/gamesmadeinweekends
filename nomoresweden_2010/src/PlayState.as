@@ -45,7 +45,7 @@ package
 			hudText = new FlxText(0 , 0, 300, "pirates are awesome");
 			hudText.scrollFactor = new FlxPoint(0, 0);
 			
-			player = new Player(32, 64);
+			player = new Player(64, 64);
 			add(player);
 			
 			bugUpdateCamera();
