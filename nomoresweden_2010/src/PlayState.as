@@ -34,8 +34,8 @@ package
 			map.collideIndex = 42;
 			
 			var tmx:TmxMap = new TmxMap(new XML( new data_map ));
-			
-			map.loadMap(tmx.getLayer('map').toCsv(tmx.getTileSet('tiles')), data_tiles, 48);
+			map.loadMap(tmx.getLayer('map').toCsv(tmx.getTileSet('tiles')), data_tiles, 64);
+			//map.loadMap(new data_map, data_tiles, 64);
 			map.x = map.y = 0;
 			
 			worldGroup.add(map);
