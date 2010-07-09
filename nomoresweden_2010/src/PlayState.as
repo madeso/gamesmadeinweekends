@@ -2,7 +2,7 @@ package
 {
 	import org.flixel.*;
 	
-		import net.pixelpracht.tmx.TmxMap;
+	import net.pixelpracht.tmx.TmxMap;
 	import net.pixelpracht.tmx.TmxObject;
 	import net.pixelpracht.tmx.TmxObjectGroup;
 	
@@ -42,7 +42,7 @@ package
 			
 			add(worldGroup);
 			
-			hudText = new FlxText(0 , 0, 100, "pirates are awesome");
+			hudText = new FlxText(0 , 0, 300, "pirates are awesome");
 			hudText.scrollFactor = new FlxPoint(0, 0);
 			
 			player = new Player(32, 64);
@@ -67,7 +67,7 @@ package
 			super.update();
 			map.collide(player);
 			
-			//hudText.text = player.flyFlapsExecuted.toString();
+			hudText.text = player.velocity.y.toString();
 		}
 	}
 
