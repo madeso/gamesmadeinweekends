@@ -9,6 +9,7 @@ package
 		[Embed(source = "jump.mp3")] private static var SndJump : Class;
 		[Embed(source = "wallJump.mp3")] private static var SndWallJump : Class;
 		[Embed(source = "land.mp3")] private static var SndLand : Class;
+		[Embed(source = "kick.mp3")] private static var SndRoundhouse : Class;
 		
 		// ------------------------------------------------
 		
@@ -176,7 +177,7 @@ package
 			if ( roundhouse ) 
 			{
 				roundhouseTime = 0;
-				FlxG.play(SndJump); // todo: update sound
+				FlxG.play(SndRoundhouse);
 			}
 			
 			if ( jump )
