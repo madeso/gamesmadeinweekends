@@ -84,7 +84,7 @@ package
 			super.update();
 			map.collide(metaObjects);
 			
-			hudText.text = player.velocity.y.toString();
+			hudText.text = player.gunTemp.toString();
 		}
 	}
 
