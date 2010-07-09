@@ -21,12 +21,23 @@ package
 		private var player : Player;
 		
 		private var worldGroup: FlxGroup;
+		private var playerBullets: FlxGroup;
+		
+		private var metaObjects: FlxGroup;
 		
 		//[Embed(source = "music.mp3")] private static var SndMusic : Class;
 		
 		override public function create() : void
 		{
 			worldGroup = new FlxGroup();
+			playerBullets = new FlxGroup();
+			
+			for (var i:uint = 0; i < 20; ++i)
+			{
+				playerBullets.add( new Bullet() );
+			}
+			
+			metaObjects = new FlxGroup();
 			bgColor = 0xff4A7FB5;
 			
 			map = new FlxTilemap();
@@ -42,11 +53,17 @@ package
 			
 			add(worldGroup);
 			
+			
+			add(playerBullets);
+			
 			hudText = new FlxText(0 , 0, 300, "pirates are awesome");
 			hudText.scrollFactor = new FlxPoint(0, 0);
 			
-			player = new Player(64, 64);
+			player = new Player(64, 64, playerBullets.members);
 			add(player);
+			
+			metaObjects.add(player);
+			metaObjects.add(playerBullets);
 			
 			bugUpdateCamera();
 			
@@ -65,7 +82,7 @@ package
 		{
 			bugUpdateCamera();
 			super.update();
-			map.collide(player);
+			map.collide(metaObjects);
 			
 			hudText.text = player.velocity.y.toString();
 		}
