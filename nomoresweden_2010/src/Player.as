@@ -31,6 +31,8 @@ package
 		
 		private const kRoundHouseTime : Number = 0.2;
 		
+		private const kRapidCooldown : Number = 0.1;
+		
 		// -------------------------------------------------------
 		
 		private var onBottomTime : Number = 0;
@@ -43,6 +45,8 @@ package
 		private var onHitRight : Boolean = false;
 		
 		private var roundhouseTime : Number = kRoundHouseTime * 2; // less than kRoundhouseTime zero gravity -> were roundhousing
+		
+		public var gunTemp : Number = -1; 
 		
 		// --------------------------------------------------------
 		
@@ -74,22 +78,50 @@ package
 			facing = RIGHT;
 		}
 		
-		private function shoot(right : Boolean) : void
+		private function hasSpread() : Boolean
 		{
-			var xv : Number = 900;
+			return true;
+		}
+		
+		private function hasRapid() : Boolean
+		{
+			return true;
+		}
+		
+		private function Shoot(right : Boolean, xv : Number, yv:Number) : void
+		{
 			var dx : Number = 0;
 			var dy : Number = 0;
 			if ( right )
 			{
-				dx = 12;
+				dx = 27;
+				dy = 5;
 			}
 			else
-			{
-				xv *= -1;
+			{	
+				dx = -5;
+				dy = 5;
 			}
-			bullets[bulletsIndex].shoot(x+dx, y+dy, xv, 0);
+			bullets[bulletsIndex].shoot(x+dx, y+dy, xv, yv);
 			bulletsIndex++;
 			if ( bulletsIndex >= bullets.length ) bulletsIndex = 0;
+		}
+		
+		private function shoot(right : Boolean) : void
+		{
+			var mod : Number = 1;
+			if ( right == false)
+			{
+				mod = -1;
+			}
+			
+			Shoot(right, mod * 900, 0);
+			
+			if ( hasSpread() )
+			{
+				Shoot(right, mod * 900, 100);
+				Shoot(right, mod * 900, -100);
+			}
 		}
 	
 		
@@ -125,6 +157,11 @@ package
 		
 		private function updateStateTimers() : void
 		{
+			if ( gunTemp >= 0 )
+			{
+				gunTemp -= FlxG.elapsed;
+			}
+			
 			if ( roundhouseTime < kRoundHouseTime ) roundhouseTime += FlxG.elapsed;
 			
 			if ( onHitBottom )
@@ -190,27 +227,45 @@ package
 				facing = LEFT;
 			}
 			
-			if ( FlxG.keys.justPressed("Z") )
+			if ( true )
 			{
-				var fire : Boolean = true;
+				var canfire : Boolean = true;
 				
 				if ( onLeftTime < kReactionTime)
 				{
-					fire = false;
+					canfire = false;
 				}
 				if ( onRightTime < kReactionTime)
 				{
-					fire = false;
+					canfire = false;
 				}
 				
 				if ( roundhouseTime < kRoundHouseTime )
 				{
-					fire = false;
+					canfire = false;
 				}
 				
-				if ( fire )
+				if ( canfire )
 				{
-					shoot(facing == RIGHT);
+					var dofire : Boolean = false;
+					
+					if ( hasRapid() )
+					{
+						if ( FlxG.keys.Z && gunTemp < 0 )
+						{
+							dofire = true;
+						}
+					}
+					else
+					{
+						dofire = FlxG.keys.justPressed("Z")
+					}
+					
+					if ( dofire )
+					{
+						shoot(facing == RIGHT);
+						gunTemp = kRapidCooldown;
+					}
 				}
 			}
 			
