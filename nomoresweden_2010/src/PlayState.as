@@ -70,7 +70,7 @@ package
 			add(barrels);
 			add(playerBullets);
 			
-			hudText = new FlxText(0 , 0, 300, "pirates are awesome");
+			hudText = new FlxText(0 , 0, 300, "Cause I'm Chuck Norris!");
 			hudText.scrollFactor = new FlxPoint(0, 0);
 			
 			player = new Player(64, 64, playerBullets.members);
