@@ -84,7 +84,7 @@ package
 			super.update();
 			map.collide(metaObjects);
 			
-			hudText.text = player.gunTemp.toString();
+			//hudText.text = player.rand.toString();
 		}
 	}
 
