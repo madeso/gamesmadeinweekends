@@ -23,6 +23,8 @@ package
 		private var worldGroup: FlxGroup;
 		private var playerBullets: FlxGroup;
 		
+		private var powerups : FlxGroup;
+		
 		private var metaObjects: FlxGroup;
 		
 		//[Embed(source = "music.mp3")] private static var SndMusic : Class;
@@ -31,6 +33,7 @@ package
 		{
 			worldGroup = new FlxGroup();
 			playerBullets = new FlxGroup();
+			powerups = new FlxGroup();
 			
 			for (var i:uint = 0; i < 100; ++i)
 			{
@@ -38,7 +41,7 @@ package
 			}
 			
 			metaObjects = new FlxGroup();
-			bgColor = 0xff4A7FB5;
+			bgColor = 0xff969696;
 			
 			map = new FlxTilemap();
 			map.drawIndex = 1;
@@ -46,6 +49,14 @@ package
 			
 			var tmx:TmxMap = new TmxMap(new XML( new data_map ));
 			map.loadMap(tmx.getLayer('map').toCsv(tmx.getTileSet('tiles')), data_tiles, 64);
+			var pug : TmxObjectGroup = tmx.getObjectGroup("powerups");
+			var c : uint = 0;
+			for each(var o:TmxObject in pug.objects)
+			{
+				c += 1;
+				powerups.add( new Powerup(o.x, o.y) );
+			}
+			FlxG.log("pu: " + c.toString() );
 			//map.loadMap(new data_map, data_tiles, 64);
 			map.x = map.y = 0;
 			
@@ -53,7 +64,7 @@ package
 			
 			add(worldGroup);
 			
-			
+			add(powerups);
 			add(playerBullets);
 			
 			hudText = new FlxText(0 , 0, 300, "pirates are awesome");
@@ -78,11 +89,25 @@ package
 			FlxG.followBounds(0, 0, map.right, map.bottom);
 		}
 		
+		protected function CB_Powerup(aplayer : FlxObject, powerup : FlxObject) : void
+		{
+			player.getPowerup();
+			powerup.kill();
+		}
+		
 		override public function update():void
 		{
+			if ( FlxG.keys.justPressed("R") )
+			{
+				destroy();
+				create();
+			}
+			
 			bugUpdateCamera();
 			super.update();
 			map.collide(metaObjects);
+			
+			FlxU.overlap(player, powerups, CB_Powerup);
 			
 			//hudText.text = player.rand.toString();
 		}
