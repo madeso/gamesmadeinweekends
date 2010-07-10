@@ -10,6 +10,7 @@ package
 		[Embed(source = "wallJump.mp3")] private static var SndWallJump : Class;
 		[Embed(source = "land.mp3")] private static var SndLand : Class;
 		[Embed(source = "kick.mp3")] private static var SndRoundhouse : Class;
+		[Embed(source = "powerup.mp3")] private static var SndPowerup : Class;
 		
 		// ------------------------------------------------
 		
@@ -48,6 +49,8 @@ package
 		
 		private var gunTemp : Number = -1;
 		
+		private var gunLevel : uint = 0;
+		
 		// --------------------------------------------------------
 		
 		private var bullets : Array;
@@ -80,12 +83,27 @@ package
 		
 		private function hasSpread() : Boolean
 		{
-			return true;
+			return gunLevel == 2 || gunLevel == 3 || gunLevel == 4 || gunLevel == 5;
 		}
 		
 		private function hasRapid() : Boolean
 		{
-			return true;
+			return gunLevel == 1 || gunLevel == 3 || gunLevel == 5;
+		}
+		
+		private function hasBounce() : Boolean
+		{
+			return gunLevel == 4 || gunLevel == 5;
+		}
+		
+		public function getPowerup() : void
+		{
+			if ( gunLevel < 5 )
+			{
+				gunLevel += 1;
+			}
+			
+			FlxG.play(SndPowerup);
 		}
 		
 		private function Shoot(right : Boolean, xv : Number, yv:Number) : void
@@ -102,7 +120,7 @@ package
 				dx = -5;
 				dy = 5;
 			}
-			bullets[bulletsIndex].shoot(x+dx, y+dy, xv, yv);
+			bullets[bulletsIndex].shoot(x+dx, y+dy, xv, yv, hasBounce());
 			bulletsIndex++;
 			if ( bulletsIndex >= bullets.length ) bulletsIndex = 0;
 		}

@@ -14,6 +14,8 @@ package
 		private const kMinSpread : Number = 10;
 		
 		private var bounces : uint = 0;
+		
+		private var mhasb : Boolean = false;
 
 		public function Bullet()
 		{
@@ -31,7 +33,7 @@ package
 		
 		private function canBounce() : Boolean
 		{
-			return true;
+			return mhasb;
 		}
 
 		override public function update():void
@@ -109,8 +111,9 @@ package
 			}
 		}
 
-		public function shoot(X:int, Y:int, VelocityX:int, VelocityY:int):void
+		public function shoot(X:int, Y:int, VelocityX:int, VelocityY:int, hb : Boolean):void
 		{
+			mhasb = hb;
 			FlxG.play(SndShoot);
 			super.reset(X,Y);
 			solid = true;

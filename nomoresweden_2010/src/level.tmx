@@ -931,7 +931,7 @@
    <tile gid="0"/>
    <tile gid="0"/>
    <tile gid="0"/>
-   <tile gid="0"/>
+   <tile gid="12"/>
    <tile gid="0"/>
    <tile gid="0"/>
    <tile gid="49"/>
@@ -961,7 +961,7 @@
    <tile gid="0"/>
    <tile gid="0"/>
    <tile gid="0"/>
-   <tile gid="0"/>
+   <tile gid="12"/>
    <tile gid="0"/>
    <tile gid="0"/>
    <tile gid="49"/>
@@ -991,7 +991,7 @@
    <tile gid="0"/>
    <tile gid="0"/>
    <tile gid="0"/>
-   <tile gid="0"/>
+   <tile gid="12"/>
    <tile gid="0"/>
    <tile gid="0"/>
    <tile gid="49"/>
@@ -1021,7 +1021,7 @@
    <tile gid="0"/>
    <tile gid="0"/>
    <tile gid="0"/>
-   <tile gid="0"/>
+   <tile gid="12"/>
    <tile gid="0"/>
    <tile gid="0"/>
    <tile gid="49"/>
@@ -3007,4 +3007,16 @@
    <tile gid="64"/>
   </data>
  </layer>
+ <objectgroup name="powerups" width="30" height="100">
+  <object name="" x="1690" y="850"/>
+  <object name="" x="344" y="3242"/>
+  <object name="" x="300" y="4872"/>
+  <object name="" x="1806" y="1936"/>
+  <object name="" x="1806" y="736"/>
+  <object name="" x="1682" y="4254"/>
+  <object name="" x="872" y="1908"/>
+  <object name="" x="1836" y="82"/>
+  <object name="" x="1052" y="3306"/>
+  <object name="" x="1164" y="2542"/>
+ </objectgroup>
 </map>
