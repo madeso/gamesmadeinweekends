@@ -3019,4 +3019,7 @@
   <object name="" x="1052" y="3306"/>
   <object name="" x="1164" y="2542"/>
  </objectgroup>
+ <objectgroup name="barrels" width="30" height="100">
+  <object name="" x="1316" y="838" height="36"/>
+ </objectgroup>
 </map>
