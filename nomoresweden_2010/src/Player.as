@@ -46,7 +46,7 @@ package
 		
 		private var roundhouseTime : Number = kRoundHouseTime * 2; // less than kRoundhouseTime zero gravity -> were roundhousing
 		
-		public var gunTemp : Number = -1; 
+		private var gunTemp : Number = -1;
 		
 		// --------------------------------------------------------
 		

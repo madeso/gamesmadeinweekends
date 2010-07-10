@@ -9,6 +9,9 @@ package
 		[Embed(source = "fire.mp3")] private var SndShoot:Class;
 		
 		private const kBounces : uint = 2;
+		private const kBounceSpeed : Number = 500;
+		private const kSpread : Number = 70;
+		private const kMinSpread : Number = 10;
 		
 		private var bounces : uint = 0;
 
@@ -28,7 +31,7 @@ package
 		
 		private function canBounce() : Boolean
 		{
-			return false;
+			return true;
 		}
 
 		override public function update():void
@@ -47,6 +50,17 @@ package
 		override public function hitBottom(Contact:FlxObject,Velocity:Number):void { kill(); }
 		override public function hitTop(Contact:FlxObject, Velocity:Number):void { kill(); }
 		
+		private static function sign(n : Number) : int
+		{
+			if ( n > 0 ) return 1;
+			else return -1;
+		}
+		
+		private static function ms(p:FlxPoint):String
+		{
+			return "(" + p.x.toString() + ", " + p.y.toString() + ")";
+		}
+		
 		override public function kill():void
 		{
 			var doit : Boolean = true;
@@ -58,8 +72,27 @@ package
 					bounces += 1;
 					doit = false;
 					
-					velocity.x *= - 1;
-					velocity.y *= - 1;
+					var a : Number = (FlxU.random() * kSpread) - kSpread / 2;
+					a += sign(a) * kMinSpread;
+					FlxG.log("a: " + a.toString());
+					a = 180 * a / Math.PI;
+					var dx : Number = Math.cos(a) * kBounceSpeed;
+					var dy : Number = Math.sin(a) * kBounceSpeed;
+					
+					if ( sign(dx) == sign(velocity.x) )
+					{
+						dx *= -1;
+					}
+					if ( sign(dy) == sign(velocity.y) )
+					{
+						dy *= -1;
+					}
+					
+					velocity.x = dx;
+					velocity.y = dy;
+					
+					//velocity.x *= - 1;
+					//velocity.y *= - 1;
 					if(onScreen()) FlxG.play(SndHit);
 				}
 			}
