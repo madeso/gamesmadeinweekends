@@ -24,6 +24,7 @@ package
 		private var playerBullets: FlxGroup;
 		
 		private var powerups : FlxGroup;
+		private var barrels : FlxGroup;
 		
 		private var metaObjects: FlxGroup;
 		
@@ -34,6 +35,7 @@ package
 			worldGroup = new FlxGroup();
 			playerBullets = new FlxGroup();
 			powerups = new FlxGroup();
+			barrels = new FlxGroup();
 			
 			for (var i:uint = 0; i < 100; ++i)
 			{
@@ -49,14 +51,14 @@ package
 			
 			var tmx:TmxMap = new TmxMap(new XML( new data_map ));
 			map.loadMap(tmx.getLayer('map').toCsv(tmx.getTileSet('tiles')), data_tiles, 64);
-			var pug : TmxObjectGroup = tmx.getObjectGroup("powerups");
-			var c : uint = 0;
-			for each(var o:TmxObject in pug.objects)
+			for each(var o:TmxObject in tmx.getObjectGroup("powerups").objects)
 			{
-				c += 1;
 				powerups.add( new Powerup(o.x, o.y) );
 			}
-			FlxG.log("pu: " + c.toString() );
+			for each(o in tmx.getObjectGroup("barrels").objects)
+			{
+				barrels.add( new Barrel(o.x, o.y) );
+			}
 			//map.loadMap(new data_map, data_tiles, 64);
 			map.x = map.y = 0;
 			
@@ -65,6 +67,7 @@ package
 			add(worldGroup);
 			
 			add(powerups);
+			add(barrels);
 			add(playerBullets);
 			
 			hudText = new FlxText(0 , 0, 300, "pirates are awesome");
@@ -75,6 +78,7 @@ package
 			
 			metaObjects.add(player);
 			metaObjects.add(playerBullets);
+			metaObjects.add(barrels);
 			
 			bugUpdateCamera();
 			
@@ -95,6 +99,19 @@ package
 			powerup.kill();
 		}
 		
+		protected function CB_BulletBarrels(bullet : FlxObject, barrel : FlxObject) : void
+		{
+			bullet.kill();
+			if ( barrel.flickering() )
+			{
+				barrel.kill();
+			}
+			else
+			{
+				barrel.flicker();
+			}
+		}
+		
 		override public function update():void
 		{
 			if ( FlxG.keys.justPressed("R") )
@@ -108,6 +125,7 @@ package
 			map.collide(metaObjects);
 			
 			FlxU.overlap(player, powerups, CB_Powerup);
+			FlxU.overlap(playerBullets, barrels, CB_BulletBarrels);
 			
 			//hudText.text = player.rand.toString();
 		}
