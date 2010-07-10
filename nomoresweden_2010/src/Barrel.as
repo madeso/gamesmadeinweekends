@@ -5,7 +5,7 @@ package
 	public class Barrel extends FlxSprite
 	{
 		[Embed(source="barrel.png")] private var ImgBullet:Class;
-		[Embed(source="hit.mp3")] private var SndHit:Class;
+		[Embed(source="explosion.mp3")] private var SndHit:Class;
 		
 		public function Barrel(ax:Number, ay:Number)
 		{
@@ -19,7 +19,7 @@ package
 			velocity.y = 5;
 
 			addAnimation("idle",[0]);
-			addAnimation("poof",[1,2,3,4,5,6,7,8,9], 25, false);
+			addAnimation("poof",[1,2,3,4,5,6,7,8,9], 10, false);
 		}
 		
 		private function stop() : void
@@ -51,7 +51,7 @@ package
 			if (onScreen())
 			{
 				FlxG.play(SndHit);
-				FlxG.quake.start(0.01, 0.2);
+				FlxG.quake.start(0.05, 0.3);
 			}
 			dead = true;
 			solid = false;
