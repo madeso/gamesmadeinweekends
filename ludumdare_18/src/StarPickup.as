@@ -2,7 +2,7 @@ package
 {
 	import org.flixel.*;
 
-	public class Powerup extends FlxSprite
+	public class StarPickup extends FlxSprite
 	{
 		[Embed(source="powerup.png")] private var ImgBullet:Class;
 		

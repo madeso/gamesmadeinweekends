@@ -16,7 +16,7 @@ package
 		
 		[Embed(source = "mdie.mp3")] private var SndMonsterDie:Class;
 		
-		private var map : FlxTilemap;
+		public var map : FlxTilemap;
 		
 		private var hudText : FlxText;
 		
@@ -67,12 +67,13 @@ package
 			map.loadMap(tmx.getLayer('map').toCsv(tmx.getTileSet('tiles')), data_tiles, 64);
 			for each(var o:TmxObject in tmx.getObjectGroup("powerups").objects)
 			{
-				powerups.add( new Powerup(o.x, o.y) );
+				powerups.add( new StarPickup(o.x, o.y) );
 			}
 			
 			for each(o in tmx.getObjectGroup("barrels").objects)
 			{
-				enemies.add( new Magician(o.x, o.y, this, player) );
+				//enemies.add( new Magician(o.x, o.y, this, player) );
+				enemies.add( new Gnome(o.x, o.y, this, player) );
 			}
 			//map.loadMap(new data_map, data_tiles, 64);
 			map.x = map.y = 0;
@@ -128,6 +129,14 @@ package
 		{
 			(player as Player).cBullet(bullet);
 			bullet.kill();
+		}
+		
+		public function issolid(ax:Number, ay:Number) : Boolean
+		{
+			var rx : uint = Math.floor(ax / 64) as uint;
+			var ry : uint = Math.floor(ay / 64) as uint;
+			var i : uint = map.getTile(rx, ry);
+			return i >= map.collideIndex;
 		}
 		
 		override public function update():void

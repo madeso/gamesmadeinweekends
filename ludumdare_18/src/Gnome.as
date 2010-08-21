@@ -7,24 +7,27 @@ package
 		[Embed(source = "barrel.png")] private var ImgGnome:Class;
 		
 		private var player : Player;
+		private var ps : PlayState;
+		
+		private var mright : Boolean = true;
 		
 		public function Gnome(ax:Number, ay:Number, ps: PlayState, pl: Player)
 		{
 			super(ax,ay);
-			loadGraphic(ImgMagician,true, false, 64);
+			loadGraphic(ImgGnome,true, false, 64);
 			width = 54;
 			height = 62;
 			offset.x = 5;
 			offset.y = 2;
-			this.ps = ps;
 			this.player = pl;
+			this.ps = ps;
 			
-			velocity.y = 5;
+			acceleration.y = 1500;
 
 			addAnimation("idle",[0]);
 			addAnimation("die", [1, 2, 3, 4, 5, 6, 7, 8, 9], 10, false);
 			
-			heat = Math.random();
+			mright = Math.random() > 0.5;
 		}
 		
 		private function stop() : void
@@ -32,59 +35,47 @@ package
 			velocity.y = 0;
 		}
 		
-		override public function hitLeft(Contact:FlxObject, Velocity:Number):void { stop(); }
-		override public function hitRight(Contact:FlxObject,Velocity:Number):void { stop(); }
+		override public function hitLeft(Contact:FlxObject, Velocity:Number):void { switchDir(); }
+		override public function hitRight(Contact:FlxObject, Velocity:Number):void { switchDir(); }
 		override public function hitBottom(Contact:FlxObject,Velocity:Number):void { stop(); }
 		override public function hitTop(Contact:FlxObject, Velocity:Number):void { stop(); }
 		
-		private var heat : Number = 0;
-		private const kTime : Number = 0.25;
-		private var bullets : int = kMax;
-		private const kMax : int = 3;
-		private var state : int = 0; // 0 = fire, 1 = reloading
+		private function switchDir() : void
+		{
+			mright = !mright;
+		}
+		
+		private var cooldown : Number = 0;
 
 		override public function update():void
 		{
-			if (dead && finished)
+			if ( onScreen() )
 			{
-				exists = false;
-			}
-			else
-			{
-				if ( heat > 0 )
+				if ( cooldown >= 0 )
 				{
-					heat -= FlxG.elapsed;
+					cooldown -= FlxG.elapsed;
 				}
-				if ( state == 0 )
+				
+				var d : int = 1;
+				if ( !mright )
 				{
-					if ( onScreen() && heat <= 0 && bullets > 0 )
-					{
-						var dx : Number = player.x - x;
-						var dy : Number = player.y - y;
-						var le : Number = Math.sqrt( dx * dx + dy * dy);
-						dx /= le;
-						dy /= le;
-						ps.fireMonsterBullet(x, y + 10, dx * kFireSpeed, dy * kFireSpeed);
-						heat = kTime;
-						bullets -= 1;
-						
-						if ( bullets == 0 ) state = 1;
-					}
+					d = -1;
+				}
+				
+				if ( ps.issolid(x + (d*30), y + 65) == false )
+				{
+					switchDir();
+					cooldown = 1;
+				}
+				
+				if ( onScreen() )
+				{
+					velocity.x = d * 100;
 				}
 				else
 				{
-					if ( onScreen() && heat <= 0 && bullets < kMax )
-					{
-						bullets += 1;
-						heat = kTime * 2;
-					}
-					if ( bullets == kMax )
-					{
-						state = 0;
-						heat = 0;
-					}
+					velocity.x = 0;
 				}
-				if ( onScreen() == false ) bullets = kMax;
 				
 				super.update();
 			}
@@ -105,8 +96,8 @@ package
 				FlxG.quake.start(0.05, 0.3);
 			}
 			dead = true;
+			exists = false;
 			solid = false;
-			play("die");
 		}
 	}
 }
