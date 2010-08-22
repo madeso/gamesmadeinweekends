@@ -10,10 +10,10 @@ package
 		{
 			super(ax,ay);
 			loadGraphic(ImgBullet,true, false, 64);
-			width = 5;
-			height = 5;
-			offset.x = 25;
-			offset.y = 22;
+			width = 30;
+			height = 30;
+			offset.x = 11;
+			offset.y = 5;
 
 			addAnimation("idle", [0, 1], 3);
 			play("idle");
