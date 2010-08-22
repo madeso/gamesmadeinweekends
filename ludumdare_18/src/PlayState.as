@@ -26,7 +26,8 @@ package
 		private var bullets: FlxGroup;
 		
 		private var powerups : FlxGroup;
-		private var enemies : FlxGroup;
+		private var gnomes : FlxGroup;
+		private var magicians : FlxGroup;
 		
 		private var metaObjects: FlxGroup;
 		private var bulletsIndex : uint = 0;
@@ -46,7 +47,8 @@ package
 			worldGroup = new FlxGroup();
 			bullets = new FlxGroup();
 			powerups = new FlxGroup();
-			enemies = new FlxGroup();
+			gnomes = new FlxGroup();
+			magicians = new FlxGroup();
 			playerBullet = new PlayerBullet();
 			
 			for (var i:uint = 0; i < 100; ++i)
@@ -67,13 +69,12 @@ package
 			map.loadMap(tmx.getLayer('map').toCsv(tmx.getTileSet('tiles')), data_tiles, 64);
 			for each(var o:TmxObject in tmx.getObjectGroup("powerups").objects)
 			{
-				powerups.add( new StarPickup(o.x, o.y) );
+				magicians.add( new Magician(o.x, o.y, this, player) );
 			}
 			
 			for each(o in tmx.getObjectGroup("barrels").objects)
 			{
-				//enemies.add( new Magician(o.x, o.y, this, player) );
-				enemies.add( new Gnome(o.x, o.y, this, player) );
+				gnomes.add( new Gnome(o.x, o.y, this, player) );
 			}
 			//map.loadMap(new data_map, data_tiles, 64);
 			map.x = map.y = 0;
@@ -83,7 +84,8 @@ package
 			add(worldGroup);
 			
 			add(powerups);
-			add(enemies);
+			add(gnomes);
+			add(magicians);
 			add(bullets);
 			add(playerBullet);
 			
@@ -94,7 +96,8 @@ package
 			
 			metaObjects.add(player);
 			metaObjects.add(bullets);
-			metaObjects.add(enemies);
+			metaObjects.add(gnomes);
+			metaObjects.add(magicians);
 			metaObjects.add(playerBullet);
 			
 			bugUpdateCamera();
@@ -131,12 +134,33 @@ package
 			bullet.kill();
 		}
 		
-		public function issolid(ax:Number, ay:Number) : Boolean
+		[Embed(source = "up3.mp3")] private var SndPickupGnome:Class;
+		
+		protected function CB_PlayerGnome(aplayer : FlxObject, agnome: FlxObject) : void
 		{
-			var rx : uint = Math.floor(ax / 64) as uint;
-			var ry : uint = Math.floor(ay / 64) as uint;
-			var i : uint = map.getTile(rx, ry);
-			return i >= map.collideIndex;
+			var player : Player = aplayer as Player;
+			var gnome : Gnome = agnome as Gnome;
+			if ( player.velocity.y > 0 )
+			{
+				if ( gnome.flickering() )
+				{
+					if ( player.canPickupGnome() )
+					{
+						player.pickupGnome();
+						gnome.pickup();
+						FlxG.play(SndPickupGnome);
+					}
+				}
+				else
+				{
+					player.velocity.y = -100;
+				}
+				gnome.flicker();
+			}
+			else
+			{
+				player.cBullet(agnome);
+			}
 		}
 		
 		override public function update():void
@@ -152,10 +176,26 @@ package
 			map.collide(metaObjects);
 			
 			FlxU.overlap(player, powerups, CB_Powerup);
-			FlxU.overlap(playerBullet, enemies, CB_BulletEnemy);
+			FlxU.overlap(playerBullet, gnomes, CB_BulletEnemy);
+			FlxU.overlap(playerBullet, magicians, CB_BulletEnemy);
 			FlxU.overlap(player, bullets, CB_PlayerBullet);
 			
+			FlxU.overlap(player, gnomes, CB_PlayerGnome);
+			
 			//hudText.text = player.rand.toString();
+		}
+		
+		public function issolid(ax:Number, ay:Number) : Boolean
+		{
+			var rx : uint = Math.floor(ax / 64) as uint;
+			var ry : uint = Math.floor(ay / 64) as uint;
+			var i : uint = map.getTile(rx, ry);
+			return i >= map.collideIndex;
+		}
+		
+		public function spawnStar(x:Number, y:Number) : void
+		{
+			powerups.add( new StarPickup(x, y) );
 		}
 	}
 
