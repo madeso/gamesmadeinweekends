@@ -4,7 +4,7 @@ package
 
 	public class Gnome extends FlxSprite
 	{
-		[Embed(source = "barrel.png")] private var ImgGnome:Class;
+		[Embed(source = "gnome.png")] private var ImgGnome:Class;
 		
 		private var player : Player;
 		private var ps : PlayState;
@@ -14,20 +14,22 @@ package
 		public function Gnome(ax:Number, ay:Number, ps: PlayState, pl: Player)
 		{
 			super(ax,ay);
-			loadGraphic(ImgGnome,true, false, 64);
-			width = 54;
-			height = 62;
-			offset.x = 5;
-			offset.y = 2;
+			loadGraphic(ImgGnome,true, true, 64);
+			width = 40;
+			height = 43;
+			offset.x = 11;
+			offset.y = 20;
 			this.player = pl;
 			this.ps = ps;
 			
 			acceleration.y = 1500;
 
-			addAnimation("idle",[0]);
-			addAnimation("die", [1, 2, 3, 4, 5, 6, 7, 8, 9], 10, false);
+			addAnimation("walk",[0,1,2,1],5);
+			addAnimation("jumped", [4, 5, 6, 5, 4, 5, 6, 5, 4, 5, 6, 5, 4, 5, 6, 5, 4, 5, 6, 5, 4], 10, false);
 			
 			mright = Math.random() > 0.5;
+			switchDir();
+			play("walk");
 		}
 		
 		private function stop() : void
@@ -43,51 +45,82 @@ package
 		private function switchDir() : void
 		{
 			mright = !mright;
+			
+			if ( mright ) facing = RIGHT;
+			else facing = LEFT;
 		}
 		
 		private var cooldown : Number = 0;
 		
 		private var updateOutside : Boolean = true;
 
+		private var jumped : Boolean = false;
+		
+		public function canBeDamagedBy() : Boolean
+		{
+			if ( flickering() ) return false;
+			if ( jumped ) return false;
+			return true;
+		}
+		
 		override public function update():void
 		{
-			if ( onScreen() )
+			if ( flickering() )
 			{
-				if ( cooldown >= 0 )
-				{
-					cooldown -= FlxG.elapsed;
-				}
-				
-				var d : int = 1;
-				if ( !mright )
-				{
-					d = -1;
-				}
-				
-				if ( ps.issolid(x + (d*30), y + 65) == false )
-				{
-					switchDir();
-					cooldown = 1;
-				}
-				
+				jumped = true;
+				play("jumped");
+				velocity.x = 0;
+			}
+			if ( jumped && finished )
+			{
+				jumped = false;
+				play("walk");
+			}
+			
+			if ( jumped )
+			{
+				super.update();
+			}
+			else
+			{
 				if ( onScreen() )
 				{
-					velocity.x = d * 100;
-				}
-				else
-				{
-					velocity.x = 0;
+					if ( cooldown >= 0 )
+					{
+						cooldown -= FlxG.elapsed;
+					}
+					
+					var d : int = 1;
+					if ( !mright )
+					{
+						d = -1;
+					}
+					
+					if ( ps.issolid(x + (d*30), y + 65) == false )
+					{
+						switchDir();
+						cooldown = 1;
+					}
+					
+					if ( onScreen() )
+					{
+						velocity.x = d * 100;
+					}
+					else
+					{
+						velocity.x = 0;
+					}
+					
+					if ( updateOutside == false )
+					{
+						super.update();
+					}
 				}
 				
-				if ( updateOutside == false )
+				if ( updateOutside )
 				{
 					super.update();
 				}
-			}
-			
-			if ( updateOutside )
-			{
-				super.update();
 			}
 		}
 
