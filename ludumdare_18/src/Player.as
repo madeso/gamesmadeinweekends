@@ -331,6 +331,15 @@ package
 		{
 			acceleration.x += dx * 500 * kRunSpeed * FlxG.elapsed;
 		}
+		
+		public function canPickupGnome() : Boolean
+		{
+			return true;
+		}
+		
+		public function pickupGnome() : void
+		{
+		}
 	}
 
 }

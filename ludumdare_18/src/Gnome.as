@@ -37,7 +37,7 @@ package
 		
 		override public function hitLeft(Contact:FlxObject, Velocity:Number):void { switchDir(); }
 		override public function hitRight(Contact:FlxObject, Velocity:Number):void { switchDir(); }
-		override public function hitBottom(Contact:FlxObject,Velocity:Number):void { stop(); }
+		override public function hitBottom(Contact:FlxObject, Velocity:Number):void { updateOutside = false; stop(); }
 		override public function hitTop(Contact:FlxObject, Velocity:Number):void { stop(); }
 		
 		private function switchDir() : void
@@ -46,6 +46,8 @@ package
 		}
 		
 		private var cooldown : Number = 0;
+		
+		private var updateOutside : Boolean = true;
 
 		override public function update():void
 		{
@@ -77,6 +79,14 @@ package
 					velocity.x = 0;
 				}
 				
+				if ( updateOutside == false )
+				{
+					super.update();
+				}
+			}
+			
+			if ( updateOutside )
+			{
 				super.update();
 			}
 		}
@@ -84,6 +94,13 @@ package
 		override public function render():void
 		{
 			super.render();
+		}
+		
+		public function pickup() : void
+		{
+			dead = true;
+			exists = false;
+			solid = false;
 		}
 
 		override public function kill():void
