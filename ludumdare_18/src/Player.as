@@ -66,10 +66,10 @@ package
 			offset.x = 11;
 			offset.y = 20;
 			
-			addAnimation("moving", [0, 1, 2, 1], 10);
-			addAnimation("jumping", [0]);
+			addAnimation("moving", [4,5,6,7], 10);
+			addAnimation("jumping", [8,9], 10);
 			//addAnimation("attack", [4, 5, 6],10);
-			addAnimation("idle", [0]);
+			addAnimation("idle", [0,1,2,3], 10);
 			//addAnimation("hurt", [2, 7], 10);
 			//addAnimation("dead", [7, 7, 7], 5);
 			
