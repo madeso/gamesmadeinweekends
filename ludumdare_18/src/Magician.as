@@ -22,7 +22,7 @@ package
 			this.ps = ps;
 			this.player = pl;
 			
-			velocity.y = 5;
+			velocity.y = 50;
 
 			addAnimation("idle",[0]);
 			addAnimation("die", [1, 2, 3, 4, 5, 6, 7, 8, 9], 10, false);
@@ -110,6 +110,7 @@ package
 			dead = true;
 			solid = false;
 			play("die");
+			ps.spawnStar(x, y);
 		}
 	}
 }
