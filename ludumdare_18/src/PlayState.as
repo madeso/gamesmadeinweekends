@@ -140,7 +140,7 @@ package
 		{
 			var player : Player = aplayer as Player;
 			var gnome : Gnome = agnome as Gnome;
-			if ( player.velocity.y > 0 )
+			if ( (player.y > gnome.y - 30) && player.velocity.y > 0 )
 			{
 				if ( gnome.flickering() )
 				{
@@ -153,9 +153,9 @@ package
 				}
 				else
 				{
-					player.velocity.y = -100;
+					gnome.flicker();
 				}
-				gnome.flicker();
+				player.velocity.y = -100;
 			}
 			else
 			{
