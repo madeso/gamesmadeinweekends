@@ -15,6 +15,7 @@ package
 		public static var data_tiles : Class;
 		
 		[Embed(source = "mdie.mp3")] private var SndMonsterDie:Class;
+		[Embed(source = "walk1.mp3")] private var SndGnomeFlicker:Class;
 		
 		public var map : FlxTilemap;
 		
@@ -176,7 +177,7 @@ package
 		{
 			var player : Player = aplayer as Player;
 			var gnome : Gnome = agnome as Gnome;
-			if ( (player.y > gnome.y - 30) && player.velocity.y > 0 )
+			if ( (player.y > gnome.y - 20) && player.velocity.y > 0 )
 			{
 				if ( gnome.flickering() )
 				{
@@ -194,12 +195,17 @@ package
 				else
 				{
 					gnome.flicker();
+					FlxG.play(SndGnomeFlicker);
 				}
 				player.velocity.y = -100;
 			}
 			else
 			{
-				player.cBullet(agnome);
+				// FlxG.log("Gnome hurt player: player " + player.y.toString() + " gnome " + gnome.x.toString() + " / " + player.velocity.y.toString());
+				if ( gnome.canBeDamagedBy() )
+				{
+					player.cBullet(agnome);
+				}
 			}
 		}
 		

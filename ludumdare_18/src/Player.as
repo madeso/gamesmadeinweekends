@@ -10,6 +10,8 @@ package
 		[Embed(source = "jump2.mp3")] private static var SndWallJump : Class;
 		[Embed(source = "land1.mp3")] private static var SndLand : Class;
 		[Embed(source = "up1.mp3")] private static var SndPowerup : Class;
+		[Embed(source = "walk2.mp3")] private static var SndHurt : Class;
+		[Embed(source = "up2.mp3")] private static var SndThrowGnome : Class;
 		
 		// ------------------------------------------------
 		
@@ -28,6 +30,12 @@ package
 		
 		private const kFireLoad : Number = 1; // number of seconds before star can be fired
 		
+		private var loader: Number = 0;
+		private const kLoader : Number = 0.3;
+		
+		[Embed(source = "coin.mp3")] private static var SndShotLoaded : Class;
+		[Embed(source = "coin2.mp3")] private static var SndLoadShot : Class;
+		
 		// -------------------------------------------------------
 		
 		private var onBottomTime : Number = 0;
@@ -40,7 +48,7 @@ package
 		private var onHitRight : Boolean = false;
 		
 		private var fireload : Number = 0;
-		private var hasStar : Boolean = false;
+		private var hasStar : Boolean = true;
 		
 		// --------------------------------------------------------
 		
@@ -99,6 +107,7 @@ package
 			
 			flicker();
 			hasStar = false;
+			FlxG.play(SndHurt);
 		}
 		
 		private function Shoot(right : Boolean, xv : Number, yv:Number) : void
@@ -259,8 +268,25 @@ package
 						
 						if ( FlxG.keys.pressed("Z") )
 						{
-							fireload += FlxG.elapsed;
-							if ( fireload > kFireLoad ) fireload = kFireLoad;
+							if ( fireload < kFireLoad )
+							{
+								fireload += FlxG.elapsed;
+								if ( fireload > kFireLoad )
+								{
+									fireload = kFireLoad;
+									FlxG.play(SndShotLoaded);
+								}
+								else
+								{
+									loader += FlxG.elapsed;
+									if ( loader > kLoader )
+									{
+										loader = 0;
+										FlxG.play(SndLoadShot);
+										// create star?
+									}
+								}
+							}
 						}
 						else
 						{
@@ -285,6 +311,7 @@ package
 				else
 				{
 					fireload = 0;
+					loader = 0;
 				}
 			}
 			
@@ -372,6 +399,7 @@ package
 			if ( facing != RIGHT ) d = -1;
 			ps.throwGnomeBullet(carrying.x, y, d * 500, -200);
 			FlxG.log("throwed gnome");
+			FlxG.play(SndThrowGnome);
 		}
 		
 		public function pickupGnome() : void
