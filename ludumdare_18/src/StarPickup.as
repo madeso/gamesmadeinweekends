@@ -15,7 +15,8 @@ package
 			offset.x = 25;
 			offset.y = 22;
 
-			addAnimation("idle",[0]);
+			addAnimation("idle", [0, 1], 3);
+			play("idle");
 		}
 	}
 }

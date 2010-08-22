@@ -4,9 +4,9 @@ package
 
 	public class Magician extends FlxSprite
 	{
-		[Embed(source = "barrel.png")] private var ImgMagician:Class;
+		[Embed(source = "magician.png")] private var ImgMagician:Class;
 		
-		private const kFireSpeed : Number = 900;
+		private const kFireSpeed : Number = 500;
 		
 		private var ps : PlayState;
 		private var player : Player;
@@ -17,15 +17,16 @@ package
 			loadGraphic(ImgMagician,true, false, 64);
 			width = 54;
 			height = 62;
-			offset.x = 5;
+			offset.x = 25;
 			offset.y = 2;
 			this.ps = ps;
 			this.player = pl;
 			
-			velocity.y = 50;
+			velocity.y = 150;
 
-			addAnimation("idle",[0]);
-			addAnimation("die", [1, 2, 3, 4, 5, 6, 7, 8, 9], 10, false);
+			addAnimation("idle", [0, 1, 2, 1], 2);
+			addAnimation("shoot", [3], 5);
+			addAnimation("die", [4,5,6,7], 4, false);
 			
 			heat = Math.random();
 		}
@@ -43,7 +44,7 @@ package
 		private var heat : Number = 0;
 		private const kTime : Number = 0.25;
 		private var bullets : int = kMax;
-		private const kMax : int = 3;
+		private const kMax : int = 6;
 		private var state : int = 0; // 0 = fire, 1 = reloading
 
 		override public function update():void
@@ -51,8 +52,9 @@ package
 			if (dead && finished)
 			{
 				exists = false;
+				ps.spawnStar(x, y+25);
 			}
-			else
+			else if( dead == false )
 			{
 				if ( heat > 0 )
 				{
@@ -67,12 +69,13 @@ package
 						var le : Number = Math.sqrt( dx * dx + dy * dy);
 						dx /= le;
 						dy /= le;
-						ps.fireMonsterBullet(x, y + 10, dx * kFireSpeed, dy * kFireSpeed);
+						ps.fireMonsterBullet(x+5, y +35, dx * kFireSpeed, dy * kFireSpeed);
 						heat = kTime;
-						bullets -= 1;
+						bullets -= 2;
 						
 						if ( bullets == 0 ) state = 1;
 					}
+					play("shoot");
 				}
 				else
 				{
@@ -86,9 +89,14 @@ package
 						state = 0;
 						heat = 0;
 					}
+					play("idle");
 				}
 				if ( onScreen() == false ) bullets = kMax;
 				
+				super.update();
+			}
+			else
+			{
 				super.update();
 			}
 		}
@@ -110,7 +118,6 @@ package
 			dead = true;
 			solid = false;
 			play("die");
-			ps.spawnStar(x, y);
 		}
 	}
 }
