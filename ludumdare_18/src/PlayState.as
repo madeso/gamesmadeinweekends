@@ -28,16 +28,36 @@ package
 		private var powerups : FlxGroup;
 		private var gnomes : FlxGroup;
 		private var magicians : FlxGroup;
+		private var deadGnomes : FlxGroup;
+		private var gnomeBullets : FlxGroup;
 		
 		private var metaObjects: FlxGroup;
 		private var bulletsIndex : uint = 0;
 		private var playerBullet : PlayerBullet;
+		private var deadGnomeIndex : uint = 0;
+		private var gnomeIndex : uint = 0;
+		
+		private var playerGnome : DeadGnome;
 		
 		public function fireMonsterBullet(x : Number, y:Number, xv:Number, yv: Number) : void
 		{
 			bullets.members[bulletsIndex].shoot(x, y, xv, yv);
 			bulletsIndex++;
 			if ( bulletsIndex >= bullets.members.length ) bulletsIndex = 0;
+		}
+		
+		public function fireDeadGnome(x : Number, y:Number, xv:Number, yv: Number) : void
+		{
+			deadGnomes.members[deadGnomeIndex].start(x, y, xv, yv, false);
+			deadGnomeIndex++;
+			if ( deadGnomeIndex >= deadGnomes.members.length ) deadGnomeIndex = 0;
+		}
+		
+		public function throwGnomeBullet(x : Number, y:Number, xv:Number, yv: Number) : void
+		{
+			gnomeBullets.members[gnomeIndex].start(x, y, xv, yv, true);
+			gnomeIndex++;
+			if ( gnomeIndex >= gnomeBullets.members.length ) gnomeIndex = 0;
 		}
 		
 		//[Embed(source = "music.mp3")] private static var SndMusic : Class;
@@ -50,10 +70,22 @@ package
 			gnomes = new FlxGroup();
 			magicians = new FlxGroup();
 			playerBullet = new PlayerBullet();
+			playerGnome = new DeadGnome();
+			deadGnomes = new FlxGroup();
+			gnomeBullets = new FlxGroup();
 			
 			for (var i:uint = 0; i < 100; ++i)
 			{
 				bullets.add( new Bullet() );
+			}
+			
+			for (var gi:uint = 0; gi < 100; ++gi)
+			{
+				deadGnomes.add( new DeadGnome() );
+			}
+			for (var di:uint = 0; di < 100; ++di)
+			{
+				gnomeBullets.add( new DeadGnome() );
 			}
 			
 			metaObjects = new FlxGroup();
@@ -63,7 +95,7 @@ package
 			map.drawIndex = 1;
 			map.collideIndex = 42;
 			
-			player = new Player(64, 64, playerBullet);
+			player = new Player(64, 64, playerBullet, playerGnome, this);
 			
 			var tmx:TmxMap = new TmxMap(new XML( new data_map ));
 			map.loadMap(tmx.getLayer('map').toCsv(tmx.getTileSet('tiles')), data_tiles, 64);
@@ -88,6 +120,9 @@ package
 			add(magicians);
 			add(bullets);
 			add(playerBullet);
+			add(playerGnome);
+			add(deadGnomes);
+			add(gnomeBullets);
 			
 			hudText = new FlxText(0 , 0, 300, "Z: shoot | X: jump");
 			hudText.scrollFactor = new FlxPoint(0, 0);
@@ -99,6 +134,7 @@ package
 			metaObjects.add(gnomes);
 			metaObjects.add(magicians);
 			metaObjects.add(playerBullet);
+			//metaObjects.add(gnomeBullets);
 			
 			bugUpdateCamera();
 			
@@ -150,6 +186,10 @@ package
 						gnome.pickup();
 						FlxG.play(SndPickupGnome);
 					}
+					else
+					{
+						killGnome(gnome);
+					}
 				}
 				else
 				{
@@ -161,6 +201,26 @@ package
 			{
 				player.cBullet(agnome);
 			}
+		}
+		
+		private function randomSign() : int
+		{
+			if ( Math.random() > 0.5 ) return 1;
+			else return -1;
+		}
+		
+		private function killGnome(gnome : Gnome ) : void
+		{
+			fireDeadGnome(gnome.x, gnome.y, 150 * Math.random() * randomSign(), -(150 + Math.random() * 100 ));
+			gnome.pickup();
+			FlxG.play(SndMonsterDie);
+		}
+		
+		protected function CB_DeadGnomeGnome(dead : FlxObject, agnome: FlxObject) : void
+		{
+			var gnome : Gnome = agnome as Gnome;
+			killGnome(gnome);
+			FlxG.log("killed gnome");
 		}
 		
 		override public function update():void
@@ -176,8 +236,10 @@ package
 			map.collide(metaObjects);
 			
 			FlxU.overlap(player, powerups, CB_Powerup);
-			FlxU.overlap(playerBullet, gnomes, CB_BulletEnemy);
+			FlxU.overlap(playerBullet, gnomes, CB_DeadGnomeGnome);
+			FlxU.overlap(gnomeBullets, gnomes, CB_DeadGnomeGnome);
 			FlxU.overlap(playerBullet, magicians, CB_BulletEnemy);
+			FlxU.overlap(gnomeBullets, magicians, CB_BulletEnemy);
 			FlxU.overlap(player, bullets, CB_PlayerBullet);
 			
 			FlxU.overlap(player, gnomes, CB_PlayerGnome);

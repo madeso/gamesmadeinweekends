@@ -46,10 +46,16 @@ package
 		
 		private var bullet : PlayerBullet;
 		
-		public function Player(X:int, Y:int, B : PlayerBullet)
+		private var carrying : DeadGnome;
+		
+		private var ps : PlayState;
+		
+		public function Player(X:int, Y:int, B : PlayerBullet, dg : DeadGnome, P : PlayState)
 		{
 			super(X, Y);
 			bullet = B;
+			ps = P;
+			carrying = dg;
 			loadGraphic(ImgPlayer, true, true, 48, 48);
 			drag.x = kFriction;
 			maxVelocity.x = kRunSpeed;
@@ -75,6 +81,7 @@ package
 		{
 			FlxG.play(SndPowerup);
 			hasStar = true;
+			flicker();
 		}
 		
 		public function cBullet( b : FlxObject ) : void
@@ -92,6 +99,7 @@ package
 			}
 			
 			flicker();
+			hasStar = false;
 		}
 		
 		private function Shoot(right : Boolean, xv : Number, yv:Number) : void
@@ -206,6 +214,7 @@ package
 			var onLeft : Boolean = onLeftTime < kReactionTime;
 			if ( onRight ) onLeft = false;
 			
+			updateCarrying();
 			
 			if ( FlxG.keys.RIGHT )
 			{
@@ -238,29 +247,39 @@ package
 				
 				if ( canfire )
 				{
-					var dofire : Boolean = false;
-					
-					if ( FlxG.keys.pressed("Z") )
+					if ( carrying.exists )
 					{
-						fireload += FlxG.elapsed;
-						if ( fireload > kFireLoad ) fireload = kFireLoad;
-					}
-					else
-					{
-						if ( fireload >= kFireLoad ) dofire = true;
-						fireload = 0;
-					}
-					
-					if ( dofire && bullet.solid == false)
-					{
-						shoot(facing == RIGHT);
-						if ( facing == RIGHT )
+						if ( FlxG.keys.justPressed("Z") )
 						{
-							velocity.x = -kJumpPushSpeed;
+							throwGnome();
+						}
+					}
+					else if( hasStar )
+					{
+						var dofire : Boolean = false;
+						
+						if ( FlxG.keys.pressed("Z") )
+						{
+							fireload += FlxG.elapsed;
+							if ( fireload > kFireLoad ) fireload = kFireLoad;
 						}
 						else
 						{
-							velocity.x = kJumpPushSpeed;
+							if ( fireload >= kFireLoad ) dofire = true;
+							fireload = 0;
+						}
+						
+						if ( dofire && bullet.solid == false)
+						{
+							shoot(facing == RIGHT);
+							if ( facing == RIGHT )
+							{
+								velocity.x = -kJumpPushSpeed;
+							}
+							else
+							{
+								velocity.x = kJumpPushSpeed;
+							}
 						}
 					}
 				}
@@ -333,6 +352,8 @@ package
 			acceleration.y = kGravity;
 			
 			super.update();
+			
+			updateCarrying();
 		}
 		
 		private function move(dx:int) : void
@@ -342,11 +363,34 @@ package
 		
 		public function canPickupGnome() : Boolean
 		{
-			return true;
+			return hasStar == false && carrying.exists == false;
+		}
+		
+		private function throwGnome() : void
+		{
+			carrying.carryingRemove();
+			var d : Number = 1;
+			if ( facing != RIGHT ) d = -1;
+			ps.throwGnomeBullet(carrying.x, carrying.y, d * 500, -200);
+			FlxG.log("throwed gnome");
 		}
 		
 		public function pickupGnome() : void
 		{
+			FlxG.log("picked up gnome");
+			carrying.exists = true;
+			carrying.visible = true;
+			carrying.dead = false;
+			updateCarrying();
+		}
+		
+		private function updateCarrying() : void
+		{
+			if ( carrying.exists )
+			{
+				carrying.x = x;
+				carrying.y = y - 40;
+			}
 		}
 	}
 
