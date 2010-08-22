@@ -56,21 +56,20 @@ package
 			bullet = B;
 			ps = P;
 			carrying = dg;
-			loadGraphic(ImgPlayer, true, true, 48, 48);
+			loadGraphic(ImgPlayer, true, true, 64,64);
 			drag.x = kFriction;
 			maxVelocity.x = kRunSpeed;
 			maxVelocity.y = kGravity;
 			acceleration.y = kGravity;
-			width = 25;
-			height = 28;
-			offset.x = 12;
-			offset.y = 15;
+			width = 40;
+			height = 43;
+			offset.x = 11;
+			offset.y = 20;
 			
 			addAnimation("moving", [0, 1, 2, 1], 10);
-			addAnimation("jumping", [2]);
+			addAnimation("jumping", [0]);
 			//addAnimation("attack", [4, 5, 6],10);
 			addAnimation("idle", [0]);
-			addAnimation("roundkick", [3,4], 7);
 			//addAnimation("hurt", [2, 7], 10);
 			//addAnimation("dead", [7, 7, 7], 5);
 			
@@ -371,7 +370,7 @@ package
 			carrying.carryingRemove();
 			var d : Number = 1;
 			if ( facing != RIGHT ) d = -1;
-			ps.throwGnomeBullet(carrying.x, carrying.y, d * 500, -200);
+			ps.throwGnomeBullet(carrying.x, y, d * 500, -200);
 			FlxG.log("throwed gnome");
 		}
 		
