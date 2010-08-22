@@ -79,16 +79,17 @@ package
 		
 		public function cBullet( b : FlxObject ) : void
 		{
-			var d : Number = 1;/*
-			if ( b.x < x ) d = -1;
-			acceleration.x += d * 70000;*/
+			if ( flickering() ) return;
+			
+			var d : Number = 1;
+			if ( b.x > x ) d = -1;
+			velocity.x = d*kJumpPushAcceletation;
 			if ( Math.abs(velocity.y) > 30 )
 			{
 				d = 1;			
 				if ( b.y < y ) d = -1;
 				velocity.y -= d * 500;
 			}
-			
 			
 			flicker();
 		}
@@ -253,7 +254,14 @@ package
 					if ( dofire && bullet.solid == false)
 					{
 						shoot(facing == RIGHT);
-						flicker();
+						if ( facing == RIGHT )
+						{
+							velocity.x = -kJumpPushSpeed;
+						}
+						else
+						{
+							velocity.x = kJumpPushSpeed;
+						}
 					}
 				}
 				else
