@@ -11,7 +11,7 @@ package
 		public function PlayerBullet()
 		{
 			super();
-			loadGraphic(ImgBullet,true, false, 64);
+			loadGraphic(ImgBullet,true, true, 64);
 			width = 5;
 			height = 5;
 			offset.x = 25;
@@ -19,8 +19,8 @@ package
 			exists = false;
 			solid = false;
 
-			addAnimation("idle",[0]);
-			addAnimation("poof",[1,2], 25, false);
+			addAnimation("idle",[4]);
+			addAnimation("poof",[5,6], 10, false);
 		}
 		
 		override public function update():void
@@ -57,6 +57,8 @@ package
 			solid = true;
 			velocity.x = VelocityX;
 			velocity.y = VelocityY;
+			if ( VelocityX > 0 ) facing = RIGHT;
+			else facing = LEFT;
 			play("idle");
 		}
 	}
