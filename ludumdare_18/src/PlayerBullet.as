@@ -26,7 +26,11 @@ package
 		override public function update():void
 		{
 			if(dead && finished) exists = false;
-			else super.update();
+			else
+			{
+				if ( onScreen() == false ) kill();
+				super.update();
+			}
 		}
 
 		override public function render():void

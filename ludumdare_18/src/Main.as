@@ -9,7 +9,7 @@ package
 	{
 		public function Main()
 		{
-			super(640, 480, PlayState /*MenuState*/, 1);
+			super(640, 480, MenuState, 1);
 		}
 		
 	}
