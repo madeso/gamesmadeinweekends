@@ -28,7 +28,7 @@ package
 			if(dead && finished) exists = false;
 			else
 			{
-				if ( onScreen() == false ) kill();
+				if ( onScreen() == false ) remove();
 				super.update();
 			}
 		}
@@ -43,14 +43,20 @@ package
 		override public function hitBottom(Contact:FlxObject,Velocity:Number):void { kill(); }
 		override public function hitTop(Contact:FlxObject, Velocity:Number):void { kill(); }
 		
-		override public function kill():void
+		private function remove() : void
 		{
 			if(dead) return;
 			velocity.x = 0;
 			velocity.y = 0;
-			if(onScreen()) FlxG.play(SndHit);
 			dead = true;
 			solid = false;
+		}
+		
+		override public function kill():void
+		{
+			if(dead) return;
+			remove();
+			if(onScreen()) FlxG.play(SndHit);
 			play("poof");
 		}
 

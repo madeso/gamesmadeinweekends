@@ -90,10 +90,27 @@ package
 		
 		public function getPowerup() : void
 		{
+			health = 4;
 			FlxG.play(SndPowerup);
 			hasStar = true;
 			flicker();
-			health = 3;
+		}
+		
+		public function dmg( b : FlxObject ) : void
+		{
+			if ( flickering() ) return;
+			
+			flicker();
+			hasStar = false;
+			FlxG.play(SndHurt);
+			
+			health -= 1;
+			
+			if ( health <= 0 )
+			{
+				dead = true;
+				FlxG.fade.start(0xff000000, 1, onFadeCompleted);
+			}
 		}
 		
 		public function cBullet( b : FlxObject ) : void
