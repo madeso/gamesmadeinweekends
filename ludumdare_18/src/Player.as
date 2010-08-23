@@ -93,6 +93,7 @@ package
 			FlxG.play(SndPowerup);
 			hasStar = true;
 			flicker();
+			health = 3;
 		}
 		
 		public function cBullet( b : FlxObject ) : void
