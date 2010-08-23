@@ -48,7 +48,7 @@ package
 		private var onHitRight : Boolean = false;
 		
 		private var fireload : Number = 0;
-		private var hasStar : Boolean = true;
+		private var hasStar : Boolean = false;
 		
 		// --------------------------------------------------------
 		
