@@ -39,6 +39,7 @@ package
 		private var gnomeIndex : uint = 0;
 		
 		private var playerGnome : DeadGnome;
+		private var starloader : Starloader;
 		
 		public function fireMonsterBullet(x : Number, y:Number, xv:Number, yv: Number) : void
 		{
@@ -74,6 +75,7 @@ package
 			playerGnome = new DeadGnome();
 			deadGnomes = new FlxGroup();
 			gnomeBullets = new FlxGroup();
+			starloader = new Starloader();
 			
 			for (var i:uint = 0; i < 100; ++i)
 			{
@@ -96,7 +98,7 @@ package
 			map.drawIndex = 1;
 			map.collideIndex = 42;
 			
-			player = new Player(64, 64, playerBullet, playerGnome, this);
+			player = new Player(64, 64, playerBullet, playerGnome, this, starloader);
 			
 			var tmx:TmxMap = new TmxMap(new XML( new data_map ));
 			map.loadMap(tmx.getLayer('map').toCsv(tmx.getTileSet('tiles')), data_tiles, 64);
@@ -116,6 +118,7 @@ package
 			
 			add(worldGroup);
 			
+			add(starloader);
 			add(powerups);
 			add(gnomes);
 			add(magicians);
