@@ -20,6 +20,7 @@ package
 		public var map : FlxTilemap;
 		
 		private var hudText : FlxText;
+		private var hudHearts : Hearts;
 		
 		private var player : Player;
 		
@@ -137,8 +138,12 @@ package
 			add(deadGnomes);
 			add(gnomeBullets);
 			
-			hudText = new FlxText(0 , 0, 300, "Z: shoot | X: jump");
+			hudText = new FlxText(340 , 0, 300, "Z: shoot | X: jump");
 			hudText.scrollFactor = new FlxPoint(0, 0);
+			hudText.alignment = "right";
+			
+			hudHearts = new Hearts(0, 0, player);
+			hudHearts.scrollFactor = new FlxPoint(0, 0);
 			
 			add(player);
 			
@@ -152,6 +157,7 @@ package
 			bugUpdateCamera();
 			
 			add( hudText );
+			add(hudHearts);
 			
 			//FlxG.playMusic(SndMusic);
 		}
@@ -220,7 +226,7 @@ package
 				
 				if ( gnome.canBeDamagedBy() )
 				{
-					player.cBullet(agnome);
+					player.dmg(agnome);
 				}
 			}
 		}
