@@ -58,11 +58,14 @@ package
 		
 		private var ps : PlayState;
 		
-		public function Player(X:int, Y:int, B : PlayerBullet, dg : DeadGnome, P : PlayState)
+		private var starloader : Starloader;
+		
+		public function Player(X:int, Y:int, B : PlayerBullet, dg : DeadGnome, P : PlayState, sl : Starloader)
 		{
 			super(X, Y);
 			bullet = B;
 			ps = P;
+			starloader = sl;
 			carrying = dg;
 			loadGraphic(ImgPlayer, true, true, 64,64);
 			drag.x = kFriction;
@@ -239,14 +242,14 @@ package
 			{
 				var canfire : Boolean = true;
 				
-				if ( onLeftTime < kReactionTime)
+				/*if ( onLeftTime < kReactionTime)
 				{
 					canfire = false;
 				}
 				if ( onRightTime < kReactionTime)
 				{
 					canfire = false;
-				}
+				}*/
 				
 				/*if ( onBottom == false )
 				{
@@ -306,6 +309,12 @@ package
 								velocity.x = kJumpPushSpeed;
 							}
 						}
+						
+						starloader.start(x, y);
+					}
+					else
+					{
+						starloader.kill();
 					}
 				}
 				else
@@ -417,6 +426,12 @@ package
 			{
 				carrying.x = x;
 				carrying.y = y - 40;
+			}
+			
+			if ( starloader.exists )
+			{
+				starloader.x = x;
+				starloader.y = y+10;
 			}
 		}
 	}
