@@ -11,7 +11,5 @@ package
 		{
 			super(640, 480, MenuState, 1);
 		}
-		
 	}
-
 }
