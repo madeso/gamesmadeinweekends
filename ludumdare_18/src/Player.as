@@ -76,6 +76,7 @@ package
 			height = 43;
 			offset.x = 11;
 			offset.y = 20;
+			health = 3;
 			
 			addAnimation("moving", [4,5,6,7], 10);
 			addAnimation("jumping", [8,9], 10);
@@ -111,6 +112,19 @@ package
 			flicker();
 			hasStar = false;
 			FlxG.play(SndHurt);
+			
+			health -= 1;
+			
+			if ( health <= 0 )
+			{
+				dead = true;
+				FlxG.fade.start(0xff000000, 1, onFadeCompleted);
+			}
+		}
+		
+		private function onFadeCompleted() : void
+		{
+			FlxG.state = new GameOver();
 		}
 		
 		private function Shoot(right : Boolean, xv : Number, yv:Number) : void
@@ -216,6 +230,10 @@ package
 		
 		override public function update():void
 		{
+			if ( dead )
+			{
+				return;
+			}
 			acceleration.x = 0;
 			
 			updateStateTimers();

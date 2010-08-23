@@ -41,6 +41,9 @@ package
 		private var playerGnome : DeadGnome;
 		private var starloader : Starloader;
 		
+		private var goalx : Number = -100;
+		private var goaly : Number = -100;
+		
 		public function fireMonsterBullet(x : Number, y:Number, xv:Number, yv: Number) : void
 		{
 			bullets.members[bulletsIndex].shoot(x, y, xv, yv);
@@ -111,6 +114,12 @@ package
 			{
 				gnomes.add( new Gnome(o.x, o.y, this, player) );
 			}
+			
+			for each(o in tmx.getObjectGroup("complete").objects)
+			{
+				goalx = o.x;
+				goaly = o.y;
+			}
 			//map.loadMap(new data_map, data_tiles, 64);
 			map.x = map.y = 0;
 			
@@ -180,7 +189,11 @@ package
 		{
 			var player : Player = aplayer as Player;
 			var gnome : Gnome = agnome as Gnome;
-			if ( (player.y > gnome.y - 20) && player.velocity.y > 0 )
+			
+			FlxG.log("Gnome hurt player: player " + player.y.toString() + " gnome " + gnome.x.toString() + " / " + player.velocity.y.toString());
+			
+			// (player.y > gnome.y - 20) 
+			if ( player.velocity.y > 0 )
 			{
 				if ( gnome.flickering() )
 				{
@@ -204,7 +217,7 @@ package
 			}
 			else
 			{
-				// FlxG.log("Gnome hurt player: player " + player.y.toString() + " gnome " + gnome.x.toString() + " / " + player.velocity.y.toString());
+				
 				if ( gnome.canBeDamagedBy() )
 				{
 					player.cBullet(agnome);
@@ -253,7 +266,17 @@ package
 			
 			FlxU.overlap(player, gnomes, CB_PlayerGnome);
 			
+			if ( Math.abs(player.x - goalx ) < 64 && Math.abs(player.y - goaly ) < 64 )
+			{
+				FlxG.fade.start(0xff000000, 1, onFadeCompleted);
+			}
+			
 			//hudText.text = player.rand.toString();
+		}
+		
+		private function onFadeCompleted() : void
+		{
+			FlxG.state = new CompleteState();
 		}
 		
 		public function issolid(ax:Number, ay:Number) : Boolean
