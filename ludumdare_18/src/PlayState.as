@@ -92,7 +92,7 @@ package
 			}
 			
 			metaObjects = new FlxGroup();
-			bgColor = 0xff969696;
+			bgColor = 0xff6a6a6a;
 			
 			map = new FlxTilemap();
 			map.drawIndex = 1;
@@ -102,12 +102,12 @@ package
 			
 			var tmx:TmxMap = new TmxMap(new XML( new data_map ));
 			map.loadMap(tmx.getLayer('map').toCsv(tmx.getTileSet('tiles')), data_tiles, 64);
-			for each(var o:TmxObject in tmx.getObjectGroup("powerups").objects)
+			for each(var o:TmxObject in tmx.getObjectGroup("magicians").objects)
 			{
 				magicians.add( new Magician(o.x, o.y, this, player) );
 			}
 			
-			for each(o in tmx.getObjectGroup("barrels").objects)
+			for each(o in tmx.getObjectGroup("gnomes").objects)
 			{
 				gnomes.add( new Gnome(o.x, o.y, this, player) );
 			}
