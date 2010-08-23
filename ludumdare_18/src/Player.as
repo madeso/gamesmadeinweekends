@@ -229,6 +229,19 @@ package
 			}
 		}
 		
+		public function  gunStatus() : uint
+		{
+			if ( hasStar == false ) return 0; // nogun
+			
+			
+			if ( FlxG.keys.pressed("Z") )
+			{
+				if ( fireload < kFireLoad ) return 2; // loading
+				else return 3; // ready to fire
+			}
+			else return 1; // hold to fire
+		}
+		
 		override public function update():void
 		{
 			if ( dead )

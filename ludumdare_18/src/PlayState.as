@@ -271,7 +271,22 @@ package
 				FlxG.fade.start(0xff000000, 1, onFadeCompleted);
 			}
 			
-			//hudText.text = player.rand.toString();
+			var str : String = "press X to jump";
+			
+			if ( playerGnome.exists )
+			{
+				hudText.text = "hit Z to throw gnome | " + str;
+			}
+			else
+			{
+				switch(player.gunStatus())
+				{
+					case 0: hudText.text = str; break;
+					case 2: hudText.text = "keep holding Z | " + str; break;
+					case 3: hudText.text = "release Z to fire | " + str; break;
+					case 1: hudText.text = "hold Z to load shot| " + str; break;
+				}
+			}
 		}
 		
 		private function onFadeCompleted() : void
