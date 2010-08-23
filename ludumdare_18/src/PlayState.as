@@ -213,7 +213,7 @@ package
 					gnome.flicker();
 					FlxG.play(SndGnomeFlicker);
 				}
-				player.velocity.y = -100;
+				player.velocity.y = -450;
 			}
 			else
 			{
