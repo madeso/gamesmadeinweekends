@@ -6,7 +6,7 @@ package
 	{
 		[Embed(source = "magician.png")] private var ImgMagician:Class;
 		
-		private const kFireSpeed : Number = 500;
+		private const kFireSpeed : Number = 200;
 		
 		private var ps : PlayState;
 		private var player : Player;
@@ -42,9 +42,10 @@ package
 		override public function hitTop(Contact:FlxObject, Velocity:Number):void { stop(); }
 		
 		private var heat : Number = 0;
-		private const kTime : Number = 0.25;
+		private const kTime : Number = 0.5;
+		private const kReloadTime : Number = 1;
 		private var bullets : int = kMax;
-		private const kMax : int = 6;
+		private const kMax : int = 3;
 		private var state : int = 0; // 0 = fire, 1 = reloading
 
 		override public function update():void
@@ -71,7 +72,7 @@ package
 						dy /= le;
 						ps.fireMonsterBullet(x+5, y +35, dx * kFireSpeed, dy * kFireSpeed);
 						heat = kTime;
-						bullets -= 2;
+						bullets -= 1;
 						
 						if ( bullets == 0 ) state = 1;
 					}
@@ -82,16 +83,17 @@ package
 					if ( onScreen() && heat <= 0 && bullets < kMax )
 					{
 						bullets += 1;
-						heat = kTime * 2;
-					}
-					if ( bullets == kMax )
-					{
-						state = 0;
-						heat = 0;
+						heat = kReloadTime;
+					
+						if ( bullets == kMax )
+						{
+							state = 0;
+							heat = 0;
+						}
 					}
 					play("idle");
 				}
-				if ( onScreen() == false ) bullets = kMax;
+				// if ( onScreen() == false ) bullets = kMax;
 				
 				super.update();
 			}
