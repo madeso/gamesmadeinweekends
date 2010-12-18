@@ -96,10 +96,10 @@ package
 		
 		protected function CB_Powerup(aplayer : FlxObject, powerup : FlxObject) : void
 		{
-			if ( player.hasStones()==false )
+			if ( player.canPickupStones() )
 			{
 				player.getPowerup();
-				powerup.kill();
+				//powerup.kill();
 			}
 		}
 		

@@ -66,6 +66,11 @@ package
 			facing = RIGHT;
 		}
 		
+		public function canPickupStones() : Boolean
+		{
+			return numberOfStones < 10;
+		}
+		
 		public function hasStones() : Boolean
 		{
 			return numberOfStones > 0;
@@ -73,7 +78,7 @@ package
 		
 		public function getPowerup() : void
 		{
-			numberOfStones += 10;
+			numberOfStones = 10;
 			FlxG.play(SndPowerup);
 		}
 		
@@ -84,13 +89,12 @@ package
 			if ( right )
 			{
 				dx = 27;
-				dy = 5;
 			}
 			else
 			{	
 				dx = -5;
-				dy = 5;
 			}
+			dy = 20;
 			bullets[bulletsIndex].shoot(x+dx, y+dy, xv, yv);
 			bulletsIndex++;
 			if ( bulletsIndex >= bullets.length ) bulletsIndex = 0;
