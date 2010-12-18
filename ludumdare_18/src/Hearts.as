@@ -18,7 +18,6 @@ package
 			addAnimation("2", [2]);
 			addAnimation("3", [3]);
 			addAnimation("4", [4]);
-			
 		}
 		
 		override public function update():void
