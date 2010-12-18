@@ -61,7 +61,8 @@ package
 			super.reset(X,Y);
 			solid = true;
 			velocity.x = VelocityX;
-			velocity.y = VelocityY;
+			velocity.y = VelocityY - 700;
+			acceleration.y = 3000;
 			play("idle");
 		}
 	}
