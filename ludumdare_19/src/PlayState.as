@@ -14,6 +14,7 @@ package
 		
 		[Embed(source = "powerup.mp3")] private static var SndGetSave : Class;
 		[Embed(source = "powerup.mp3")] private static var SndRespawn : Class;
+		[Embed(source = "powerup.mp3")] private static var SndCollectedTreasure : Class;
 		
 		[Embed(source = "tiles.png")]
 		public static var data_tiles : Class;
@@ -21,6 +22,7 @@ package
 		private var map : FlxTilemap;
 		
 		private var helpText : FlxText;
+		private var completedText : FlxText;
 		
 		private var player : Player;
 		
@@ -40,6 +42,8 @@ package
 		private var objectsThatCollideWithWorld: FlxGroup;
 		private var healthDisplay : HealthDisplay;
 		
+		private var treasures : FlxGroup;
+		
 		//[Embed(source = "music.mp3")] private static var SndMusic : Class;
 		
 		public function throwCoconut(x:Number, y:Number, dx:Number, dy:Number) : void
@@ -56,6 +60,7 @@ package
 			monkeys = new FlxGroup();
 			coconuts = new FlxGroup();
 			saves = new FlxGroup();
+			treasures = new FlxGroup();
 			
 			player = new Player(64, 64, playerStones.members);
 			
@@ -90,6 +95,10 @@ package
 			{
 				saves.add( new SaveSign(o.x, o.y, o.name) );
 			}
+			for each(o in tmx.getObjectGroup("treasures").objects)
+			{
+				treasures.add( new Treasure(o.x, o.y, o.name) );
+			}
 			//map.loadMap(new data_map, data_tiles, 64);
 			map.x = map.y = 0;
 			
@@ -102,11 +111,19 @@ package
 			add(playerStones);
 			add(coconuts);
 			add(saves);
+			add(treasures);
 			
 			helpText = new FlxText(0 , 80, 640, "when average joe is jungle joe");
 			helpText.size = 22;
 			helpText.scrollFactor = new FlxPoint(0, 0);
 			helpText.alignment = "center";
+			helpText.color = 0xff000000;
+			
+			completedText = new FlxText(0 , 455, 640, "");
+			completedText.size = 20;
+			completedText.scrollFactor = new FlxPoint(0, 0);
+			completedText.alignment = "right";
+			completedText.color = 0xff000000;
 			
 			healthDisplay = new HealthDisplay();
 			healthDisplay.scrollFactor = new FlxPoint(0, 0);
@@ -119,11 +136,13 @@ package
 			objectsThatCollideWithWorld.add(stonePickups);
 			objectsThatCollideWithWorld.add(coconuts);
 			objectsThatCollideWithWorld.add(saves);
+			objectsThatCollideWithWorld.add(treasures);
 			
 			bugUpdateCamera();
 			
-			add( helpText );
+			add(helpText);
 			add(healthDisplay);
+			add(completedText);
 			
 			positionPlayer();
 			
@@ -155,6 +174,11 @@ package
 				player.pickupStone();
 				//stonesPickup.kill();
 			}
+		}
+		protected function CB_PlayerTreasure(aplayer : FlxObject, treasure : FlxObject) : void
+		{
+			treasure.kill();
+			FlxG.play(SndCollectedTreasure);
 		}
 		
 		protected function CB_PlayerCoconut(aplayer : FlxObject, coconut : FlxObject) : void
@@ -204,8 +228,7 @@ package
 		{
 			if ( FlxG.keys.justPressed("R") )
 			{
-				destroy();
-				create();
+				FlxG.state = new PlayState();
 			}
 			
 			bugUpdateCamera();
@@ -217,8 +240,18 @@ package
 			FlxU.overlap(player, coconuts, CB_PlayerCoconut);
 			helpText.text = "";
 			FlxU.overlap(player, saves, CB_PlayerSave);
+			FlxU.overlap(player, treasures, CB_PlayerTreasure);
 			
 			healthDisplay.setHealth(player.myHealth);
+			
+			if ( treasures.countLiving() == 0 )
+			{
+				completedText.text = "Game completed! You are awesome!";
+			}
+			else
+			{
+				completedText.text = "Remaining treasures: " + treasures.countLiving().toString();
+			}
 			
 			//hudText.text = player.rand.toString();
 		}
