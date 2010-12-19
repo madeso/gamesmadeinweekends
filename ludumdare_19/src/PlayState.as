@@ -12,9 +12,10 @@ package
 		[Embed(source = 'level.tmx', mimeType = "application/octet-stream")] 
 		private var data_map:Class;
 		
-		[Embed(source = "powerup.mp3")] private static var SndGetSave : Class;
-		[Embed(source = "powerup.mp3")] private static var SndRespawn : Class;
-		[Embed(source = "powerup.mp3")] private static var SndCollectedTreasure : Class;
+		[Embed(source = "get-save.mp3")] private static var SndGetSave : Class;
+		[Embed(source = "player-respawn.mp3")] private static var SndRespawn : Class;
+		[Embed(source = "player-hurt.mp3")] private static var SndPlayerHurt : Class;
+		[Embed(source = "collected-treasure.mp3")] private static var SndCollectedTreasure : Class;
 		
 		[Embed(source = "tiles.png")]
 		public static var data_tiles : Class;
@@ -193,6 +194,10 @@ package
 					positionPlayer();
 					FlxG.play(SndRespawn);
 				}
+				else
+				{
+					FlxG.play(SndPlayerHurt);
+				}
 			}
 			coconut.kill();
 		}
@@ -252,8 +257,6 @@ package
 			{
 				completedText.text = "Remaining treasures: " + treasures.countLiving().toString();
 			}
-			
-			//hudText.text = player.rand.toString();
 		}
 	}
 

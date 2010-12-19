@@ -6,10 +6,10 @@ package
 	{
 		[Embed(source = "player.png")] private var ImgPlayer : Class;
 		
-		[Embed(source = "jump.mp3")] private static var SndJump : Class;
-		[Embed(source = "wallJump.mp3")] private static var SndWallJump : Class;
-		[Embed(source = "land.mp3")] private static var SndLand : Class;
-		[Embed(source = "powerup.mp3")] private static var SndPickupStones : Class;
+		[Embed(source = "player-jump.mp3")] private static var SndJump : Class;
+		[Embed(source = "player-walljump.mp3")] private static var SndWallJump : Class;
+		[Embed(source = "player-land.mp3")] private static var SndLand : Class;
+		[Embed(source = "player-pickup-stones.mp3")] private static var SndPickupStones : Class;
 		
 		// ------------------------------------------------
 		
