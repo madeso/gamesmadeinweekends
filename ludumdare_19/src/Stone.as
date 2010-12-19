@@ -2,16 +2,16 @@ package
 {
 	import org.flixel.*;
 
-	public class Bullet extends FlxSprite
+	public class Stone extends FlxSprite
 	{
-		[Embed(source="bullet.png")] private var ImgBullet:Class;
+		[Embed(source="stone.png")] private var ImgStone:Class;
 		[Embed(source="hit.mp3")] private var SndHit:Class;
 		[Embed(source = "fire.mp3")] private var SndShoot:Class;
 		
-		public function Bullet()
+		public function Stone()
 		{
 			super();
-			loadGraphic(ImgBullet,true, false, 64);
+			loadGraphic(ImgStone,true, false, 64);
 			width = 5;
 			height = 5;
 			offset.x = 25;
