@@ -44,6 +44,8 @@ package
 		private var stones : Array;
 		private var nextStoneToThrow : uint = 0;
 		
+		public var myHealth : uint = 5;
+		
 		public function Player(X:int, Y:int, B : Array)
 		{
 			super(X, Y);
