@@ -26,9 +26,18 @@ package
 		private var stonePickups : FlxGroup;
 		private var monkeys : FlxGroup;
 		
+		private var coconuts : FlxGroup;
+		private var coconutToThrow : uint = 0;
+		
 		private var objectsThatCollideWithWorld: FlxGroup;
 		
 		//[Embed(source = "music.mp3")] private static var SndMusic : Class;
+		
+		public function throwCoconut(x:Number, y:Number, dx:Number, dy:Number) : void
+		{
+			coconuts.members[coconutToThrow].shoot(x, y, dx, dy);
+			coconutToThrow = ( coconutToThrow + 1 ) % coconuts.members.length;
+		}
 		
 		override public function create() : void
 		{
@@ -36,12 +45,18 @@ package
 			playerStones = new FlxGroup();
 			stonePickups = new FlxGroup();
 			monkeys = new FlxGroup();
+			coconuts = new FlxGroup();
 			
 			player = new Player(64, 64, playerStones.members);
 			
 			for (var i:uint = 0; i < 100; ++i)
 			{
 				playerStones.add( new Stone() );
+			}
+			
+			for (var j:uint = 0; j < 100; ++j)
+			{
+				coconuts.add( new Coconut() );
 			}
 			
 			objectsThatCollideWithWorld = new FlxGroup();
@@ -59,7 +74,7 @@ package
 			}
 			for each(o in tmx.getObjectGroup("monkeys").objects)
 			{
-				monkeys.add( new Monkey(o.x, o.y, player) );
+				monkeys.add( new Monkey(o.x, o.y, player, this) );
 			}
 			//map.loadMap(new data_map, data_tiles, 64);
 			map.x = map.y = 0;
@@ -71,6 +86,7 @@ package
 			add(stonePickups);
 			add(monkeys);
 			add(playerStones);
+			add(coconuts);
 			
 			helpText = new FlxText(0 , 0, 300, "when average joe is jungle joe");
 			helpText.scrollFactor = new FlxPoint(0, 0);
@@ -81,6 +97,7 @@ package
 			objectsThatCollideWithWorld.add(playerStones);
 			objectsThatCollideWithWorld.add(monkeys);
 			objectsThatCollideWithWorld.add(stonePickups);
+			objectsThatCollideWithWorld.add(coconuts);
 			
 			bugUpdateCamera();
 			
@@ -101,6 +118,15 @@ package
 			{
 				player.pickupStone();
 				//stonesPickup.kill();
+			}
+		}
+		
+		protected function CB_PlayerCoconut(aplayer : FlxObject, coconut : FlxObject) : void
+		{
+			if ( player.canPickupStones() )
+			{
+				player.flicker();
+				coconut .kill();
 			}
 		}
 		
@@ -131,6 +157,7 @@ package
 			
 			FlxU.overlap(player, stonePickups, CB_PlayerStonespickup);
 			FlxU.overlap(playerStones, monkeys, CB_StoneMonkey);
+			FlxU.overlap(player, coconuts, CB_PlayerCoconut);
 			
 			//hudText.text = player.rand.toString();
 		}
