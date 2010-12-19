@@ -9,7 +9,7 @@ package
 		[Embed(source = "jump.mp3")] private static var SndJump : Class;
 		[Embed(source = "wallJump.mp3")] private static var SndWallJump : Class;
 		[Embed(source = "land.mp3")] private static var SndLand : Class;
-		[Embed(source = "powerup.mp3")] private static var SndPowerup : Class;
+		[Embed(source = "powerup.mp3")] private static var SndPickupStones : Class;
 		
 		// ------------------------------------------------
 		
@@ -41,13 +41,13 @@ package
 		
 		// --------------------------------------------------------
 		
-		private var bullets : Array;
-		private var bulletsIndex : uint = 0;
+		private var stones : Array;
+		private var nextStoneToThrow : uint = 0;
 		
 		public function Player(X:int, Y:int, B : Array)
 		{
 			super(X, Y);
-			bullets = B;
+			stones = B;
 			loadGraphic(ImgPlayer, true, true, 64, 64);
 			drag.x = kFriction;
 			maxVelocity.x = kRunSpeed;
@@ -76,10 +76,10 @@ package
 			return numberOfStones > 0;
 		}
 		
-		public function getPowerup() : void
+		public function pickupStone() : void
 		{
 			numberOfStones = 10;
-			FlxG.play(SndPowerup);
+			FlxG.play(SndPickupStones);
 		}
 		
 		private function Shoot(right : Boolean, xv : Number, yv:Number) : void
@@ -95,12 +95,12 @@ package
 				dx = -5;
 			}
 			dy = 20;
-			bullets[bulletsIndex].shoot(x+dx, y+dy, xv, yv);
-			bulletsIndex++;
-			if ( bulletsIndex >= bullets.length ) bulletsIndex = 0;
+			stones[nextStoneToThrow].shoot(x+dx, y+dy, xv, yv);
+			nextStoneToThrow++;
+			if ( nextStoneToThrow >= stones.length ) nextStoneToThrow = 0;
 		}
 		
-		private function shoot(right : Boolean) : void
+		private function throwStone(right : Boolean) : void
 		{
 			var mod : Number = 1;
 			if ( right == false)
@@ -226,7 +226,7 @@ package
 				{
 					if ( FlxG.keys.justPressed("Z") )
 					{
-						shoot(facing == RIGHT);
+						throwStone(facing == RIGHT);
 					}
 				}
 			}

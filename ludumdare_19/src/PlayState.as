@@ -16,33 +16,33 @@ package
 		
 		private var map : FlxTilemap;
 		
-		private var hudText : FlxText;
+		private var helpText : FlxText;
 		
 		private var player : Player;
 		
 		private var worldGroup: FlxGroup;
-		private var playerBullets: FlxGroup;
+		private var playerStones: FlxGroup;
 		
-		private var powerups : FlxGroup;
-		private var barrels : FlxGroup;
+		private var stonePickups : FlxGroup;
+		private var monkeys : FlxGroup;
 		
-		private var metaObjects: FlxGroup;
+		private var objectsThatCollideWithWorld: FlxGroup;
 		
 		//[Embed(source = "music.mp3")] private static var SndMusic : Class;
 		
 		override public function create() : void
 		{
 			worldGroup = new FlxGroup();
-			playerBullets = new FlxGroup();
-			powerups = new FlxGroup();
-			barrels = new FlxGroup();
+			playerStones = new FlxGroup();
+			stonePickups = new FlxGroup();
+			monkeys = new FlxGroup();
 			
 			for (var i:uint = 0; i < 100; ++i)
 			{
-				playerBullets.add( new Bullet() );
+				playerStones.add( new Stone() );
 			}
 			
-			metaObjects = new FlxGroup();
+			objectsThatCollideWithWorld = new FlxGroup();
 			bgColor = 0xffADD6E7;
 			
 			map = new FlxTilemap();
@@ -53,12 +53,12 @@ package
 			map.loadMap(tmx.getLayer('map').toCsv(tmx.getTileSet('tiles')), data_tiles, 64);
 			for each(var o:TmxObject in tmx.getObjectGroup("stones").objects)
 			{
-				powerups.add( new Powerup(o.x, o.y) );
+				stonePickups.add( new Powerup(o.x, o.y) );
 			}
-			/*for each(o in tmx.getObjectGroup("barrels").objects)
+			for each(o in tmx.getObjectGroup("monkeys").objects)
 			{
-				barrels.add( new Barrel(o.x, o.y) );
-			}*/
+				monkeys.add( new Monkey(o.x, o.y) );
+			}
 			//map.loadMap(new data_map, data_tiles, 64);
 			map.x = map.y = 0;
 			
@@ -66,24 +66,24 @@ package
 			
 			add(worldGroup);
 			
-			add(powerups);
-			add(barrels);
-			add(playerBullets);
+			add(stonePickups);
+			add(monkeys);
+			add(playerStones);
 			
-			hudText = new FlxText(0 , 0, 300, "when average joe is jungle joe");
-			hudText.scrollFactor = new FlxPoint(0, 0);
+			helpText = new FlxText(0 , 0, 300, "when average joe is jungle joe");
+			helpText.scrollFactor = new FlxPoint(0, 0);
 			
-			player = new Player(64, 64, playerBullets.members);
+			player = new Player(64, 64, playerStones.members);
 			add(player);
 			
-			metaObjects.add(player);
-			metaObjects.add(playerBullets);
-			metaObjects.add(barrels);
-			metaObjects.add(powerups);
+			objectsThatCollideWithWorld.add(player);
+			objectsThatCollideWithWorld.add(playerStones);
+			objectsThatCollideWithWorld.add(monkeys);
+			objectsThatCollideWithWorld.add(stonePickups);
 			
 			bugUpdateCamera();
 			
-			add( hudText );
+			add( helpText );
 			
 			//FlxG.playMusic(SndMusic);
 		}
@@ -94,25 +94,25 @@ package
 			FlxG.followBounds(0, 0, map.right, map.bottom);
 		}
 		
-		protected function CB_Powerup(aplayer : FlxObject, powerup : FlxObject) : void
+		protected function CB_PlayerStonespickup(aplayer : FlxObject, stonesPickup : FlxObject) : void
 		{
 			if ( player.canPickupStones() )
 			{
-				player.getPowerup();
-				//powerup.kill();
+				player.pickupStone();
+				//stonesPickup.kill();
 			}
 		}
 		
-		protected function CB_BulletBarrels(bullet : FlxObject, barrel : FlxObject) : void
+		protected function CB_StoneMonkey(stone : FlxObject, monkey : FlxObject) : void
 		{
-			bullet.kill();
-			if ( barrel.flickering() )
+			stone.kill();
+			if ( monkey.flickering() )
 			{
-				barrel.kill();
+				monkey.kill();
 			}
 			else
 			{
-				barrel.flicker();
+				monkey.flicker();
 			}
 		}
 		
@@ -126,10 +126,10 @@ package
 			
 			bugUpdateCamera();
 			super.update();
-			map.collide(metaObjects);
+			map.collide(objectsThatCollideWithWorld);
 			
-			FlxU.overlap(player, powerups, CB_Powerup);
-			FlxU.overlap(playerBullets, barrels, CB_BulletBarrels);
+			FlxU.overlap(player, stonePickups, CB_PlayerStonespickup);
+			FlxU.overlap(playerStones, monkeys, CB_StoneMonkey);
 			
 			//hudText.text = player.rand.toString();
 		}
