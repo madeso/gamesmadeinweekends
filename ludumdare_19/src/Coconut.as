@@ -5,8 +5,8 @@ package
 	public class Coconut extends FlxSprite
 	{
 		[Embed(source="coconut.png")] private var ImgCoconut:Class;
-		[Embed(source="hit.mp3")] private var SndHit:Class;
-		[Embed(source = "fire.mp3")] private var SndShoot:Class;
+		[Embed(source="coconut-destroy.mp3")] private var SndHit:Class;
+		[Embed(source = "coconut-throw.mp3")] private var SndShoot:Class;
 		
 		public function Coconut()
 		{

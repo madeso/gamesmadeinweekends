@@ -5,7 +5,7 @@ package
 	public class Monkey extends FlxSprite
 	{
 		[Embed(source="monkey.png")] private var ImgMonkey:Class;
-		[Embed(source = "explosion.mp3")] private var SndHit:Class;
+		[Embed(source = "monkey-die.mp3")] private var SndHit:Class;
 		
 		private var player : Player;
 		private var shooting : Boolean = false;

@@ -5,8 +5,8 @@ package
 	public class Stone extends FlxSprite
 	{
 		[Embed(source="stone.png")] private var ImgStone:Class;
-		[Embed(source="hit.mp3")] private var SndHit:Class;
-		[Embed(source = "fire.mp3")] private var SndShoot:Class;
+		[Embed(source="stone-crash.mp3")] private var SndHit:Class;
+		[Embed(source = "stone-throw.mp3")] private var SndShoot:Class;
 		
 		public function Stone()
 		{
