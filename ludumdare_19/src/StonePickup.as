@@ -2,11 +2,11 @@ package
 {
 	import org.flixel.*;
 
-	public class Powerup extends FlxSprite
+	public class StonePickup extends FlxSprite
 	{
 		[Embed(source="powerup.png")] private var ImgStones:Class;
 		
-		public function Powerup(ax:Number, ay:Number)
+		public function StonePickup(ax:Number, ay:Number)
 		{
 			super(ax,ay);
 			loadGraphic(ImgStones,true, false, 64);

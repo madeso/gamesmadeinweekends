@@ -16,7 +16,7 @@ package
 			offset.x = 5;
 			offset.y = 2;
 			
-			velocity.y = -25;
+			velocity.y = -50;
 
 			addAnimation("idle", [0, 1, 2, 3, 4, 5], 5);
 			addAnimation("shooting",[6,7,8,9,10,11], 10, false);
@@ -27,7 +27,10 @@ package
 		override public function update():void
 		{
 			if(dead && finished) exists = false;
-			else super.update();
+			else
+			{
+				super.update();
+			}
 		}
 
 		override public function render():void
