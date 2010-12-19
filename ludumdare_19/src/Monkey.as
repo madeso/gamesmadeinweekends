@@ -4,7 +4,7 @@ package
 
 	public class Monkey extends FlxSprite
 	{
-		[Embed(source="barrel.png")] private var ImgMonkey:Class;
+		[Embed(source="monkey.png")] private var ImgMonkey:Class;
 		[Embed(source="explosion.mp3")] private var SndHit:Class;
 		
 		public function Monkey(ax:Number, ay:Number)
@@ -15,9 +15,13 @@ package
 			height = 62;
 			offset.x = 5;
 			offset.y = 2;
+			
+			velocity.y = -25;
 
-			addAnimation("idle",[0]);
-			addAnimation("die",[1,2,3,4,5,6,7,8,9], 10, false);
+			addAnimation("idle", [0, 1, 2, 3, 4, 5], 5);
+			addAnimation("shooting",[6,7,8,9,10,11], 10, false);
+			addAnimation("die", [1, 2, 3, 4, 5, 6], 10, false);
+			play("idle");
 		}
 
 		override public function update():void
@@ -45,5 +49,15 @@ package
 			solid = false;
 			play("die");
 		}
+		
+		private function stop() : void
+		{
+			velocity.y = 0;
+		}
+		
+		override public function hitLeft(Contact:FlxObject, Velocity:Number):void { stop(); }
+		override public function hitRight(Contact:FlxObject,Velocity:Number):void { stop(); }
+		override public function hitBottom(Contact:FlxObject,Velocity:Number):void { stop(); }
+		override public function hitTop(Contact:FlxObject, Velocity:Number):void { stop(); }
 	}
 }

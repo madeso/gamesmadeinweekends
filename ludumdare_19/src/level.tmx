@@ -3100,30 +3100,13 @@
   <object name="" x="5938" y="1368"/>
   <object name="" x="5150" y="726"/>
  </objectgroup>
- <objectgroup name="magicians" width="100" height="30">
-  <object name="" x="3808" y="230"/>
-  <object name="" x="3316" y="290"/>
-  <object name="" x="4690" y="218"/>
-  <object name="" x="5504" y="216"/>
-  <object name="" x="5584" y="998"/>
-  <object name="" x="5494" y="1824"/>
-  <object name="" x="4826" y="1824"/>
-  <object name="" x="3632" y="1820"/>
-  <object name="" x="5300" y="738"/>
-  <object name="" x="4766" y="988"/>
-  <object name="" x="5082" y="1370"/>
-  <object name="" x="3624" y="1564"/>
-  <object name="" x="2918" y="1430"/>
-  <object name="" x="3984" y="1114"/>
-  <object name="" x="2586" y="1822"/>
-  <object name="" x="2020" y="1362"/>
-  <object name="" x="662" y="1560"/>
-  <object name="" x="452" y="1244"/>
-  <object name="" x="472" y="982"/>
-  <object name="" x="464" y="1820"/>
-  <object name="" x="1164" y="1822"/>
- </objectgroup>
  <objectgroup name="complete" width="100" height="30">
   <object name="" x="5412" y="730"/>
+ </objectgroup>
+ <objectgroup name="monkeys" width="100" height="30">
+  <object name="" x="1172" y="124"/>
+  <object name="" x="1294" y="106"/>
+  <object name="" x="1578" y="126"/>
+  <object name="" x="412" y="116"/>
  </objectgroup>
 </map>
