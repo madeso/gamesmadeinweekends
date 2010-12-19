@@ -20,7 +20,19 @@ package
 			
 			velocity.y = 35;
 
-			addAnimation("idle",[0]);
+			addAnimation("dark", [0]);
+			addAnimation("light", [1]);
+			darken();
+		}
+		
+		public function lighten() : void
+		{
+			play("light");
+		}
+		
+		public function darken() : void
+		{
+			play("dark");
 		}
 		
 		private function stop() : void
