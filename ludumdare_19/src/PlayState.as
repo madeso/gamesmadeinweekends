@@ -11,6 +11,8 @@ package
 		[Embed(source = 'level.tmx', mimeType = "application/octet-stream")] 
 		private var data_map:Class;
 		
+		[Embed(source = "powerup.mp3")] private static var SndGetSave : Class;
+		
 		[Embed(source = "tiles.png")]
 		public static var data_tiles : Class;
 		
@@ -30,6 +32,8 @@ package
 		private var coconutToThrow : uint = 0;
 		
 		private var saves : FlxGroup;
+		
+		private var lastSaveSign : SaveSign = null;
 		
 		private var objectsThatCollideWithWorld: FlxGroup;
 		
@@ -142,6 +146,14 @@ package
 		{
 			var ss : SaveSign = save as SaveSign;
 			helpText.text = ss.text;
+			
+			if ( ss != lastSaveSign )
+			{
+				if ( lastSaveSign != null ) lastSaveSign.darken();
+				ss.lighten();
+				FlxG.play(SndGetSave);
+				lastSaveSign = ss;
+			}
 		}
 		
 		protected function CB_StoneMonkey(stone : FlxObject, monkey : FlxObject) : void
