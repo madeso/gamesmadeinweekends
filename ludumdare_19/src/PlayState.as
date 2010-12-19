@@ -20,6 +20,8 @@ package
 		[Embed(source = "tiles.png")]
 		public static var data_tiles : Class;
 		
+		private static const kDisplayTime : Number = 5;
+		
 		private var map : FlxTilemap;
 		
 		private var helpText : FlxText;
@@ -44,6 +46,9 @@ package
 		private var healthDisplay : HealthDisplay;
 		
 		private var treasures : FlxGroup;
+		
+		private var displayString : String;
+		private var displayTime : Number = 0;
 		
 		//[Embed(source = "music.mp3")] private static var SndMusic : Class;
 		
@@ -180,6 +185,9 @@ package
 		{
 			treasure.kill();
 			FlxG.play(SndCollectedTreasure);
+			var t : Treasure = treasure as Treasure;
+			displayString = "You discovered " + t.text;
+			displayTime = kDisplayTime;
 		}
 		
 		protected function CB_PlayerCoconut(aplayer : FlxObject, coconut : FlxObject) : void
@@ -257,7 +265,12 @@ package
 			{
 				completedText.text = "Remaining treasures: " + treasures.countLiving().toString();
 			}
+			
+			if ( displayTime > 0 )
+			{
+				completedText.text = displayString;
+				displayTime -= FlxG.elapsed;
+			}
 		}
 	}
-
 }
