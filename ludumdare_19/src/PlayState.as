@@ -53,7 +53,7 @@ package
 			map.loadMap(tmx.getLayer('map').toCsv(tmx.getTileSet('tiles')), data_tiles, 64);
 			for each(var o:TmxObject in tmx.getObjectGroup("stones").objects)
 			{
-				stonePickups.add( new Powerup(o.x, o.y) );
+				stonePickups.add( new StonePickup(o.x, o.y) );
 			}
 			for each(o in tmx.getObjectGroup("monkeys").objects)
 			{
