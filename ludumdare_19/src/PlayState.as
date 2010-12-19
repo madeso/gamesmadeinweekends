@@ -1,5 +1,6 @@
 package
 {
+	import flash.display.AVM1Movie;
 	import org.flixel.*;
 	
 	import net.pixelpracht.tmx.TmxMap;
@@ -12,6 +13,7 @@ package
 		private var data_map:Class;
 		
 		[Embed(source = "powerup.mp3")] private static var SndGetSave : Class;
+		[Embed(source = "powerup.mp3")] private static var SndRespawn : Class;
 		
 		[Embed(source = "tiles.png")]
 		public static var data_tiles : Class;
@@ -36,6 +38,7 @@ package
 		private var lastSaveSign : SaveSign = null;
 		
 		private var objectsThatCollideWithWorld: FlxGroup;
+		private var healthDisplay : HealthDisplay;
 		
 		//[Embed(source = "music.mp3")] private static var SndMusic : Class;
 		
@@ -105,6 +108,9 @@ package
 			helpText.scrollFactor = new FlxPoint(0, 0);
 			helpText.alignment = "center";
 			
+			healthDisplay = new HealthDisplay();
+			healthDisplay.scrollFactor = new FlxPoint(0, 0);
+			
 			add(player);
 			
 			objectsThatCollideWithWorld.add(player);
@@ -117,8 +123,23 @@ package
 			bugUpdateCamera();
 			
 			add( helpText );
+			add(healthDisplay);
+			
+			positionPlayer();
 			
 			//FlxG.playMusic(SndMusic);
+		}
+		
+		private function positionPlayer() : void
+		{
+			player.x = 64;
+			player.y = 64;
+			
+			if ( lastSaveSign != null )
+			{
+				player.x = lastSaveSign.x;
+				player.y = lastSaveSign.y;
+			}
 		}
 		
 		private function bugUpdateCamera() : void
@@ -138,7 +159,17 @@ package
 		
 		protected function CB_PlayerCoconut(aplayer : FlxObject, coconut : FlxObject) : void
 		{
-			player.flicker();
+			if ( player.flickering() == false )
+			{
+				player.flicker();
+				player.myHealth -= 1;
+				if ( player.myHealth == 0 )
+				{
+					player.myHealth = 3;
+					positionPlayer();
+					FlxG.play(SndRespawn);
+				}
+			}
 			coconut.kill();
 		}
 		
@@ -186,6 +217,8 @@ package
 			FlxU.overlap(player, coconuts, CB_PlayerCoconut);
 			helpText.text = "";
 			FlxU.overlap(player, saves, CB_PlayerSave);
+			
+			healthDisplay.setHealth(player.myHealth);
 			
 			//hudText.text = player.rand.toString();
 		}
