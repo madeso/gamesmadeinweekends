@@ -29,6 +29,8 @@ package
 		private var coconuts : FlxGroup;
 		private var coconutToThrow : uint = 0;
 		
+		private var saves : FlxGroup;
+		
 		private var objectsThatCollideWithWorld: FlxGroup;
 		
 		//[Embed(source = "music.mp3")] private static var SndMusic : Class;
@@ -46,6 +48,7 @@ package
 			stonePickups = new FlxGroup();
 			monkeys = new FlxGroup();
 			coconuts = new FlxGroup();
+			saves = new FlxGroup();
 			
 			player = new Player(64, 64, playerStones.members);
 			
@@ -76,6 +79,10 @@ package
 			{
 				monkeys.add( new Monkey(o.x, o.y, player, this) );
 			}
+			for each(o in tmx.getObjectGroup("saves").objects)
+			{
+				saves.add( new SaveSign(o.x, o.y, o.name) );
+			}
 			//map.loadMap(new data_map, data_tiles, 64);
 			map.x = map.y = 0;
 			
@@ -87,9 +94,12 @@ package
 			add(monkeys);
 			add(playerStones);
 			add(coconuts);
+			add(saves);
 			
-			helpText = new FlxText(0 , 0, 300, "when average joe is jungle joe");
+			helpText = new FlxText(0 , 80, 640, "when average joe is jungle joe");
+			helpText.size = 22;
 			helpText.scrollFactor = new FlxPoint(0, 0);
+			helpText.alignment = "center";
 			
 			add(player);
 			
@@ -98,6 +108,7 @@ package
 			objectsThatCollideWithWorld.add(monkeys);
 			objectsThatCollideWithWorld.add(stonePickups);
 			objectsThatCollideWithWorld.add(coconuts);
+			objectsThatCollideWithWorld.add(saves);
 			
 			bugUpdateCamera();
 			
@@ -123,11 +134,14 @@ package
 		
 		protected function CB_PlayerCoconut(aplayer : FlxObject, coconut : FlxObject) : void
 		{
-			if ( player.canPickupStones() )
-			{
-				player.flicker();
-				coconut .kill();
-			}
+			player.flicker();
+			coconut.kill();
+		}
+		
+		protected function CB_PlayerSave(aplayer : FlxObject, save: FlxObject) : void
+		{
+			var ss : SaveSign = save as SaveSign;
+			helpText.text = ss.text;
 		}
 		
 		protected function CB_StoneMonkey(stone : FlxObject, monkey : FlxObject) : void
@@ -158,6 +172,8 @@ package
 			FlxU.overlap(player, stonePickups, CB_PlayerStonespickup);
 			FlxU.overlap(playerStones, monkeys, CB_StoneMonkey);
 			FlxU.overlap(player, coconuts, CB_PlayerCoconut);
+			helpText.text = "";
+			FlxU.overlap(player, saves, CB_PlayerSave);
 			
 			//hudText.text = player.rand.toString();
 		}
