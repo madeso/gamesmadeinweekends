@@ -37,6 +37,8 @@ package
 			stonePickups = new FlxGroup();
 			monkeys = new FlxGroup();
 			
+			player = new Player(64, 64, playerStones.members);
+			
 			for (var i:uint = 0; i < 100; ++i)
 			{
 				playerStones.add( new Stone() );
@@ -57,7 +59,7 @@ package
 			}
 			for each(o in tmx.getObjectGroup("monkeys").objects)
 			{
-				monkeys.add( new Monkey(o.x, o.y) );
+				monkeys.add( new Monkey(o.x, o.y, player) );
 			}
 			//map.loadMap(new data_map, data_tiles, 64);
 			map.x = map.y = 0;
@@ -73,7 +75,6 @@ package
 			helpText = new FlxText(0 , 0, 300, "when average joe is jungle joe");
 			helpText.scrollFactor = new FlxPoint(0, 0);
 			
-			player = new Player(64, 64, playerStones.members);
 			add(player);
 			
 			objectsThatCollideWithWorld.add(player);
