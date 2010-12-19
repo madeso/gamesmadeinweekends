@@ -9,11 +9,15 @@ package
 		
 		private var player : Player;
 		private var shooting : Boolean = false;
+		private var ps : PlayState;
+		private var px : Number = 0;
+		private var py : Number = 0;
 		
-		public function Monkey(ax:Number, ay:Number, pla:Player)
+		public function Monkey(ax:Number, ay:Number, pla:Player, pls:PlayState)
 		{
 			super(ax, ay);
 			player = pla;
+			ps = pls;
 			loadGraphic(ImgMonkey,true, true, 64);
 			width = 54;
 			height = 62;
@@ -23,7 +27,7 @@ package
 			velocity.y = -50;
 
 			addAnimation("idle", [0, 1, 2, 3, 4, 5], 5);
-			addAnimation("shooting",[6,7,8,9,10,11], 10, false);
+			addAnimation("shooting",[6,7,8,9,10,11,6,7,8,9,10,11,6,7,8,9,10,11,6,7,8,9,10,11,], 35, false);
 			addAnimation("die", [1, 2, 3, 4, 5, 6], 10, false);
 			play("idle");
 		}
@@ -37,6 +41,11 @@ package
 				{
 					shooting = false;
 					play("idle");
+					var dx : Number = (px-x);
+					var dy : Number = (py-y);
+					var len : Number = Math.sqrt( dx * dx + dy * dy );
+					var mul : Number = 250 / len;
+					ps.throwCoconut(x+25, y+26, dx*mul, dy*mul);
 				}
 				else
 				{
@@ -44,6 +53,8 @@ package
 					{
 						shooting = true;
 						play("shooting");
+						px = player.x;
+						py = player.y;
 					}
 					else
 					{
