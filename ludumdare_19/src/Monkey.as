@@ -27,8 +27,8 @@ package
 			velocity.y = -50;
 
 			addAnimation("idle", [0, 1, 2, 3, 4, 5], 5);
-			addAnimation("shooting",[6,7,8,9,10,11,6,7,8,9,10,11,6,7,8,9,10,11,6,7,8,9,10,11,], 35, false);
-			addAnimation("die", [1, 2, 3, 4, 5, 6], 10, false);
+			addAnimation("shooting",[6,7,8,9,10,11,6,7,8,9,10,11,6,7,8,9,10,11,6,7,8,9,10,11], 35, false);
+			addAnimation("die", [12, 12, 13, 14, 15, 16, 17], 4, false);
 			play("idle");
 		}
 
@@ -74,6 +74,7 @@ package
 
 		override public function kill():void
 		{
+			_flicker = false;
 			if(dead) return;
 			velocity.x = 0;
 			velocity.y = 0;
