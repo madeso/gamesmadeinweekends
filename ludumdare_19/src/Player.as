@@ -11,6 +11,8 @@ package
 		[Embed(source = "player-land.mp3")] private static var SndLand : Class;
 		[Embed(source = "player-pickup-stones.mp3")] private static var SndPickupStones : Class;
 		
+		[Embed(source = "player-climb.mp3")] private static var SndClimb : Class;
+		
 		// ------------------------------------------------
 		
 		private const kRunSpeed:int = 400;
@@ -19,15 +21,17 @@ package
 		private const kJumpSpeed:int = 700;
 		private const kGravity:int = 2300;
 		
-		private const kJumpPushSpeed:int = 500;
+		private const kJumpPushSpeed:int = 900;
 		private const kJumpPushAcceletation:int = 300;
 		
 		private const kReactionTime:Number = 0.1;
-		private const kSlideMaxVelociy:int = 250;
+		private const kClimbvelocity:int = 250;
 		private const kSlideVelocityReduction:Number = 5500;
+		private const kBobTime : Number = 0.25;
 		
 		// -------------------------------------------------------
 		
+		private var bobTime : Number = 0;
 		private var onBottomTime : Number = 0;
 		private var onHitBottom : Boolean = false;
 		
@@ -199,7 +203,6 @@ package
 			var onLeft : Boolean = onLeftTime < kReactionTime;
 			if ( onRight ) onLeft = false;
 			
-			
 			if ( FlxG.keys.RIGHT )
 			{
 				move(1);
@@ -211,25 +214,24 @@ package
 				facing = LEFT;
 			}
 			
-			if ( true )
+			if ( hasStones() )
 			{
-				var canfire : Boolean = hasStones();
+				var reverse : Boolean = false;
 				
 				if ( onLeftTime < kReactionTime)
 				{
-					canfire = false;
+					reverse = true;
 				}
 				if ( onRightTime < kReactionTime)
 				{
-					canfire = false;
+					reverse = true;
 				}
 				
-				if ( canfire )
+				if ( FlxG.keys.justPressed("Z") )
 				{
-					if ( FlxG.keys.justPressed("Z") )
-					{
-						throwStone(facing == RIGHT);
-					}
+					var dir : Boolean = facing == RIGHT;
+					if ( reverse ) dir = !dir;
+					throwStone(dir);
 				}
 			}
 			
@@ -242,16 +244,6 @@ package
 				{
 					velocity.y = -kJumpSpeed;
 					FlxG.play(SndJump);
-				}
-			}
-			
-			if ( onLeft || onRight )
-			{
-				if ( velocity.y > kSlideMaxVelociy )
-				{
-					//velocity.y = slideVel;
-					velocity.y -= kSlideVelocityReduction * FlxG.elapsed;
-					if ( velocity.y < kSlideMaxVelociy ) velocity.y = kSlideMaxVelociy;
 				}
 			}
 			
@@ -272,10 +264,6 @@ package
 				}
 			}
 			
-			onLeft = false;
-			onRight = false;
-			
-				
 			if ( velocity.y == 0 )
 			{
 				if ( velocity.x == 0 )
@@ -293,6 +281,40 @@ package
 			}
 			
 			acceleration.y = kGravity;
+			
+			if ( onLeft || onRight )
+			{
+				velocity.y = 0;
+				acceleration.y = 0;
+				
+				var climbing : Boolean = false;
+				
+				if ( FlxG.keys.UP )
+				{
+					velocity.y = -kClimbvelocity;
+					climbing = true;
+				}
+				else if ( FlxG.keys.DOWN )
+				{
+					velocity.y = kClimbvelocity;
+					climbing = true;
+				}
+				
+				if ( climbing )
+				{
+					bobTime += FlxG.elapsed;
+				}
+				
+				if ( bobTime > kBobTime )
+				{
+					bobTime -= kBobTime;
+					FlxG.play(SndClimb);
+				}
+			}
+			
+			//onLeft = false;
+			//onRight = false;
+			
 			super.update();
 		}
 		
