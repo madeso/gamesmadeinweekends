@@ -3109,7 +3109,11 @@
   <object name="" x="1578" y="126"/>
   <object name="" x="412" y="116"/>
  </objectgroup>
- <objectgroup name="saves" width="100" height="30">
+ <objectgroup name="saves" width="100" height="30" visible="0">
   <object name="so you think you can find the lost treasure of eldorado?" x="934" y="208"/>
+ </objectgroup>
+ <objectgroup name="treasures" width="100" height="30">
+  <object name="The lost treasure of eldorado" x="408" y="782"/>
+  <object name="Another awesme pirate tresure" x="934" y="780"/>
  </objectgroup>
 </map>
