@@ -5,12 +5,16 @@ package
 	public class Monkey extends FlxSprite
 	{
 		[Embed(source="monkey.png")] private var ImgMonkey:Class;
-		[Embed(source="explosion.mp3")] private var SndHit:Class;
+		[Embed(source = "explosion.mp3")] private var SndHit:Class;
 		
-		public function Monkey(ax:Number, ay:Number)
+		private var player : Player;
+		private var shooting : Boolean = false;
+		
+		public function Monkey(ax:Number, ay:Number, pla:Player)
 		{
-			super(ax,ay);
-			loadGraphic(ImgMonkey,true, false, 64);
+			super(ax, ay);
+			player = pla;
+			loadGraphic(ImgMonkey,true, true, 64);
 			width = 54;
 			height = 62;
 			offset.x = 5;
@@ -29,6 +33,25 @@ package
 			if(dead && finished) exists = false;
 			else
 			{
+				if ( shooting && finished )
+				{
+					shooting = false;
+					play("idle");
+				}
+				else
+				{
+					if ( onScreen() && finished )
+					{
+						shooting = true;
+						play("shooting");
+					}
+					else
+					{
+						if ( player.x > x ) facing = LEFT;
+						else facing = RIGHT;
+					}
+				}
+				
 				super.update();
 			}
 		}
