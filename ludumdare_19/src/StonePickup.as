@@ -4,7 +4,7 @@ package
 
 	public class StonePickup extends FlxSprite
 	{
-		[Embed(source="powerup.png")] private var ImgStones:Class;
+		[Embed(source="stones.png")] private var ImgStones:Class;
 		
 		public function StonePickup(ax:Number, ay:Number)
 		{
