@@ -15,7 +15,7 @@ package
 			offset.x = 7;
 			offset.y = 9;
 			
-			velocity.y = 15;
+			velocity.y = 70;
 
 			addAnimation("idle",[0]);
 		}
