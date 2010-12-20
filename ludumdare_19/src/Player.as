@@ -69,6 +69,9 @@ package
 			//addAnimation("attack", [5],10);
 			addAnimation("idle", [0]);
 			
+			addAnimation("grab", [7]);
+			addAnimation("climb", [6, 7, 8, 9, 10], 10);
+			
 			facing = RIGHT;
 		}
 		
@@ -264,30 +267,17 @@ package
 				}
 			}
 			
-			if ( velocity.y == 0 )
-			{
-				if ( velocity.x == 0 )
-				{
-					play("idle");
-				}
-				else
-				{
-					play("moving");
-				}
-			}
-			else
-			{
-				play("jumping");
-			}
-			
 			acceleration.y = kGravity;
+			
+			var climbing : Boolean = false;
+			var grabbing : Boolean = false;
 			
 			if ( onLeft || onRight )
 			{
+				grabbing = true;
+				
 				velocity.y = 0;
 				acceleration.y = 0;
-				
-				var climbing : Boolean = false;
 				
 				if ( FlxG.keys.UP )
 				{
@@ -309,6 +299,36 @@ package
 				{
 					bobTime -= kBobTime;
 					FlxG.play(SndClimb);
+				}
+			}
+			
+			if ( grabbing )
+			{
+				if ( climbing )
+				{
+					play("climb");
+				}
+				else
+				{
+					play("grab");
+				}
+			}
+			else
+			{
+				if ( velocity.y == 0 )
+				{
+					if ( velocity.x == 0 )
+					{
+						play("idle");
+					}
+					else
+					{
+						play("moving");
+					}
+				}
+				else
+				{
+					play("jumping");
 				}
 			}
 			
