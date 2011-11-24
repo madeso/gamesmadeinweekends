@@ -8,3 +8,5 @@ glob:Loputon-remake/*
 glob:ludumdare_19/bin/*
 glob:ludumdare_19/obj/*
 glob:ludumdare_19/src/net/*
+glob:nomoresweden_2011-guru/inspiration/*
+glob:nomoresweden_2011-guru/obj/*
