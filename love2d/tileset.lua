@@ -8,8 +8,9 @@ class "Tileset"
 function Tileset:__init(img, size)
 	self.img = love.graphics.newImage(img)
 	local w,h = size,size
-	for y=0,self.img:getHeight(),h do
-		for x=0,self.img:getWidth(),w do
+	for y=0,self.img:getHeight()-1,h do
+		for x=0,self.img:getWidth()-1,w do
+			print(x,y)
 			table.insert(self.quads, love.graphics.newQuad(x,y,w,h, self.img:getWidth(), self.img:getHeight()))
 		end
 	end
