@@ -10,3 +10,7 @@ end
 function love.draw()
     world:draw()
 end
+
+function love.update(dt)
+    world:update(dt)
+end

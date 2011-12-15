@@ -14,3 +14,9 @@ function World:draw()
 		o:draw()
 	end
 end
+
+function World:update(dt)
+	for i,o in ipairs(self.objects) do
+		o:update(dt)
+	end
+end
