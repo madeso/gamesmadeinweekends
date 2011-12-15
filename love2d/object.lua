@@ -6,12 +6,13 @@ class "Object"
 	pos = vector(40,40)
 }
 
-function Object:__init(x,y)
+function Object:__init(img, x,y)
 	self.pos = vector(x,y)
+	self.img = love.graphics.newImage(img)
 end
 
 function Object:draw()
-	love.graphics.print("Hello World", self.pos:unpack())
+	love.graphics.draw(self.img, self.pos:unpack())
 end
 
 function Object:update(dt)

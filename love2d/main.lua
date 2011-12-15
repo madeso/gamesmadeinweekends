@@ -3,8 +3,8 @@ require "object"
 
 function love.load()
 	world = World:new()
-	world:add(Object:new(100, 20))
-	world:add(Object:new(400, 200))
+	world:add(Object:new("ninja.png", 100, 100))
+	world:add(Object:new("ninja.png", 400, 200))
 end
 
 function love.draw()
