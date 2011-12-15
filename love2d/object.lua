@@ -1,6 +1,6 @@
 require "oo"
 vector = require "hump/vector"
-require "tileset"
+require "tilesets"
 
 class "Object"
 {
@@ -10,7 +10,7 @@ class "Object"
 
 function Object:__init(img, x,y)
 	self.pos = vector(x,y)
-	self.img = Tileset:new(img, 16)
+	self.img = tilesets:get(img)
 end
 
 function Object:draw()
