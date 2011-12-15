@@ -5,7 +5,7 @@ require "tilesets"
 function love.load()
 	world = World:new()
 	tilesets:add("ninja.png", 16)
-	world:add(Object:new("ninja.png", 100, 100))
+	world:add(Object:new("ninja.png", 100, 100, 17))
 	world:add(Object:new("ninja.png", 400, 200))
 end
 

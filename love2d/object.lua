@@ -8,9 +8,12 @@ class "Object"
 	index = 1;
 }
 
-function Object:__init(img, x,y)
+function Object:__init(img, x,y,index)
 	self.pos = vector(x,y)
 	self.img = tilesets:get(img)
+	if index ~= nil then
+		self.index = index
+	end
 end
 
 function Object:draw()
