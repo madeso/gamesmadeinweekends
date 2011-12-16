@@ -9,9 +9,10 @@ class "Player"
 	speed = 30
 }
 
-function Player:__init(x,y)
+function Player:__init(camera, x,y)
 	self.super = Object:new("ninja.png", x,y)
 	self.velocity = vector(0,0)
+	self.camera = camera
 end
 
 function Player:draw()
@@ -33,6 +34,7 @@ function Player:update(dt)
 		m = m + vector(0,1)
 	end
 	self.super.pos = self.super.pos + m*self.speed*dt
+	self.camera:target(self.super.pos:unpack())
 end
 
 function Player:onkey(down, key, unicode)
