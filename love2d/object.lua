@@ -23,3 +23,6 @@ end
 
 function Object:update(dt)
 end
+
+function Object:onkey(down, key, unicode)
+end

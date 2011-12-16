@@ -34,3 +34,9 @@ function Player:update(dt)
 	end
 	self.super.pos = self.super.pos + m*self.speed*dt
 end
+
+function Player:onkey(down, key, unicode)
+	if down and key == "x" then
+		print "bang!"
+	end
+end
