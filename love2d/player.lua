@@ -2,7 +2,7 @@ require "oo"
 require "object"
 vector = require "hump/vector"
 require "tilesets"
-
+require "console"
 
 class "Player"
 {
@@ -37,6 +37,6 @@ end
 
 function Player:onkey(down, key, unicode)
 	if down and key == "x" then
-		print "bang!"
+		console:print("bang!")
 	end
 end
