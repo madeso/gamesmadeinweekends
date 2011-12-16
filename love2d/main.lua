@@ -18,3 +18,11 @@ end
 function love.update(dt)
     world:update(dt)
 end
+
+function love.keypressed(key, unicode)
+	world:onkey(true, key, unicode)
+end
+
+function love.keyreleased(key)
+	world:onkey(false, key, nil)
+end
