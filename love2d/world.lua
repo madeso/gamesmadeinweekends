@@ -21,3 +21,9 @@ function World:update(dt)
 		o:update(dt)
 	end
 end
+
+function World:onkey(down, key, unicode)
+	for i,o in ipairs(self.objects) do
+		o:onkey(down, key, unicode)
+	end
+end
