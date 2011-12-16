@@ -2,6 +2,7 @@ require "world"
 require "object"
 require "player"
 require "tilesets"
+require "console"
 
 function love.load()
 	love.graphics.setBackgroundColor( 100, 149, 237 )
@@ -12,11 +13,13 @@ function love.load()
 end
 
 function love.draw()
-    world:draw()
+	world:draw()
+	console:draw()
 end
 
 function love.update(dt)
-    world:update(dt)
+	world:update(dt)
+	console:update(dt)
 end
 
 function love.keypressed(key, unicode)
