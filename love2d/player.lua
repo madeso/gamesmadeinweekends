@@ -6,7 +6,7 @@ require "console"
 
 class "Player"
 {
-	speed = 30
+	speed = 90
 }
 
 function Player:__init(camera, x,y)
