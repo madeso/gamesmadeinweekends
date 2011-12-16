@@ -6,7 +6,7 @@ require "console"
 
 function love.load()
 	love.graphics.setBackgroundColor( 100, 149, 237 )
-	world = World:new()
+	world = World:new("level.tmx")
 	tilesets:add("ninja.png", 16)
 	world:add(Object:new("ninja.png", 100, 100, 70))
 	world:add(Player:new(400, 200))
