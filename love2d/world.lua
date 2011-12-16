@@ -2,14 +2,36 @@ require "oo"
 require "camera"
 
 ATL_Loader = require("AdvTiledLoader.Loader")
+HC = require 'hardon'
 
 class "World"
 {
 	objects = {};
 }
 
+-- this is called when two shapes collide
+function on_collision(dt, shape_a, shape_b, mtv_x, mtv_y)
+    text[#text+1] = string.format("Colliding. mtv = (%s,%s)", 
+                                    mtv_x, mtv_y)
+end
+
+-- this is called when two shapes stop colliding
+function collision_stop(dt, shape_a, shape_b)
+    text[#text+1] = "Stopped colliding"
+end
+
 function World:__init(path)
 	self.map = ATL_Loader.load(path)
+	self.collider = HC(100, on_collision, collision_stop)
+	
+	for y, row in pairs(self.map.tilelayers) do
+		for x, tilenumber in pairs(row) do
+			if self.map.tiles[tilenumber].properties.isSolid then
+				self.collider:addRectangle(x* map.tilewidth, y * map.tileheight, map.tilewidth, map.tileheight)
+			end
+		end
+	end
+	
 	self.camera = Camera:new(0,0)
 end
 
@@ -39,6 +61,7 @@ function World:update(dt)
 	for i,o in ipairs(self.objects) do
 		o:update(dt)
 	end
+	self.collider:update(dt)
 end
 
 function World:onkey(down, key, unicode)
