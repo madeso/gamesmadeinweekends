@@ -1,5 +1,6 @@
 require "oo"
 require "camera"
+--require "console"
 
 ATL_Loader = require("AdvTiledLoader.Loader")
 HC = require 'hardon'
@@ -11,30 +12,30 @@ class "World"
 
 -- this is called when two shapes collide
 function on_collision(dt, shape_a, shape_b, mtv_x, mtv_y)
-    text[#text+1] = string.format("Colliding. mtv = (%s,%s)", 
-                                    mtv_x, mtv_y)
+    print(string.format("Colliding. mtv = (%s,%s)", mtv_x, mtv_y))
 end
 
 -- this is called when two shapes stop colliding
 function collision_stop(dt, shape_a, shape_b)
-    text[#text+1] = "Stopped colliding"
+    print("Stopped colliding")
 end
 
 function World:__init(path)
 	self.map = ATL_Loader.load(path)
 	self.collider = HC(100, on_collision, collision_stop)
 	
-	--for tilename, tilelayer in pairs(self.map.tileLayers) do
-	for y, row in pairs(self.map.tileLayers) do
-		print(y, row.name)
-		for x, tilenumber in pairs(row) do
-			--local tilenumber = tilelayer[
-			--local tile = self.map.tiles[tilenumber]
-			local tile = self.map.tiles[tilenumber]
-			print(x,y, tilenumber)
-			if tile and tile ~= 0 then 
-				if tile.properties.isSolid then
-					self.collider:addRectangle(x* map.tilewidth, y * map.tileheight, map.tilewidth, map.tileheight)
+	for tilename, tilelayer in pairs(self.map.tileLayers) do
+		print("Working on ", tilename, self.map.height, self.map.width)
+		for y=1,self.map.height do
+			for x=1,self.map.width do
+				local tilenumber = tilelayer.tileData[y][x]
+				local tile = self.map.tiles[tilenumber]
+				if tile and tile ~= 0 then 
+					if tilenumber>0 then
+						--print(x,y, tilenumber)
+						local epsilon = 0.001
+						self.collider:addRectangle(x* self.map.tileWidth, y * self.map.tileHeight, self.map.tileWidth-epsilon, self.map.tileHeight-epsilon)
+					end
 				end
 			end
 		end
