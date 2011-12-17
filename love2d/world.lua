@@ -24,10 +24,18 @@ function World:__init(path)
 	self.map = ATL_Loader.load(path)
 	self.collider = HC(100, on_collision, collision_stop)
 	
-	for y, row in pairs(self.map.tilelayers) do
+	--for tilename, tilelayer in pairs(self.map.tileLayers) do
+	for y, row in pairs(self.map.tileLayers) do
+		print(y, row.name)
 		for x, tilenumber in pairs(row) do
-			if self.map.tiles[tilenumber].properties.isSolid then
-				self.collider:addRectangle(x* map.tilewidth, y * map.tileheight, map.tilewidth, map.tileheight)
+			--local tilenumber = tilelayer[
+			--local tile = self.map.tiles[tilenumber]
+			local tile = self.map.tiles[tilenumber]
+			print(x,y, tilenumber)
+			if tile and tile ~= 0 then 
+				if tile.properties.isSolid then
+					self.collider:addRectangle(x* map.tilewidth, y * map.tileheight, map.tilewidth, map.tileheight)
+				end
 			end
 		end
 	end
