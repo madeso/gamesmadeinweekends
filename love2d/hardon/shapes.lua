@@ -179,9 +179,9 @@ function ConvexPolygonShape:collidesWith(other)
 	end
 
 	-- else: type is POLYGON, use the SAT
-	print('collide?')
+	--print('collide?')
 	if not outcircles_intersect(self, other) then return false end
-	print('sat')
+	--print('sat')
 	return SAT(self, self:getAxes(), other, other:getAxes())
 end
 
