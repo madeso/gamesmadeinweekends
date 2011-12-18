@@ -36,7 +36,7 @@ package
 			
 			drag.x = 50.0;
 			
-			play(Math.floor(Math.random() * 3).toFixed(0));
+			play(Math.floor(Math.random() * 4).toFixed(0));
 		}
 		
 		private static function sscale(d:Number, le:Number):Number
