@@ -110,7 +110,8 @@ package
 			dead = true;
 			solid = false;
 			play("die");
-			ps.spawnTreasures(x,y);
+			ps.spawnTreasures(x, y);
+			ps.spawnTreasures(x, y);
 		}
 		
 		private function stop() : void

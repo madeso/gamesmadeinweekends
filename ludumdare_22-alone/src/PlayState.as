@@ -88,15 +88,15 @@ package
 			var tmx:TmxMap = new TmxMap(new XML( new data_map ));
 			map.loadMap(tmx.getLayer('map').toCsv(tmx.getTileSet('tiles')), data_tiles, 64);
 			
-			for each(var o:TmxObject in tmx.getObjectGroup("groundspawners").objects)
+			for each(var o:TmxObject in tmx.getObjectGroup("ground").objects)
 			{
 				groundSpawners.add( new Spawner(o.x, o.y, 70) );
 			}
-			for each(o in tmx.getObjectGroup("powerupspawners").objects)
+			for each(o in tmx.getObjectGroup("powerup").objects)
 			{
 				powerupSpawners.add( new Spawner(o.x, o.y, -70) );
 			}
-			for each(o in tmx.getObjectGroup("flyingspawners").objects)
+			for each(o in tmx.getObjectGroup("fly").objects)
 			{
 				flyingSpawners.add( new Spawner(o.x, o.y, 0) );
 			}
@@ -231,21 +231,28 @@ package
 			if ( fmonster != null ) fmonster.damage();
 		}
 		
-		public function spawnTreasures(x:Number, y:Number) : void
+		public function spawnTreasure(x:Number, y:Number) : void
 		{
 			treasures.add( new Treasure(x, y, player) );
-			treasures.add( new Treasure(x, y, player) );
-			treasures.add( new Treasure(x, y, player) );
+		}
+		
+		public function spawnTreasures(x:Number, y:Number) : void
+		{
+			spawnTreasure(x, y);
+			spawnTreasure(x, y);
+			spawnTreasure(x, y);
 		}
 		
 		private function getRandom(collection:FlxGroup) : Spawner
 		{
+			// for some reason, one of our collections is empty causing this loop to hang, igonre this by returning null
+			if ( collection.members.length == 0 ) return null;
 			var o : Spawner = null;
 			while (o == null )
 			{
 				o = collection.getRandom() as Spawner;
 				
-				if ( o != null )
+				if ( o == null ) return null;
 				{
 					var dx:Number = player.x - o.x;
 					var dy:Number = player.y - o.y;
@@ -279,7 +286,7 @@ package
 			{
 				displayTime = 0;
 			}
-			scoreText.text = "Score: " + FlxG.score.toString();
+			scoreText.text = "Score: " + flyingSpawners.members.length.toString();// FlxG.score.toString();
 			scoreText.size = 20 + displayTime*kDisplayTimeMulti;
 			FlxU.overlap(player, treasures, CB_PlayerTreasure);
 			FlxU.overlap(player, powerups, CB_PlayerPowerup);
@@ -308,16 +315,19 @@ package
 			
 			if ( enemySpawnTime < 0 )
 			{
-				if ( groundMonsters.countLiving() < 25 )
+				if ( groundMonsters.countLiving() < 15 )
 				{
 					o = getRandom(groundSpawners);
-					if ( Math.random() > 0.4 )
+					if ( o != null )
 					{
-						groundMonsters.add(new CrawlingMonster(o.x, o.y - 10, player, this));
-					}
-					else
-					{
-						groundMonsters.add(new WalkingMonster(o.x, o.y - 10, player, this));
+						if ( Math.random() > 0.4 )
+						{
+							groundMonsters.add(new CrawlingMonster(o.x, o.y - 10, player, this));
+						}
+						else
+						{
+							groundMonsters.add(new WalkingMonster(o.x, o.y - 10, player, this));
+						}
 					}
 				}
 				enemySpawnTime = Math.random() * 3;
@@ -329,10 +339,13 @@ package
 			
 			if ( fenemySpawnTime < 0 )
 			{
-				if ( flyingMonsters.countLiving() < 50 )
+				if ( flyingMonsters.countLiving() < 20 )
 				{
 					o = getRandom(flyingSpawners);
-					flyingMonsters.add(new FlyingMonster(o.x, o.y - 10, player, this));
+					if ( o != null )
+					{
+						flyingMonsters.add(new FlyingMonster(o.x, o.y - 10, player, this));
+					}
 				}
 				fenemySpawnTime = Math.random() * 3;
 			}
@@ -346,8 +359,11 @@ package
 				if ( powerups.countLiving() < 5 )
 				{
 					var powerupSpawner : Spawner = getRandom(powerupSpawners);
-					var b : Boolean = Math.random() > 0.5;
-					powerups.add(new Powerup(powerupSpawner.x, powerupSpawner.y, b));
+					if ( powerupSpawner != null )
+					{
+						var b : Boolean = Math.random() > 0.5;
+						powerups.add(new Powerup(powerupSpawner.x, powerupSpawner.y, b));
+					}
 				}
 				powerupSpawnTime = Math.random() * 5;
 			}
