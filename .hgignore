@@ -10,3 +10,5 @@ glob:ludumdare_19/obj/*
 glob:ludumdare_19/src/net/*
 glob:nomoresweden_2011-guru/inspiration/*
 glob:nomoresweden_2011-guru/obj/*
+glob:ludumdare_22-alone/bin/myflashgame.swf
+glob:ludumdare_22-alone/obj/*
