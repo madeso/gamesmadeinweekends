@@ -357,6 +357,9 @@ package
 			}
 			
 			RemoveDeadItems(groundMonsters);
+			RemoveDeadItems(flyingMonsters);
+			RemoveDeadItems(treasures);
+			RemoveDeadItems(powerups);
 		}
 	}
 }
