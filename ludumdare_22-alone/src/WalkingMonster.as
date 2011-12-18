@@ -69,7 +69,7 @@ package
 			offset.x = 5;
 			offset.y = 2;
 			
-			health = 10;
+			health = 6;
 			
 			jumpNeed = Math.random() * 6;
 			
@@ -136,7 +136,9 @@ package
 			dead = true;
 			solid = false;
 			play("die");
-			ps.spawnTreasures(x,y);
+			ps.spawnTreasures(x, y);
+			ps.spawnTreasures(x, y);
+			ps.spawnTreasures(x, y);
 		}
 		
 		private function stop() : void
