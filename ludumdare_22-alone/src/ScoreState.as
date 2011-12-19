@@ -8,11 +8,37 @@ package
 		{
 			return a < b ? 1: -1;
 		}
+		
+		[Embed(source = "sfx/highscore.mp3")] private static var SndHighscore : Class;
+		
 		override public function create() : void
 		{
 			bgColor = 0xff000000;
 			var o:Object = null;
 			var atext:String = "HIGHSCORE";
+			
+			var scoreString : String = "you got " + FlxG.score.toString();
+			
+			//load scores
+			var save : FlxSave = new FlxSave();
+			if ( save.bind("highscore") )
+			{
+				var scores : Array = save.read("scores") as Array;
+				if (scores != null)
+				{
+					FlxG.log("loading score data");
+					FlxG.scores = scores;
+				}
+				else
+				{
+					FlxG.log("loaded score data was null");
+				}
+			}
+			else
+			{
+				FlxG.log("Failed to bind score!");
+				save = null;
+			}
 			
 			if ( FlxG.score > 0 )
 			{
@@ -39,12 +65,25 @@ package
 				if ( newsum > sum )
 				{
 					FlxG.flash.start(0xffffffff, 0.25);
-					atext = "NEW HIGHSCORE";
+					atext = "NEW HIGHSCORE!!";
+					FlxG.play(SndHighscore);
+				}
+				
+				//saves scores
+				if ( save != null )
+				{
+					var r : Boolean = save.write("scores", FlxG.scores);
+					FlxG.log("saving score data" + r.toString());
+					save.forceSave();
 				}
 			}
 			
 			var text : FlxText = new FlxText(0, 20, FlxG.width, atext);
 			text.setFormat(null, 16, 0xffffffff, "center");
+			add(text);
+			
+			text = new FlxText(0, 40, FlxG.width, scoreString);
+			text.setFormat(null, 10, 0xffffffff, "center");
 			add(text);
 			
 			var index : int = 0;

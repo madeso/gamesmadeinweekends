@@ -79,11 +79,11 @@ package
 			}
 			
 			objectsThatCollideWithWorld = new FlxGroup();
-			bgColor = 0xffADD6E7;
+			bgColor = 0xff3852A7;
 			
 			map = new FlxTilemap();
 			map.drawIndex = 1;
-			map.collideIndex = 30;
+			map.collideIndex = 40;
 			
 			var tmx:TmxMap = new TmxMap(new XML( new data_map ));
 			map.loadMap(tmx.getLayer('map').toCsv(tmx.getTileSet('tiles')), data_tiles, 64);
@@ -198,7 +198,7 @@ package
 			FlxG.play(SndCollectedTreasure);
 			var t : Treasure = treasure as Treasure;
 			displayTime = kDisplayTime;
-			FlxG.score += 1;
+			FlxG.score += 100;
 		}
 		
 		protected function CB_PlayerMonster(aplayer : FlxObject, coconut : FlxObject) : void
@@ -286,7 +286,7 @@ package
 			{
 				displayTime = 0;
 			}
-			scoreText.text = "Score: " + flyingSpawners.members.length.toString();// FlxG.score.toString();
+			scoreText.text = "Score: " + FlxG.score.toString();
 			scoreText.size = 20 + displayTime*kDisplayTimeMulti;
 			FlxU.overlap(player, treasures, CB_PlayerTreasure);
 			FlxU.overlap(player, powerups, CB_PlayerPowerup);
