@@ -39,6 +39,10 @@ package
 			{
 				kill();
 			}
+			else
+			{
+				ps.spawnGibs(x, y, 1);
+			}
 		}
 		
 		private function jump() : void
@@ -139,6 +143,7 @@ package
 			ps.spawnTreasures(x, y);
 			ps.spawnTreasures(x, y);
 			ps.spawnTreasures(x, y);
+			ps.spawnGibs(x, y, 10);
 		}
 		
 		private function stop() : void

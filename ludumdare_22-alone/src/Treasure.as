@@ -42,7 +42,7 @@ package
 		private static function sscale(d:Number, le:Number):Number
 		{
 			var s : Number = d / le;
-			const M : Number = 800;
+			const M : Number = 400;
 			if ( le < M )
 			{
 				s = s * ((M-le) / M);
@@ -68,7 +68,7 @@ package
 				dx = sscale(dx, l);
 				dy = sscale(dy, l);
 				var change : Number = 500;
-				velocity.x = dx*change;
+				velocity.x = dx * change;
 				velocity.y = dy * change;
 			}
 			

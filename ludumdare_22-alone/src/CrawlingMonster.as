@@ -13,6 +13,8 @@ package
 		private var px : Number = 0;
 		private var py : Number = 0;
 		
+		private const kDiff : Number = 100;
+		
 		public function damage() : void
 		{
 			if ( health > 0 )
@@ -43,7 +45,7 @@ package
 			offset.x = 7;
 			offset.y = 52;
 			
-			health = 3;
+			health = 2;
 			
 			if ( Math.random() < 0.5 )
 			{
@@ -77,7 +79,7 @@ package
 					mod = mod * 1.25;
 				}
 				
-				if ( player.x < x && facing == LEFT || player.x > x && facing == RIGHT )
+				if ( player.x-kDiff < x && facing == LEFT || player.x+kDiff > x && facing == RIGHT )
 				{
 					mod *= 1.25;
 				}
@@ -112,6 +114,8 @@ package
 			play("die");
 			ps.spawnTreasures(x, y);
 			ps.spawnTreasures(x, y);
+			
+			ps.spawnGibs(x, y, 5);
 		}
 		
 		private function stop() : void

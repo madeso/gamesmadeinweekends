@@ -9,7 +9,7 @@ package
 		[Embed(source = "sfx/player-jump.mp3")] private static var SndJump : Class;
 		[Embed(source = "sfx/player-walljump.mp3")] private static var SndWallJump : Class;
 		[Embed(source = "sfx/player-land.mp3")] private static var SndLand : Class;
-		[Embed(source = "sfx/player-pickup-ammo.mp3")] private static var SndPickupStones : Class;
+		[Embed(source = "sfx/player-pickup-ammo.mp3")] private static var SndPickupBullets : Class;
 		[Embed(source = "sfx/player-pickup-health.mp3")] private static var SndPickupHealth : Class;
 		[Embed(source = "sfx/player-lowonammo.mp3")] private static var SndLowOnAmmo : Class;
 		
@@ -26,6 +26,10 @@ package
 		
 		private const kReactionTime:Number = 0.1;
 		private const kCooldownTime : Number = 0.1;
+		private const kCooldownTimePower : Number = kCooldownTime / 2;
+		
+		private const kMaximumBullets:uint = 500;
+		private const kPickupBullets:uint = 100;
 		
 		// -------------------------------------------------------
 		
@@ -44,6 +48,8 @@ package
 		
 		private var state : uint = 0;
 		
+		
+		
 		// --------------------------------------------------------
 		
 		private var bullets : Array;
@@ -55,6 +61,11 @@ package
 		{
 			myHealth = 4;
 			FlxG.play(SndPickupHealth);
+		}
+		
+		public function canPickupHealth() : Boolean
+		{
+			return myHealth < 4;
 		}
 		
 		public function Player(X:int, Y:int, B : Array)
@@ -86,7 +97,7 @@ package
 		
 		public function canPickupAmmobox() : Boolean
 		{
-			return numberOfBullets < 100;
+			return numberOfBullets < kMaximumBullets;
 		}
 		
 		public function getNumberOfBullets() : uint
@@ -96,8 +107,9 @@ package
 		
 		public function pickupBullets() : void
 		{
-			numberOfBullets = 100;
-			FlxG.play(SndPickupStones);
+			numberOfBullets += kPickupBullets;
+			if ( numberOfBullets > kMaximumBullets) numberOfBullets = kMaximumBullets;
+			FlxG.play(SndPickupBullets);
 		}
 		
 		private function spawnBullet(weak:Boolean, dx:Number, dy:Number, xv : Number, yv:Number) : void
@@ -305,7 +317,14 @@ package
 				{
 					fireGun(false);
 					numberOfBullets -= 1;
-					cooldown += kCooldownTime;
+					if ( numberOfBullets > kPickupBullets )
+					{
+						cooldown += kCooldownTimePower;
+					}
+					else
+					{
+						cooldown += kCooldownTime;
+					}
 					
 					if ( numberOfBullets == 10 )
 					{

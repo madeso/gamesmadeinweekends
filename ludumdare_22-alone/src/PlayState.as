@@ -42,7 +42,7 @@ package
 		private var powerups : FlxGroup;
 		private var coconutToThrow : uint = 0;
 		
-		private var saves : FlxGroup;
+		private var gibs : FlxGroup;
 		
 		private var objectsThatCollideWithWorld: FlxGroup;
 		private var healthDisplay : HealthDisplay;
@@ -56,7 +56,24 @@ package
 		private var fenemySpawnTime : Number = 0;
 		private var powerupSpawnTime : Number = 0;
 		
+		private var indexOfNextBulletToShoot : uint = 0;
+		
 		//[Embed(source = "music.mp3")] private static var SndMusic : Class;
+		
+		private function spawnGib(ax:Number, ay:Number) : void
+		{
+			gibs.members[indexOfNextBulletToShoot].spawn(ax,ay);
+			indexOfNextBulletToShoot++;
+			if ( indexOfNextBulletToShoot >= gibs.members.length ) indexOfNextBulletToShoot = 0;
+		}
+		
+		public function spawnGibs(ax:Number, ay:Number, count:uint) : void
+		{
+			for (var i:uint = 0; i < count; ++i)
+			{
+				spawnGib(ax, ay);
+			}
+		}
 		
 		override public function create() : void
 		{
@@ -68,14 +85,19 @@ package
 			groundMonsters = new FlxGroup();
 			flyingMonsters = new FlxGroup();
 			powerups = new FlxGroup();
-			saves = new FlxGroup();
 			treasures = new FlxGroup();
+			gibs = new FlxGroup();
 			
 			player = new Player(64, 64, playerBullets.members);
 			
 			for (var i:uint = 0; i < 100; ++i)
 			{
 				playerBullets.add( new Bullet() );
+			}
+			
+			for (i= 0; i < 100; ++i)
+			{
+				gibs.add( new Gib() );
 			}
 			
 			objectsThatCollideWithWorld = new FlxGroup();
@@ -112,8 +134,8 @@ package
 			add(groundMonsters);
 			add(flyingMonsters);
 			add(playerBullets);
+			add(gibs);
 			add(powerups);
-			add(saves);
 			add(treasures);
 			
 			scoreText = new FlxText(0 , 10, 640, "");
@@ -135,11 +157,11 @@ package
 			
 			objectsThatCollideWithWorld.add(player);
 			objectsThatCollideWithWorld.add(playerBullets);
+			objectsThatCollideWithWorld.add(gibs);
 			objectsThatCollideWithWorld.add(groundMonsters);
 			objectsThatCollideWithWorld.add(groundSpawners);
 			objectsThatCollideWithWorld.add(powerupSpawners);
 			objectsThatCollideWithWorld.add(powerups);
-			objectsThatCollideWithWorld.add(saves);
 			objectsThatCollideWithWorld.add(treasures);
 			
 			bugUpdateCamera();
@@ -180,8 +202,11 @@ package
 			var p : Powerup = apowerup as Powerup;
 			if ( p.isHealth )
 			{
-				player.pickupHealth();
-				apowerup.kill();
+				if ( player.canPickupHealth() )
+				{
+					player.pickupHealth();
+					apowerup.kill();
+				}
 			}
 			else
 			{			
@@ -257,7 +282,7 @@ package
 					var dx:Number = player.x - o.x;
 					var dy:Number = player.y - o.y;
 					var le : Number = Math.sqrt( dx * dx + dy + dy );
-					if ( le < 150 )
+					if ( le < 300 )
 					{
 						// this is to close to the player, ignore it
 						o = null;
@@ -339,7 +364,7 @@ package
 			
 			if ( fenemySpawnTime < 0 )
 			{
-				if ( flyingMonsters.countLiving() < 20 )
+				if ( flyingMonsters.countLiving() < 10 )
 				{
 					o = getRandom(flyingSpawners);
 					if ( o != null )
@@ -356,7 +381,7 @@ package
 			
 			if ( powerupSpawnTime < 0 )
 			{
-				if ( powerups.countLiving() < 5 )
+				if ( powerups.countLiving() < 3 )
 				{
 					var powerupSpawner : Spawner = getRandom(powerupSpawners);
 					if ( powerupSpawner != null )

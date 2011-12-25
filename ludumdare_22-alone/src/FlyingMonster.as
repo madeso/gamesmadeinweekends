@@ -68,7 +68,7 @@ package
 			offset.x = 25;
 			offset.y = 28;
 			
-			health = 2;
+			health = 1;
 			
 			setupJump();
 			
@@ -107,7 +107,7 @@ package
 					mod = mod * 0.25;
 				}
 				
-				velocity.x = mod * 50;
+				velocity.x = mod * 120;
 				
 				if ( y > player.y+30 )
 				{
@@ -137,7 +137,8 @@ package
 			dead = true;
 			solid = false;
 			play("die");
-			ps.spawnTreasure(x,y);
+			ps.spawnGibs(x, y, 5);
+			//ps.spawnTreasure(x,y);
 		}
 		
 		private function stop() : void
