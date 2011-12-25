@@ -1,0 +1,14 @@
+glob:nomoresweden_2010/bin/*
+glob:nomoresweden_2010/obj/*
+glob:nomoresweden_2010/inspiration/*
+glob:nomoresweden_2010/src/net/*
+glob:ludumdare_18/bin/*
+glob:ludumdare_18/obj/*
+glob:Loputon-remake/*
+glob:ludumdare_19/bin/*
+glob:ludumdare_19/obj/*
+glob:ludumdare_19/src/net/*
+glob:nomoresweden_2011-guru/inspiration/*
+glob:nomoresweden_2011-guru/obj/*
+glob:ludumdare_22-alone/bin/myflashgame.swf
+glob:ludumdare_22-alone/obj/*
