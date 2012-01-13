@@ -26,3 +26,6 @@ end
 
 function Object:onkey(down, key, unicode)
 end
+
+function Object:enterWorld(word, c)
+end
