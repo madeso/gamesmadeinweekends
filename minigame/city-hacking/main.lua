@@ -1,3 +1,10 @@
+-- for sleep
+require "socket"
+
+function sleep(sec)
+    socket.select(nil, nil, sec)
+end
+
 width = 20
 height = 20
 items = 10
@@ -19,6 +26,12 @@ function isfree(x,y)
 	end
 	
 	return mem[x][y] == false
+end
+
+luaprint = print
+function print(...)
+	luaprint(...)
+	--sleep(0.2)
 end
 
 function remember(sx,sy,nx,ny)
@@ -118,6 +131,7 @@ function fillworld()
 			remember(x,y,nx,ny)
 			x,y = nx,ny
 			world[x][y] = 1
+			itemsleft = itemsleft + 1
 			
 			i = i+1
 			if i>items then
@@ -125,7 +139,7 @@ function fillworld()
 			end
 			
 			generate = true
-			print "placing point"
+			print "placing item"
 		else
 			print("invalid suggestion, retrying", #positions)
 			table.remove(positions, randomindex)
@@ -151,9 +165,12 @@ function dogenworld()
 	playerx = math.random(width)
 	playery = math.random(height)
 	canplay = true
+	canplaytext = ""
 	
 	solutionindex = 1
 	solutiontimer = 0
+	
+	itemsleft = 0
 	
 	timer = 0
 	dx = 0
@@ -264,7 +281,7 @@ function love.draw()
 	
 	love.graphics.setColor(255,255,255)
 	if canplay == false then
-		love.graphics.print("you died", 20, 10)
+		love.graphics.print(canplaytext, 20, 10)
 	end
 	
 	love.graphics.setColor(255,255,255, 255)
@@ -274,11 +291,22 @@ end
 
 function gameover()
 	canplay = false
+	canplaytext = "Game over. Press space to restart."
 	playSound(sDie)
+end
+
+function win()
+	canplay = false
+	canplaytext = "Level completed. Press space to restart"
+	--playSound(sDie)
 end
 
 function score()
 	playSound(sScore)
+	itemsleft = itemsleft -1
+	if itemsleft == 0 then
+		win()
+	end
 end
 
 function step(x,y)
