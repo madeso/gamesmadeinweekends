@@ -231,11 +231,14 @@ function love.load()
 end
 
 function transform(x,y)
-	local startx = 20
-	local starty = 20
-	local step = 18
+	local h,w = love.graphics.getHeight(), love.graphics.getWidth()
+
+	local step = 16
 	
-	return startx+step*x,starty+step*y
+	local startx = w/2.0 - (step*width)/2.0
+	local starty = h/2.0 - (step*height)/2.0
+	
+	return startx+step*(x-1),starty+step*(y-1)
 end
 
 function line(a,b, x,y)
