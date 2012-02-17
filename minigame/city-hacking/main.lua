@@ -2,6 +2,8 @@ width = 20
 height = 20
 items = 20
 steps = 7
+
+kSolutionTime = 0.05
 --math.floor(width/2)
 
 function playSound(s)
@@ -14,23 +16,12 @@ function sfx(path)
 	return love.audio.newSource(path, "static")
 end
 
-function isHorizontal(dx,dy)
-	if dx ~= 0 then
-		return true
-	else
-		return false
-	end
-end
-
-function isfree(x,y,dx,dy)
+function isfree(x,y)
 	if playerx ==x and playery == y then
 		return false
 	end
-	if isHorizontal(dx,dy) then
-		return mem[x][y].h == nil
-	else
-		return mem[x][y].v == nil
-	end
+	
+	return mem[x][y] == false
 end
 
 function remember(sx,sy,dx,dy,nx,ny)
@@ -39,14 +30,7 @@ function remember(sx,sy,dx,dy,nx,ny)
 	local p = {}
 	repeat
 		-- for map generation
-		if isHorizontal(dx,dy) then
-			mem[x][y].h = true
-		else
-			mem[x][y].v = true
-		end
-		if x==nx and y==ny then
-			return
-		end
+		mem[x][y] = true
 		
 		-- for solution traversing
 		p = {}
@@ -90,7 +74,7 @@ function fillworld()
 		if nx > width then nx = width end
 		if ny > height then ny = height end
 		
-		if world[nx][ny] == 0 and isfree(nx,ny,dx,dy) then
+		if world[nx][ny] == 0 and isfree(nx,ny) then
 			remember(x,y,dx,dy,nx,ny)
 			x,y = nx,ny
 			world[x][y] = 1
@@ -99,6 +83,9 @@ function fillworld()
 			if i>items then
 				done = true
 			end
+			print "placing point"
+		else
+			print "invalid suggestion, retrying"
 		end
 	until done
 	
@@ -130,7 +117,7 @@ function genworld()
 		local t = {}
 		for y=1,height do
 			temp[y] = 0
-			t[y] = {}
+			t[y] = false
 		end
 		world[x] = temp
 		mem[x] = t
@@ -276,8 +263,8 @@ end
 function love.update(dt)
 	if showsolution then
 		solutiontimer = solutiontimer + dt
-		if solutiontimer > 0.04 then
-			solutiontimer = solutiontimer - 0.04
+		if solutiontimer > kSolutionTime then
+			solutiontimer = solutiontimer - kSolutionTime
 			if solutionindex == #solution then
 				solutionindex = 1
 			else
