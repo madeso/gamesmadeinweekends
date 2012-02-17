@@ -8,6 +8,8 @@ end
 width = 20
 height = 20
 items = 10
+
+-- 47,33,200
 kSolutionTime = 0.05
 
 function playSound(s)
