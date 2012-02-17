@@ -1,10 +1,7 @@
 width = 20
 height = 20
-items = 20
-steps = 7
-
+items = 10
 kSolutionTime = 0.05
---math.floor(width/2)
 
 function playSound(s)
 	love.audio.stop(s)
@@ -24,10 +21,28 @@ function isfree(x,y)
 	return mem[x][y] == false
 end
 
-function remember(sx,sy,dx,dy,nx,ny)
+function remember(sx,sy,nx,ny)
 	local x,y = sx,sy
 	local d = {}
 	local p = {}
+	
+	local dx,dy = 0,0
+	
+	if x > nx then
+		dx = -1
+	elseif x < nx then
+		dx = 1
+	end
+	
+	if y > ny then
+		dy = -1
+	elseif y < ny then
+		dy = 1
+	end
+	
+	
+	--print(sx,sy,nx,ny,dx,dy)
+	
 	repeat
 		-- for map generation
 		mem[x][y] = true
@@ -43,39 +58,64 @@ function remember(sx,sy,dx,dy,nx,ny)
 	until x==nx and y==ny
 end
 
+function makepoint(x,y)
+	local r = {}
+	r.x = x
+	r.y = y
+	return r
+end
+
+function listValidPositions(sx,sy)
+	local r = {}
+	
+	local x, y = 0,0
+	
+	for x=1,width do
+		if x ~= sx then
+			table.insert(r, makepoint(x,sy))
+		end
+	end
+	
+	for y=1,height do
+		if y ~= sy then
+			table.insert(r, makepoint(sx,y))
+		end
+	end
+	
+	return r
+end
+
 function fillworld()
 	local x,y = playerx, playery
-	local dx,dy = 0,0
-	local dir = 1
-	local range = 1
 	local nx, ny
 	
-	local i = 1
 	local done = false
 	
+	local positions = {}
+	local pos = {}
+	local generate = true
+	local randomindex = 0
+	local i = 0
+	
 	repeat
-		range = math.random(steps)
-		dir = math.random(4)
-		dx,dy = 0,0
-		if     dir == 1 then
-			dx = 1
-		elseif dir == 2 then
-			dx = -1
-		elseif dir == 3 then
-			dy = 1
-		elseif dir == 4 then
-			dy = -1
+		if generate then
+			positions = listValidPositions(x,y)
+			print("generated valid positions")
+			generate = false
 		end
 		
-		nx,ny = x+dx*range, y+dy*range
+		if #positions == 0 then
+			print("no more valid positions, failing...")
+			return false
+		end
 		
-		if nx <= 0 then nx = 1 end
-		if ny <= 0 then ny=1 end
-		if nx > width then nx = width end
-		if ny > height then ny = height end
+		
+		randomindex = math.random(#positions)
+		pos = positions[ randomindex ]
+		nx,ny = pos.x, pos.y
 		
 		if world[nx][ny] == 0 and isfree(nx,ny) then
-			remember(x,y,dx,dy,nx,ny)
+			remember(x,y,nx,ny)
 			x,y = nx,ny
 			world[x][y] = 1
 			
@@ -83,9 +123,12 @@ function fillworld()
 			if i>items then
 				done = true
 			end
+			
+			generate = true
 			print "placing point"
 		else
-			print "invalid suggestion, retrying"
+			print("invalid suggestion, retrying", #positions)
+			table.remove(positions, randomindex)
 		end
 	until done
 	
@@ -94,9 +137,13 @@ function fillworld()
 	p.x=x
 	p.y=y
 	table.insert(solution, p)
+	
+	print("filling world: done")
+	return true
 end
 
-function genworld()
+function dogenworld()
+	print("initializing................................................")
 	world = {}
 	mem = {}
 	solution = {}
@@ -124,7 +171,15 @@ function genworld()
 	end
 	
 	
-	fillworld()
+	return fillworld()
+end
+
+function genworld()
+	local complete = false
+	print("generating world........")
+	repeat
+		complete = dogenworld()
+	until complete
 end
 
 function playMusic(path)
