@@ -83,7 +83,7 @@ end
 
 function love.update(dt)
 	local lastround = round
-	round = round + dt*0.25
+	round = round + dt*speed
 	
 	for i,item in ipairs(items) do	
 		if item.position > lastround and round > item.position then
@@ -124,6 +124,7 @@ function love.keypressed(key, unicode)
 				col = true
 				item.position = randomPosition()
 				item.passed = false
+				item.time = -1
 			end
 		end
 		
