@@ -11,9 +11,22 @@ function add(at)
 	table.insert(items, item)
 end
 
+function playSound(s)
+	love.audio.stop(s)
+	love.audio.rewind(s)
+	love.audio.play(s)
+end
+
+function sfx(path)
+	return love.audio.newSource(path, "static")
+end
+
 function love.load()
 	printif = false
 	round = 0
+	
+	hit = sfx('hit.wav')
+	miss = sfx('miss.wav')
 	
 	love.graphics.setBackgroundColor( 100, 149, 237 )
 	w,h = love.graphics.getWidth(), love.graphics.getHeight()
@@ -89,6 +102,12 @@ function love.keypressed(key, unicode)
 			if round > item.position-reaction and round < item.position+reaction then
 				col = true
 			end
+		end
+		
+		if col then
+			playSound(hit)
+		else
+			playSound(miss)
 		end
 	end
 end
