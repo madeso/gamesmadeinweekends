@@ -1,6 +1,6 @@
 maxitemtime = 1.5
 speed = 0.25
-reactiontime = 0.1
+reactiontime = 0.2
 totalreaction = speed*reactiontime
 reaction = totalreaction/2
 
@@ -66,7 +66,13 @@ function love.draw()
 	
 	for i,item in ipairs(items) do
 		cx,cy = getxy(item.position)
-		love.graphics.circle("line", cx, cy, 5)
+		if item.passed then
+			love.graphics.setColor(255, 0, 0, 255)
+		else
+			love.graphics.setColor(255, 255, 255, 255)
+		end
+		love.graphics.circle("line", cx, cy, reaction*drawsize)
+		love.graphics.setColor(255, 255, 255, 255)
 		if item.time >= 0 then
 			love.graphics.setColor(255, 255, 255, 255-255*item.time/maxitemtime)
 			love.graphics.circle("line", cx, cy, item.time*100, 20)
