@@ -1,4 +1,8 @@
 maxitemtime = 1.5
+speed = 0.25
+reactiontime = 0.1
+totalreaction = speed*reactiontime
+reaction = totalreaction/2
 
 function love.load()
 	printif = false
@@ -71,6 +75,8 @@ function love.keypressed(key, unicode)
 		love.event.push("q")
 	end
 	if key == " " then
-		printit = true
+		if round > item-reaction and round < item+reaction then
+			printit = true
+		end
 	end
 end
