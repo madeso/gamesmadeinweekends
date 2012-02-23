@@ -8,6 +8,7 @@ function add(at)
 	item = {}
 	item.position = at
 	item.time = -1
+	item.passed = false
 	table.insert(items, item)
 end
 
@@ -27,6 +28,7 @@ function love.load()
 	
 	hit = sfx('hit.wav')
 	miss = sfx('miss.wav')
+	passed = sfx('passed.wav')
 	
 	love.graphics.setBackgroundColor( 100, 149, 237 )
 	w,h = love.graphics.getWidth(), love.graphics.getHeight()
@@ -75,6 +77,7 @@ function love.update(dt)
 	for i,item in ipairs(items) do	
 		if item.position > lastround and round > item.position then
 			-- passed
+			playSound(passed)
 			item.time = 0
 		end
 		
