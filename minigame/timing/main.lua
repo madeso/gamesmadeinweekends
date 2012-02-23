@@ -4,6 +4,13 @@ reactiontime = 0.1
 totalreaction = speed*reactiontime
 reaction = totalreaction/2
 
+function add(at)
+	item = {}
+	item.position = at
+	item.time = -1
+	table.insert(items, item)
+end
+
 function love.load()
 	printif = false
 	round = 0
@@ -14,9 +21,10 @@ function love.load()
 	spacing = 20
 	drawsize = math.min(w,h)-(spacing*2)
 	
-	item = {}
-	item.position = 0.5
-	item.time = -1
+	items = {}
+	add(0.5)
+	add(0.2)
+	add(0.9)
 end
 
 function getposition(x,y)
@@ -36,16 +44,14 @@ function love.draw()
 	love.graphics.line(0,y,w,y)
 	love.graphics.line(x,0,x,h)
 	
-	cx,cy = getxy(item.position)
-	love.graphics.circle("line", cx, cy, 5)
-	if item.time >= 0 then
-		love.graphics.setColor(255, 255, 255, 255-255*item.time/maxitemtime)
-		love.graphics.circle("line", cx, cy, item.time*100, 20)
-		love.graphics.setColor(255, 255, 255, 255)
-	end
-	
-	if printit then
-		love.graphics.print("delay! " .. tostring(round), 20, 10)
+	for i,item in ipairs(items) do
+		cx,cy = getxy(item.position)
+		love.graphics.circle("line", cx, cy, 5)
+		if item.time >= 0 then
+			love.graphics.setColor(255, 255, 255, 255-255*item.time/maxitemtime)
+			love.graphics.circle("line", cx, cy, item.time*100, 20)
+			love.graphics.setColor(255, 255, 255, 255)
+		end
 	end
 end
 
@@ -53,15 +59,17 @@ function love.update(dt)
 	local lastround = round
 	round = round + dt*0.25
 	
-	if item.position > lastround and round > item.position then
-		-- passed
-		item.time = 0
-	end
-	
-	if item.time >= 0 then
-		item.time = item.time + dt
-		if item.time > maxitemtime then
-			item.time = -1
+	for i,item in ipairs(items) do	
+		if item.position > lastround and round > item.position then
+			-- passed
+			item.time = 0
+		end
+		
+		if item.time >= 0 then
+			item.time = item.time + dt
+			if item.time > maxitemtime then
+				item.time = -1
+			end
 		end
 	end
 	
@@ -76,8 +84,11 @@ function love.keypressed(key, unicode)
 		love.event.push("q")
 	end
 	if key == " " then
-		if round > item.position-reaction and round < item.position+reaction then
-			printit = true
+		local col = false
+		for i,item in ipairs(items) do
+			if round > item.position-reaction and round < item.position+reaction then
+				col = true
+			end
 		end
 	end
 end
