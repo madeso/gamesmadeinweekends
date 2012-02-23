@@ -17,3 +17,7 @@ end
 
 function Camera:update(dt)
 end
+
+function Camera:getWorldFromView(x,y)
+	return x-self.x, y-self.y
+end
