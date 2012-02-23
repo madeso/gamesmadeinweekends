@@ -14,8 +14,9 @@ function love.load()
 	spacing = 20
 	drawsize = math.min(w,h)-(spacing*2)
 	
-	item = 0.5
-	itemtime = -1
+	item = {}
+	item.position = 0.5
+	item.time = -1
 end
 
 function getposition(x,y)
@@ -35,11 +36,11 @@ function love.draw()
 	love.graphics.line(0,y,w,y)
 	love.graphics.line(x,0,x,h)
 	
-	cx,cy = getxy(item)
+	cx,cy = getxy(item.position)
 	love.graphics.circle("line", cx, cy, 5)
-	if itemtime >= 0 then
-		love.graphics.setColor(255, 255, 255, 255-255*itemtime/maxitemtime)
-		love.graphics.circle("line", cx, cy, itemtime*100, 20)
+	if item.time >= 0 then
+		love.graphics.setColor(255, 255, 255, 255-255*item.time/maxitemtime)
+		love.graphics.circle("line", cx, cy, item.time*100, 20)
 		love.graphics.setColor(255, 255, 255, 255)
 	end
 	
@@ -52,15 +53,15 @@ function love.update(dt)
 	local lastround = round
 	round = round + dt*0.25
 	
-	if item > lastround and round > item then
+	if item.position > lastround and round > item.position then
 		-- passed
-		itemtime = 0
+		item.time = 0
 	end
 	
-	if itemtime >= 0 then
-		itemtime = itemtime + dt
-		if itemtime > maxitemtime then
-			itemtime = -1
+	if item.time >= 0 then
+		item.time = item.time + dt
+		if item.time > maxitemtime then
+			item.time = -1
 		end
 	end
 	
@@ -75,7 +76,7 @@ function love.keypressed(key, unicode)
 		love.event.push("q")
 	end
 	if key == " " then
-		if round > item-reaction and round < item+reaction then
+		if round > item.position-reaction and round < item.position+reaction then
 			printit = true
 		end
 	end
