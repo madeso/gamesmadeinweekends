@@ -22,6 +22,10 @@ function sfx(path)
 	return love.audio.newSource(path, "static")
 end
 
+function randomPosition()
+	return math.random()
+end
+
 function love.load()
 	printif = false
 	round = 0
@@ -37,13 +41,10 @@ function love.load()
 	drawsize = math.min(w,h)-(spacing*2)
 	
 	items = {}
-	add(0.5)
-	add(0.2)
-	add(0.9)
-end
-
-function randomPosition()
-	return math.random()
+	
+	for i=1,4 do
+		add(randomPosition())
+	end
 end
 
 function getposition(x,y)
