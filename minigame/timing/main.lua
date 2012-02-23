@@ -42,6 +42,10 @@ function love.load()
 	add(0.9)
 end
 
+function randomPosition()
+	return math.random()
+end
+
 function getposition(x,y)
 	return (w-drawsize)/2 + x*drawsize, (h-drawsize)/2 + y*drawsize
 end
@@ -77,8 +81,15 @@ function love.update(dt)
 	for i,item in ipairs(items) do	
 		if item.position > lastround and round > item.position then
 			-- passed
-			playSound(passed)
-			item.time = 0
+			if item.passed then
+				item.position = randomPosition()
+				item.passed = false
+				playSound(miss)
+			else
+				playSound(passed)
+				item.passed = true
+				item.time = 0
+			end
 		end
 		
 		if item.time >= 0 then
@@ -104,6 +115,8 @@ function love.keypressed(key, unicode)
 		for i,item in ipairs(items) do
 			if round > item.position-reaction and round < item.position+reaction then
 				col = true
+				item.position = randomPosition()
+				item.passed = false
 			end
 		end
 		
