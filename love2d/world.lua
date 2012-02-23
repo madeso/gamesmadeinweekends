@@ -11,13 +11,15 @@ class "World"
 }
 
 -- this is called when two shapes collide
-function on_collision(dt, shape_a, shape_b, mtv_x, mtv_y)
-    print(string.format("Colliding. mtv = (%s,%s)", mtv_x, mtv_y))
+function on_collision(dt, sa, sb, mx, my)
+	--print(string.format("Colliding. mtv = (%s - %s) (%s,%s)", tostring(sa.type), tostring(sb.type), mx, my))
+	if sa.type then sa.type:onCollision(sb.type, mx, my) end
+	if sb.type then sb.type:onCollision(sa.type, mx, my) end
 end
 
 -- this is called when two shapes stop colliding
 function collision_stop(dt, shape_a, shape_b)
-    print("Stopped colliding")
+    --print("Stopped colliding")
 end
 
 function World:__init(path)
@@ -34,7 +36,10 @@ function World:__init(path)
 					if tilenumber>0 then
 						--print(x,y, tilenumber)
 						local epsilon = 0.001
-						self.collider:addRectangle(x* self.map.tileWidth, y * self.map.tileHeight, self.map.tileWidth-epsilon, self.map.tileHeight-epsilon)
+						local ctile = self.collider:addRectangle((x-1)* self.map.tileWidth, (y-1) * self.map.tileHeight, self.map.tileWidth-epsilon, self.map.tileHeight-epsilon)
+						ctile.type = nil
+						self.collider:addToGroup("tiles", ctile)
+						self.collider:setPassive(ctile)
 					end
 				end
 			end
@@ -45,6 +50,7 @@ function World:__init(path)
 end
 
 function World:add(o)
+	o:enterWorld(self, self.collider)
 	table.insert(self.objects, o)
 end
 

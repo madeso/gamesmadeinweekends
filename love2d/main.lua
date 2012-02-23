@@ -29,3 +29,11 @@ end
 function love.keyreleased(key)
 	world:onkey(false, key, nil)
 end
+
+function love.mousepressed(x, y, button)
+	world:onkey(true, "_"..button, nil)
+end
+
+function love.mousereleased(x, y, button)
+	world:onkey(false, "_"..button, nil)
+end
