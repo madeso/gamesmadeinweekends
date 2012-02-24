@@ -1,8 +1,10 @@
-local Coll = 10
-local R = Coll*4
-local Speed = 200
-local Influence = 3
-local TotalTime = 0.3
+Coll = 10
+R = Coll*4
+Speed = 200
+Influence = 3
+TotalTime = 0.3
+Life = 1
+ExplostionIncrease = 150
 
 function add(x,y)
 	item = {}
@@ -10,6 +12,15 @@ function add(x,y)
 	item.y = y
 	item.xx,item.xy = 0,0
 	table.insert(items, item)
+end
+
+function exp(x,y, life)
+	item = {}
+	item.x = x
+	item.y = y
+	item.life = life
+	item.size = 0
+	table.insert(bangs, item)
 end
 
 function playSound(s)
@@ -37,6 +48,7 @@ end
 
 function newgame()
 	items = {}
+	bangs = {}
 	timer = -0.5
 	killedby = 0
 end
@@ -66,6 +78,12 @@ function love.draw()
 		end
 		--love.graphics.circle("line", cx, cy, R)
 		love.graphics.line(item.x,item.y, item.x+item.xx, item.y+item.xy)
+	end
+	
+	for i,item in ipairs(bangs) do
+		if item.life > 0 then
+			love.graphics.circle("line", item.x, item.y, item.size)
+		end
 	end
 end
 
@@ -98,6 +116,26 @@ function avoidance(noti,ix,iy, inf)
 	return x*inf,y*inf
 end
 
+function remove_if(list, func)
+	local toremove = {}
+	for i,item in ipairs(bangs) do
+		if func(item) then
+			table.insert(toremove, i)
+		end
+	end
+	for i=#toremove,1 do
+		table.remove(list,i)
+	end
+end
+
+function is_bang_dead(bang)
+	if bang.life <= 0 then
+		return true
+	else
+		return false
+	end
+end
+
 function love.update(dt)
 	if killedby == 0 then
 		timer = timer + dt
@@ -125,6 +163,15 @@ function love.update(dt)
 				playSound(die)
 			end
 		end
+		
+		for i,item in ipairs(bangs) do
+			if item.life > 0 then
+				item.life = item.life - dt
+				item.size = item.size + dt * ExplostionIncrease
+			end
+		end
+		
+		remove_if(bangs, is_bang_dead)
 	end
 end
 
@@ -135,5 +182,14 @@ function love.keypressed(key, unicode)
 	if key == " " then
 		playSound(restart)
 		newgame()
+	end
+end
+
+function love.mousepressed(x, y, button)
+end
+
+function love.mousereleased(x, y, button)
+	if button=="l" then
+		exp(x,y, Life)
 	end
 end
