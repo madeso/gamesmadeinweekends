@@ -7,15 +7,16 @@ Life = 1
 ExplostionIncrease = 150
 
 function add(x,y)
-	item = {}
+	local item = {}
 	item.x = x
 	item.y = y
+	item.dead = false
 	item.xx,item.xy = 0,0
 	table.insert(items, item)
 end
 
 function exp(x,y, life)
-	item = {}
+	local item = {}
 	item.x = x
 	item.y = y
 	item.life = life
@@ -118,12 +119,14 @@ end
 
 function remove_if(list, func)
 	local toremove = {}
-	for i,item in ipairs(bangs) do
+	for i,item in ipairs(list) do
 		if func(item) then
 			table.insert(toremove, i)
 		end
 	end
-	for i=#toremove,1 do
+	local i = 0
+	while #toremove ~= 0 do
+		i = table.remove(toremove)
 		table.remove(list,i)
 	end
 end
@@ -134,6 +137,10 @@ function is_bang_dead(bang)
 	else
 		return false
 	end
+end
+
+function is_item_dead(aa)
+	return aa.dead
 end
 
 function love.update(dt)
@@ -164,14 +171,28 @@ function love.update(dt)
 			end
 		end
 		
-		for i,item in ipairs(bangs) do
-			if item.life > 0 then
-				item.life = item.life - dt
-				item.size = item.size + dt * ExplostionIncrease
+		for bi,bang in ipairs(bangs) do
+			for i,item in ipairs(items) do
+				if iswithin(bang.x,bang.y, bang.size, item.x,item.y)<1 then
+					item.dead = true
+				end
+			end
+			
+			
+			if bang.life > 0 then
+				bang.life = bang.life - dt
+				bang.size = bang.size + dt * ExplostionIncrease
+			end
+		end
+		
+		for i, item in ipairs(items) do
+			if item.dead then
+				exp(item.x, item.y, Life)
 			end
 		end
 		
 		remove_if(bangs, is_bang_dead)
+		remove_if(items, is_item_dead)
 	end
 end
 
