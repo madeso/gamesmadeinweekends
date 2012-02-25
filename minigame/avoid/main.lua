@@ -20,8 +20,10 @@ function exp(x,y, life)
 	item.x = x
 	item.y = y
 	item.life = life
+	item.maxlife = life
 	item.size = 0
 	table.insert(bangs, item)
+	playSound(explosion)
 end
 
 function playSound(s)
@@ -58,6 +60,7 @@ function love.load()
 	created = sfx('created.wav')
 	die = sfx('die.wav')
 	restart = sfx('restart.wav')
+	explosion = sfx('explosion.wav')
 	
 	love.graphics.setBackgroundColor( 100, 149, 237 )
 	w,h = love.graphics.getWidth(), love.graphics.getHeight()
@@ -83,6 +86,7 @@ function love.draw()
 	
 	for i,item in ipairs(bangs) do
 		if item.life > 0 then
+			love.graphics.setColor(0, 255, 0, 255*item.life/item.maxlife)
 			love.graphics.circle("line", item.x, item.y, item.size)
 		end
 	end
@@ -175,6 +179,7 @@ function love.update(dt)
 			for i,item in ipairs(items) do
 				if iswithin(bang.x,bang.y, bang.size, item.x,item.y)<1 then
 					item.dead = true
+					item.bang = bang.maxlife
 				end
 			end
 			
@@ -187,7 +192,7 @@ function love.update(dt)
 		
 		for i, item in ipairs(items) do
 			if item.dead then
-				exp(item.x, item.y, Life)
+				exp(item.x, item.y, item.bang * 0.5)
 			end
 		end
 		
