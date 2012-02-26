@@ -5,6 +5,8 @@ Influence = 3
 TotalTime = 0.3
 Life = 1
 ExplostionIncrease = 150
+ScoreAffect = 100
+ScoreSpeed = Speed*3
 
 function add(x,y)
 	local item = {}
@@ -63,6 +65,7 @@ function newgame()
 	timer = -0.5
 	killedby = 0
 	score = {}
+	points = 0
 end
 
 function love.load()
@@ -79,14 +82,16 @@ function love.load()
 end
 
 function love.draw()
+	love.graphics.setColor(255, 255, 255, 255)
+	love.graphics.print(points,10,10)
+	
+	love.graphics.setColor(0, 0, 255, 70)
 	for i,item in ipairs(score) do
 		local cx,cy = item.x, item.y
-		love.graphics.setColor(0, 0, 255, 100)
 		love.graphics.circle("line", cx, cy, Coll)
 	end
 	
 	love.graphics.setColor(255, 255, 255, 255)
-	love.graphics.print(#items,10,10)
 	for i,item in ipairs(items) do
 		local cx,cy = item.x, item.y
 		if i==killedby then
@@ -176,6 +181,7 @@ function love.update(dt)
 		local dx,dy = 0,0
 		local xx,xy = 0,0
 		local l = 0
+		local lspe = 0
 		
 		for bi,bang in ipairs(bangs) do
 			for i,item in ipairs(items) do
@@ -219,16 +225,15 @@ function love.update(dt)
 		
 		for i,item in ipairs(score) do
 			dx,dy = mx-item.x, my-item.y
-			xx,xy = avoidance(i, item.x, item.y, Influence)
-			dx,dy=dx+xx,dy+xy
-			item.xx,item.xy = xx,xy
 			l = math.sqrt(dx*dx+dy*dy)
-			dx,dy = Speed*dt*dx/l, Speed*dt*dy/l
+			lspe = math.max(0, 1-iswithin(item.x,item.y, ScoreAffect, mx,my))
+			dx,dy = lspe*ScoreSpeed*dt*dx/l, lspe*ScoreSpeed*dt*dy/l
 			item.x,item.y = item.x+dx, item.y+dy
 			
 			if iswithin(item.x,item.y,Coll,mx,my)<1 then
 				item.dead = true
 				playSound(point)
+				points = points + 1
 			end
 		end
 		
