@@ -15,6 +15,13 @@ function add(x,y)
 	table.insert(items, item)
 end
 
+function adds(x,y)
+	local item = {}
+	item.x = x
+	item.y = y
+	table.insert(score, item)
+end
+
 function exp(x,y, life)
 	local item = {}
 	item.x = x
@@ -54,6 +61,7 @@ function newgame()
 	bangs = {}
 	timer = -0.5
 	killedby = 0
+	score = {}
 end
 
 function love.load()
@@ -69,8 +77,14 @@ function love.load()
 end
 
 function love.draw()
-	love.graphics.print(#items,10,10)
+	for i,item in ipairs(score) do
+		local cx,cy = item.x, item.y
+		love.graphics.setColor(0, 0, 255, 100)
+		love.graphics.circle("line", cx, cy, Coll)
+	end
+	
 	love.graphics.setColor(255, 255, 255, 255)
+	love.graphics.print(#items,10,10)
 	for i,item in ipairs(items) do
 		local cx,cy = item.x, item.y
 		if i==killedby then
@@ -193,6 +207,7 @@ function love.update(dt)
 		for i, item in ipairs(items) do
 			if item.dead then
 				exp(item.x, item.y, item.bang * 0.5)
+				adds(item.x, item.y)
 			end
 		end
 		
