@@ -19,6 +19,7 @@ function adds(x,y)
 	local item = {}
 	item.x = x
 	item.y = y
+	item.dead = false
 	table.insert(score, item)
 end
 
@@ -69,6 +70,7 @@ function love.load()
 	die = sfx('die.wav')
 	restart = sfx('restart.wav')
 	explosion = sfx('explosion.wav')
+	point = sfx('point.wav')
 	
 	love.graphics.setBackgroundColor( 100, 149, 237 )
 	w,h = love.graphics.getWidth(), love.graphics.getHeight()
@@ -174,20 +176,6 @@ function love.update(dt)
 		local dx,dy = 0,0
 		local xx,xy = 0,0
 		local l = 0
-		for i,item in ipairs(items) do
-			dx,dy = mx-item.x, my-item.y
-			xx,xy = avoidance(i, item.x, item.y, Influence)
-			dx,dy=dx+xx,dy+xy
-			item.xx,item.xy = xx,xy
-			l = math.sqrt(dx*dx+dy*dy)
-			dx,dy = Speed*dt*dx/l, Speed*dt*dy/l
-			item.x,item.y = item.x+dx, item.y+dy
-			
-			if iswithin(item.x,item.y,Coll,mx,my)<1 then
-				killedby = i
-				playSound(die)
-			end
-		end
 		
 		for bi,bang in ipairs(bangs) do
 			for i,item in ipairs(items) do
@@ -213,6 +201,38 @@ function love.update(dt)
 		
 		remove_if(bangs, is_bang_dead)
 		remove_if(items, is_item_dead)
+		
+		for i,item in ipairs(items) do
+			dx,dy = mx-item.x, my-item.y
+			xx,xy = avoidance(i, item.x, item.y, Influence)
+			dx,dy=dx+xx,dy+xy
+			item.xx,item.xy = xx,xy
+			l = math.sqrt(dx*dx+dy*dy)
+			dx,dy = Speed*dt*dx/l, Speed*dt*dy/l
+			item.x,item.y = item.x+dx, item.y+dy
+			
+			if iswithin(item.x,item.y,Coll,mx,my)<1 then
+				killedby = i
+				playSound(die)
+			end
+		end
+		
+		for i,item in ipairs(score) do
+			dx,dy = mx-item.x, my-item.y
+			xx,xy = avoidance(i, item.x, item.y, Influence)
+			dx,dy=dx+xx,dy+xy
+			item.xx,item.xy = xx,xy
+			l = math.sqrt(dx*dx+dy*dy)
+			dx,dy = Speed*dt*dx/l, Speed*dt*dy/l
+			item.x,item.y = item.x+dx, item.y+dy
+			
+			if iswithin(item.x,item.y,Coll,mx,my)<1 then
+				item.dead = true
+				playSound(point)
+			end
+		end
+		
+		remove_if(score, is_item_dead)
 	end
 end
 
