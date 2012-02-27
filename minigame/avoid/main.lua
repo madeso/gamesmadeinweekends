@@ -5,7 +5,7 @@ Influence = 3
 TotalTime = 0.3
 Life = 1.0
 ChargeSpeed = 0.3
-ExplostionIncrease = 350
+ExplostionIncrease = 200
 BangLifeReduction = 0.7
 ScoreAffect = 100
 ScoreSpeed = Speed*3
@@ -82,6 +82,7 @@ function love.load()
 	restart = sfx('restart.wav')
 	explosion = sfx('explosion.wav')
 	point = sfx('point.wav')
+	charged = sfx('charged.wav')
 	
 	love.graphics.setBackgroundColor( 100, 149, 237 )
 	w,h = love.graphics.getWidth(), love.graphics.getHeight()
@@ -186,6 +187,10 @@ function love.update(dt)
 		if down then
 			if charge < Life then
 				charge = charge + ChargeSpeed * dt
+				if charge >= Life then
+					playSound(charged)
+					charge = Life
+				end
 			else
 				charge = Life
 			end
