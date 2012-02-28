@@ -85,6 +85,14 @@ function dxdy(dir)
 	end
 end
 
+function isvalid(x,y)
+	if x >= 1 and y >= 1 and x <= width and y <= height then
+		return true
+	else
+		return false
+	end
+end
+
 function love.draw()
 	love.graphics.setColor(0,0,0)
 	
@@ -104,11 +112,11 @@ function love.draw()
 	
 	love.graphics.setColor(255,255,255, 100)
 	local x,y = itransform(mx,my)
-	if x >= 1 and y >= 1 and x <= width and y <= height then
+	local cx,cy = dxdy(dir)
+	cx,cy = x+cx,y+cy
+	if isvalid(x,y) and isvalid(cx,cy) then
 		highlight(x,y)
-		
-		local cx,cy = dxdy(dir)
-		highlight(x+cx,y+cy)
+		highlight(cx,cy)
 	end
 	
 	love.graphics.setColor(255,255,255, 255)
