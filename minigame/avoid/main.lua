@@ -1,26 +1,44 @@
 Coll = 10
 R = Coll*4
-Speed = 200
+Speed = 150
 Influence = 3
 TotalTime = 0.3
-Life = 1
-ExplostionIncrease = 150
+Life = 1.0
+ChargeSpeed = 0.3
+ExplostionIncrease = 200
+BangLifeReduction = 0.7
+ScoreAffect = 100
+ScoreSpeed = Speed*3
+ChargeModifer = 1.7
+CreationModifier = 1.4
+ExplosionNum = 25
 
 function add(x,y)
-	item = {}
+	local item = {}
 	item.x = x
 	item.y = y
+	item.dead = false
 	item.xx,item.xy = 0,0
 	table.insert(items, item)
 end
 
+function adds(x,y)
+	local item = {}
+	item.x = x
+	item.y = y
+	item.dead = false
+	table.insert(score, item)
+end
+
 function exp(x,y, life)
-	item = {}
+	local item = {}
 	item.x = x
 	item.y = y
 	item.life = life
+	item.maxlife = life
 	item.size = 0
 	table.insert(bangs, item)
+	playSound(explosion)
 end
 
 function playSound(s)
@@ -51,12 +69,20 @@ function newgame()
 	bangs = {}
 	timer = -0.5
 	killedby = 0
+	score = {}
+	points = 0
+	charge = 0
+	down = false
+	mx, my = love.mouse.getPosition()
 end
 
 function love.load()
 	created = sfx('created.wav')
 	die = sfx('die.wav')
 	restart = sfx('restart.wav')
+	explosion = sfx('explosion.wav')
+	point = sfx('point.wav')
+	charged = sfx('charged.wav')
 	
 	love.graphics.setBackgroundColor( 100, 149, 237 )
 	w,h = love.graphics.getWidth(), love.graphics.getHeight()
@@ -65,7 +91,20 @@ function love.load()
 end
 
 function love.draw()
-	love.graphics.print(#items,10,10)
+	love.graphics.setColor(255, 255, 255, 255)
+	love.graphics.print(points,10,10)
+	
+	if down then
+		love.graphics.setColor(0, 255, 0, 255)
+		love.graphics.circle("line", mx, my, charge*ExplostionIncrease, ExplosionNum)
+	end
+	
+	love.graphics.setColor(0, 0, 255, 70)
+	for i,item in ipairs(score) do
+		local cx,cy = item.x, item.y
+		love.graphics.circle("line", cx, cy, Coll)
+	end
+	
 	love.graphics.setColor(255, 255, 255, 255)
 	for i,item in ipairs(items) do
 		local cx,cy = item.x, item.y
@@ -76,13 +115,13 @@ function love.draw()
 		else
 			love.graphics.circle("line", cx, cy, Coll)
 		end
-		--love.graphics.circle("line", cx, cy, R)
-		love.graphics.line(item.x,item.y, item.x+item.xx, item.y+item.xy)
+		--love.graphics.line(item.x,item.y, item.x+item.xx, item.y+item.xy)
 	end
 	
 	for i,item in ipairs(bangs) do
 		if item.life > 0 then
-			love.graphics.circle("line", item.x, item.y, item.size)
+			love.graphics.setColor(0, 255, 0, 255*item.life/item.maxlife)
+			love.graphics.circle("line", item.x, item.y, item.size, ExplosionNum)
 		end
 	end
 end
@@ -90,6 +129,7 @@ end
 function avoid(cx,cy, x,y)
 	return cx-x,cy-y
 end
+
 function lengths(x,y)
 	return x*x+y*y
 end
@@ -118,12 +158,14 @@ end
 
 function remove_if(list, func)
 	local toremove = {}
-	for i,item in ipairs(bangs) do
+	for i,item in ipairs(list) do
 		if func(item) then
 			table.insert(toremove, i)
 		end
 	end
-	for i=#toremove,1 do
+	local i = 0
+	while #toremove ~= 0 do
+		i = table.remove(toremove)
 		table.remove(list,i)
 	end
 end
@@ -136,26 +178,70 @@ function is_bang_dead(bang)
 	end
 end
 
+function is_item_dead(aa)
+	return aa.dead
+end
+
 function love.update(dt)
 	if killedby == 0 then
-		timer = timer + dt
+		if down then
+			if charge < Life then
+				charge = charge + ChargeSpeed * dt
+				if charge >= Life then
+					playSound(charged)
+					charge = Life
+				end
+			else
+				charge = Life
+			end
+		end
+		
+		timer = timer + dt * (1+charge*CreationModifier)
 		if timer > TotalTime then
 			timer = timer - TotalTime
 			playSound(created)
 			add(randomPosition())
 		end
 		
-		local mx, my = love.mouse.getPosition()
+		mx, my = love.mouse.getPosition()
 		local dx,dy = 0,0
 		local xx,xy = 0,0
 		local l = 0
+		local lspe = 0
+		
+		for bi,bang in ipairs(bangs) do
+			for i,item in ipairs(items) do
+				if iswithin(bang.x,bang.y, bang.size, item.x,item.y)<1 then
+					item.dead = true
+					item.bang = bang.maxlife
+				end
+			end
+			
+			
+			if bang.life > 0 then
+				bang.life = bang.life - dt
+				bang.size = bang.size + dt * ExplostionIncrease
+			end
+		end
+		
+		for i, item in ipairs(items) do
+			if item.dead then
+				exp(item.x, item.y, item.bang * BangLifeReduction)
+				adds(item.x, item.y)
+			end
+		end
+		
+		remove_if(bangs, is_bang_dead)
+		remove_if(items, is_item_dead)
+		
 		for i,item in ipairs(items) do
 			dx,dy = mx-item.x, my-item.y
 			xx,xy = avoidance(i, item.x, item.y, Influence)
 			dx,dy=dx+xx,dy+xy
 			item.xx,item.xy = xx,xy
 			l = math.sqrt(dx*dx+dy*dy)
-			dx,dy = Speed*dt*dx/l, Speed*dt*dy/l
+			lspe = Speed * (charge*ChargeModifer+1)
+			dx,dy = lspe*dt*dx/l, lspe*dt*dy/l
 			item.x,item.y = item.x+dx, item.y+dy
 			
 			if iswithin(item.x,item.y,Coll,mx,my)<1 then
@@ -164,14 +250,21 @@ function love.update(dt)
 			end
 		end
 		
-		for i,item in ipairs(bangs) do
-			if item.life > 0 then
-				item.life = item.life - dt
-				item.size = item.size + dt * ExplostionIncrease
+		for i,item in ipairs(score) do
+			dx,dy = mx-item.x, my-item.y
+			l = math.sqrt(dx*dx+dy*dy)
+			lspe = math.max(0, 1-iswithin(item.x,item.y, ScoreAffect, mx,my))
+			dx,dy = lspe*ScoreSpeed*dt*dx/l, lspe*ScoreSpeed*dt*dy/l
+			item.x,item.y = item.x+dx, item.y+dy
+			
+			if iswithin(item.x,item.y,Coll,mx,my)<1 then
+				item.dead = true
+				playSound(point)
+				points = points + 1
 			end
 		end
 		
-		remove_if(bangs, is_bang_dead)
+		remove_if(score, is_item_dead)
 	end
 end
 
@@ -186,10 +279,20 @@ function love.keypressed(key, unicode)
 end
 
 function love.mousepressed(x, y, button)
+	if killedby == 0 then
+		if button=="l" then
+			down = true
+			charge = 0
+		end
+	end
 end
 
 function love.mousereleased(x, y, button)
-	if button=="l" then
-		exp(x,y, Life)
+	if killedby == 0 then
+		if button=="l" then
+			down = false
+			exp(x,y, charge)
+			charge = 0
+		end
 	end
 end
