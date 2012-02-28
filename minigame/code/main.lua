@@ -58,30 +58,27 @@ function line(a,b, x,y)
 	love.graphics.line(a,b,x,y)
 end
 
-function classify(dx,dy,dir)
-	if math.max(math.abs(dx), math.abs(dy)) >= kMin then
-		if dx>kForce*dy and dx>0 then
-			return 6
-		elseif dx<kForce*dy and dx<0 then
-			return 4
-		elseif dy>kForce*dx and dy>0 then
-			return 8
-		elseif dy<kForce*dx and dy<0 then
-			return 2
-		end
+function dxdy(dir, x,y, one)
+	if dir == 4 then
+		return x+one,y
+	elseif dir == 6 then
+		return x-one,y
+	elseif dir == 8 then
+		return x,y-one
+	else -- 2
+		return x,y+one
 	end
-	return dir
 end
 
-function dxdy(dir)
+function getnext(dir)
 	if dir == 4 then
-		return 1,0
+		return 8
 	elseif dir == 6 then
-		return -1,0
+		return 2
 	elseif dir == 8 then
-		return 0,-1
-	elseif dir == 2 then
-		return 0,1
+		return 6
+	else -- 2
+		return 4
 	end
 end
 
@@ -106,15 +103,24 @@ function love.draw()
 	--local x,y = transform(1,1)
 	local mx, my = love.mouse.getPosition()
 	local dx,dy = mx-lastx, my-lasty
-	dir = classify(dx,dy, dir)
 	lastx,lasty = mx,my
 	--love.graphics.line(x,y,mx,my)
 	
 	love.graphics.setColor(255,255,255, 100)
 	local x,y = itransform(mx,my)
-	local cx,cy = dxdy(dir)
-	cx,cy = x+cx,y+cy
+	local cx,cy = dxdy(dir, x, y, 1)
+	local doit = false
+	
 	if isvalid(x,y) and isvalid(cx,cy) then
+		doit = true
+	end
+	if doit == false then
+		cx,cy = dxdy(dir, x, y, -1)
+		if isvalid(x,y) and isvalid(cx,cy) then
+			doit = true
+		end
+	end
+	if doit then
 		highlight(x,y)
 		highlight(cx,cy)
 	end
@@ -127,6 +133,9 @@ function love.update(dt)
 end
 
 function onkey(down, key, unicode)
+	if key=='_r' and down then
+		dir = getnext(dir)
+	end
 end
 
 -- basic functions:
