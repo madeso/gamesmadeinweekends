@@ -27,7 +27,7 @@ function love.load()
 	love.graphics.setBackgroundColor( 100, 149, 237 )
 	
 	lastx,lasty = love.mouse.getPosition()
-	dir = 6
+	dir = true
 end
 
 function transform(x,y)
@@ -47,6 +47,8 @@ function itransform(x,y)
 	return math.floor((x-startx)/kBoxSize)+1,math.floor((y-starty)/kBoxSize)+1
 end
 
+
+
 function highlight(x,y)
 	local a,b = transform(x,y)
 	love.graphics.rectangle("fill", a,b, kBoxSize, kBoxSize)
@@ -58,27 +60,19 @@ function line(a,b, x,y)
 	love.graphics.line(a,b,x,y)
 end
 
-function dxdy(dir, x,y, one)
-	if dir == 4 then
-		return x+one,y
-	elseif dir == 6 then
-		return x-one,y
-	elseif dir == 8 then
-		return x,y-one
-	else -- 2
-		return x,y+one
+function alter(x,y,dir)
+	if dir then
+		return x-kBoxSize*0.5,y
+	else
+		return x,y-kBoxSize*0.5
 	end
 end
 
-function getnext(dir)
-	if dir == 4 then
-		return 8
-	elseif dir == 6 then
-		return 2
-	elseif dir == 8 then
-		return 6
-	else -- 2
-		return 4
+function dxdy(dir, x,y, one)
+	if dir then
+		return x+one,y
+	else
+		return x,y+one
 	end
 end
 
@@ -107,7 +101,7 @@ function love.draw()
 	--love.graphics.line(x,y,mx,my)
 	
 	love.graphics.setColor(255,255,255, 100)
-	local x,y = itransform(mx,my)
+	local x,y = itransform(alter(mx, my, dir))
 	local cx,cy = dxdy(dir, x, y, 1)
 	local doit = false
 	
@@ -134,7 +128,7 @@ end
 
 function onkey(down, key, unicode)
 	if key=='_r' and down then
-		dir = getnext(dir)
+		dir = not dir
 	end
 end
 
