@@ -3,6 +3,7 @@ height = 10
 local kBoxSize = 32
 local kForce = 7
 local kMin = 5
+local kMaxValue = 10
 
 function playSound(s)
 	love.audio.stop(s)
@@ -21,6 +22,18 @@ function makepoint(x,y)
 	return r
 end
 
+function newworld()
+	world = {}
+	local row = {}
+	for y=1,height do
+		row = {}
+		for x=1,width do
+			table.insert(row, math.random(kMaxValue) )
+		end
+		table.insert(world, row)
+	end
+end
+
 
 function love.load()
 	math.randomseed( os.time() )
@@ -28,15 +41,17 @@ function love.load()
 	
 	lastx,lasty = love.mouse.getPosition()
 	dir = true
+	
+	newworld()
 end
 
-function transform(x,y)
+function transform(a,b)
 	local h,w = love.graphics.getHeight(), love.graphics.getWidth()
 	
 	local startx = w/2.0 - (kBoxSize*width)/2.0
 	local starty = h/2.0 - (kBoxSize*height)/2.0
 	
-	return startx+kBoxSize*(x-1),starty+kBoxSize*(y-1)
+	return startx+kBoxSize*(a-1),starty+kBoxSize*(b-1)
 end
 
 function itransform(x,y)
@@ -117,6 +132,15 @@ function love.draw()
 	if doit then
 		highlight(x,y)
 		highlight(cx,cy)
+	end
+	
+	love.graphics.setColor(0,0,0, 255)
+	local px,py = 0,0
+	for ay=1,height do
+		for ax=1,width do
+			px,py = transform(ax,ay)
+			love.graphics.print(world[ay][ax], px+kBoxSize/2,py+kBoxSize/2)
+		end
 	end
 	
 	love.graphics.setColor(255,255,255, 255)
