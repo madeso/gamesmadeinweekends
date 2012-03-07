@@ -1,14 +1,9 @@
-require "oo"
+Class = require "hump.class"
 require "camera"
 --require "console"
 
 ATL_Loader = require("AdvTiledLoader.Loader")
 HC = require 'hardon'
-
-class "World"
-{
-	objects = {};
-}
 
 -- this is called when two shapes collide
 function on_collision(dt, sa, sb, mx, my)
@@ -22,7 +17,8 @@ function collision_stop(dt, shape_a, shape_b)
     --print("Stopped colliding")
 end
 
-function World:__init(path)
+World = Class{function(self, path)
+	self.objects = {};
 	self.map = ATL_Loader.load(path)
 	self.collider = HC(100, on_collision, collision_stop)
 	
@@ -47,7 +43,7 @@ function World:__init(path)
 	end
 	
 	self.camera = Camera:new(0,0)
-end
+end}
 
 function World:add(o)
 	o:enterWorld(self, self.collider)
