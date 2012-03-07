@@ -38,22 +38,34 @@ function Collidable:_onCollision(other, world, mx, my)
 			if iszero(mx) then
 			else
 				if mx > 0 then
-					print("left")
+					self:colon_left()
 				else
-					print("right")
+					self:colon_right()
 				end
 			end
 		else
 			if iszero(my) then
 			else
 				if my > 0 then
-					print("up")
+					self:colon_up()
 				else
-					print('down')
+					self:colon_down()
 				end
 			end
 		end
 	end
+end
+
+function Collidable:colon_left()
+end
+
+function Collidable:colon_right()
+end
+
+function Collidable:colon_down()
+end
+
+function Collidable:colon_up()
 end
 
 function Collidable:move(xy)
