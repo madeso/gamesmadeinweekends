@@ -1,20 +1,16 @@
-require "oo"
-vector = require "hump/vector"
+vector = require "hump.vector"
+Class = require 'hump.class'
 require "tilesets"
 
-class "Object"
-{
-	pos = vector(40,40);
-	index = 1;
-}
-
-function Object:__init(img, x,y,index)
+Object = Class{function(self, img, x,y,index)
 	self.pos = vector(x,y)
 	self.img = tilesets:get(img)
 	if index ~= nil then
 		self.index = index
+	else
+		self.index = 1
 	end
-end
+end}
 
 function Object:draw()
 	self.img:draw(self.index, self.pos:unpack())
