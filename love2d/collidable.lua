@@ -53,7 +53,16 @@ function Collidable:_onCollision(other, world, mx, my)
 				end
 			end
 		end
+	else
+		if self:colon_with(other, world, mx, my) then
+			self.col:move(0, my)
+			self.col:move(mx, 0)
+		end
 	end
+end
+
+function Collidable:colon_with(other, world)
+	return true
 end
 
 function Collidable:colon_left()
