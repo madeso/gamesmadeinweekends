@@ -12,13 +12,13 @@ Object = Class{function(self, img, x,y,index)
 	end
 end}
 
-function Object:Object_draw()
+function Object:Object_draw(world)
 	self.img:draw(self.index, self.pos:unpack())
 	--love.graphics.draw(self.img, self.pos:unpack())
 end
 
-function Object:draw()
-	self:Object_draw()
+function Object:draw(world)
+	self:Object_draw(world)
 end
 
 function Object:update(dt)
