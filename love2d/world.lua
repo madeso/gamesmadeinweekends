@@ -21,6 +21,7 @@ World = Class{function(self, path)
 	self.objects = {};
 	self.map = ATL_Loader.load(path)
 	self.collider = HC(100, on_collision, collision_stop)
+	self.debug_collisons = false
 	
 	for tilename, tilelayer in pairs(self.map.tileLayers) do
 		print("Working on ", tilename, self.map.height, self.map.width)
@@ -58,7 +59,7 @@ function World:draw()
 	
 	self.map:draw()
 	for i,o in ipairs(self.objects) do
-		o:draw()
+		o:draw(self)
 	end
 	
 	love.graphics.pop()
