@@ -31,7 +31,7 @@ function Player:update(dt)
 end
 
 function Player:post_update(dt)
-	self.camera:target(self.pos:unpack())
+	self.camera.pos = self.pos
 end
 
 function Player:onkey(down, key, unicode)
@@ -40,6 +40,7 @@ function Player:onkey(down, key, unicode)
 	end
 	if down and key == "_l" then
 		console:print("zing!")
-		self.col:moveTo( self.camera:getWorldFromView(love.mouse.getPosition()) )
+		local loc = self.camera:worldCoords(love.mouse.getPosition())
+		self.col:moveTo( loc.x, loc.y )
 	end
 end
