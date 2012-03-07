@@ -26,9 +26,22 @@ end
 function Player:onCollision(other, mx, my)
 	if other == nil then
 		print("adjusting", mx, my)
-		self.col:move(mx, 0)
 		self.col:move(0, my)
+		self.col:move(mx, 0)
 	end
+end
+
+function Player:move(xy)
+	self._move_x = xy.x
+	self._move_y = xy.y
+end
+
+function Player:_apply_hor()
+	self.col:move(vector(self._move_x, 0))
+end
+
+function Player:_apply_ver()
+	self.col:move(vector(0, self._move_y))
 end
 
 function Player:update(dt)
@@ -47,7 +60,10 @@ function Player:update(dt)
 		m = m + vector(0,1)
 	end
 	--self.pos = self.pos + 
-	self.col:move(m*self.speed*dt)
+	self:move(m*self.speed*dt)
+end
+
+function Player:post_update(dt)
 	self.camera:target(self.pos:unpack())
 end
 
