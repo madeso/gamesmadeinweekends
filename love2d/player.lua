@@ -32,6 +32,7 @@ end
 
 function Player:post_update(dt)
 	self.camera.pos = self.pos
+	--self.camera.pos = self.camera:mousepos() -- mouselook
 end
 
 function Player:onkey(down, key, unicode)
