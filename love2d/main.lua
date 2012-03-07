@@ -1,5 +1,5 @@
 require "world"
-require "object"
+require "box"
 require "player"
 require "tilesets"
 require "console"
@@ -8,7 +8,7 @@ function love.load()
 	love.graphics.setBackgroundColor( 100, 149, 237 )
 	world = World("level.tmx")
 	tilesets:add("ninja.png", 16)
-	world:add(Object("ninja.png", 100, 100, 70))
+	world:add(Box(100, 100, 50))
 	world:add(Player(world:getCamera(), 400, 200))
 end
 
