@@ -29,3 +29,12 @@ end
 
 function Object:enterWorld(word, c)
 end
+
+function Object:post_update(dt)
+end
+
+function Object:_apply_hor()
+end
+
+function Object:_apply_ver()
+end

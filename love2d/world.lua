@@ -71,8 +71,17 @@ end
 function World:update(dt)
 	for i,o in ipairs(self.objects) do
 		o:update(dt)
+		o:_apply_hor(dt)
 	end
 	self.collider:update(dt)
+	for i,o in ipairs(self.objects) do
+		o:_apply_ver(dt)
+	end
+	self.collider:update(dt)
+	
+	for i,o in ipairs(self.objects) do
+		o:post_update(dt)
+	end
 end
 
 function World:onkey(down, key, unicode)
