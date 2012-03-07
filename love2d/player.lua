@@ -4,23 +4,23 @@ vector = require "hump.vector"
 require "tilesets"
 require "console"
 
-Player = Class{function(self, camera, x,y)
+Player = Class{inherits=Object, function(self, camera, x,y)
+	Object.construct(self, "ninja.png", x,y)
 	self.speed = 90
-	self.super = Object("ninja.png", x,y)
 	self.velocity = vector(0,0)
 	self.camera = camera
 end}
 
 function Player:enterWorld(world, c)
-	self.col = c:addRectangle(self.super.pos.x,self.super.pos.y,16,16)
+	self.col = c:addRectangle(self.pos.x,self.pos.y,16,16)
 	self.col.type = self
 end
 
 function Player:draw()
-	self.super:draw()
+	self:Object_draw()
 	self.col:draw("fill")
 	local mx, my = self.camera:getWorldFromView(love.mouse.getPosition())
-	--love.graphics.line(self.super.pos.x, self.super.pos.y, mx, my)
+	--love.graphics.line(self.pos.x, self.pos.y, mx, my)
 end
 
 function Player:onCollision(other, mx, my)
@@ -32,7 +32,7 @@ function Player:onCollision(other, mx, my)
 end
 
 function Player:update(dt)
-	self.super.pos.x, self.super.pos.y = self.col:center()
+	self.pos.x, self.pos.y = self.col:center()
 	local m = vector(0,0)
 	if love.keyboard.isDown("left") then
 		m = m - vector(1,0)
@@ -46,9 +46,9 @@ function Player:update(dt)
 	if love.keyboard.isDown("down") then
 		m = m + vector(0,1)
 	end
-	--self.super.pos = self.super.pos + 
+	--self.pos = self.pos + 
 	self.col:move(m*self.speed*dt)
-	self.camera:target(self.super.pos:unpack())
+	self.camera:target(self.pos:unpack())
 end
 
 function Player:onkey(down, key, unicode)
