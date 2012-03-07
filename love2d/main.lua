@@ -23,6 +23,9 @@ function love.update(dt)
 end
 
 function love.keypressed(key, unicode)
+	if key == "escape" then
+		love.event.push("q")
+	end
 	world:onkey(true, key, unicode)
 end
 
