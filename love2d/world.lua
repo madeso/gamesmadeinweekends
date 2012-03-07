@@ -8,8 +8,8 @@ HC = require 'hardon'
 -- this is called when two shapes collide
 function on_collision(dt, sa, sb, mx, my)
 	--print(string.format("Colliding. mtv = (%s - %s) (%s,%s)", tostring(sa.type), tostring(sb.type), mx, my))
-	if sa.type then sa.type:onCollision(sb.type, mx, my) end
-	if sb.type then sb.type:onCollision(sa.type, mx, my) end
+	if sa.type then sa.type:_onCollision(sb.type, sa.type._world_ref, mx, my) end
+	if sb.type then sb.type:_onCollision(sa.type, sb.type._world_ref, -mx, -my) end
 end
 
 -- this is called when two shapes stop colliding
@@ -49,6 +49,7 @@ end}
 function World:add(o)
 	o:enterWorld(self, self.collider)
 	table.insert(self.objects, o)
+	o._world_ref = self
 end
 
 function World:draw()
@@ -73,11 +74,14 @@ function World:update(dt)
 	for i,o in ipairs(self.objects) do
 		o:update(dt)
 		o:_apply_hor(dt)
+		
 	end
+	self.horizontal = true
 	self.collider:update(dt)
 	for i,o in ipairs(self.objects) do
 		o:_apply_ver(dt)
 	end
+	self.horizontal = false
 	self.collider:update(dt)
 	
 	for i,o in ipairs(self.objects) do
