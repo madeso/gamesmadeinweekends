@@ -1,11 +1,8 @@
-require "oo"
+Class = require 'hump.class'
 
-class "Tileset"
-{
-	quads = {};
-}
-
-function Tileset:__init(img, size)
+Tileset = Class{function(self, img, size)
+	self.quads = {};
+	
 	self.img = love.graphics.newImage(img)
 	local w,h = size,size
 	local count = 0
@@ -16,7 +13,7 @@ function Tileset:__init(img, size)
 		end
 	end
 	print(img, count)
-end
+end}
 
 function Tileset:draw(img, x,y)
 	love.graphics.drawq(self.img, self.quads[img], x, y)

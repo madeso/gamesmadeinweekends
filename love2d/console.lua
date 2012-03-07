@@ -1,15 +1,10 @@
-require "oo"
+require 'hump.class'
 
-class "CEntry"
-{
-	text = "";
-	time = 10;
-	total = 10;
-}
-
-function CEntry:__init(text)
+CEntry = Class{function(self, text)
+	self.time = 10;
+	self.total = 10;
 	self.text = text
-end
+end}
 
 function CEntry:update(dt)
 	if self.time > 0 then
@@ -25,13 +20,12 @@ function CEntry:draw(i)
 	love.graphics.print(self.text, 10, 10+i* 15)
 end
 
-class "Console"
-{
-	entries = {};
-}
+Console = Class{function(self)
+	self.entries = {}
+end}
 
 function Console:print(t)
-	table.insert(self.entries, 0, CEntry:new(t))
+	table.insert(self.entries, 0, CEntry(t))
 	
 end
 
@@ -51,4 +45,4 @@ function Console:update(dt)
 	end
 end
 
-console = Console:new()
+console = Console()

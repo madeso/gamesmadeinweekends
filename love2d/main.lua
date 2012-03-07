@@ -8,8 +8,8 @@ function love.load()
 	love.graphics.setBackgroundColor( 100, 149, 237 )
 	world = World("level.tmx")
 	tilesets:add("ninja.png", 16)
-	world:add(Object:new("ninja.png", 100, 100, 70))
-	world:add(Player:new(world:getCamera(), 400, 200))
+	world:add(Object("ninja.png", 100, 100, 70))
+	world:add(Player(world:getCamera(), 400, 200))
 end
 
 function love.draw()
