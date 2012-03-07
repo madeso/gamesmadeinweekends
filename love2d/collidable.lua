@@ -25,10 +25,34 @@ function Collidable:draw(world)
 	self:Collidable_draw(world)
 end
 
-function Collidable:onCollision(other, mx, my)
+function iszero(x)
+	return math.abs(x) < 0.001
+end
+
+function Collidable:_onCollision(other, world, mx, my)
 	if other == nil then
 		self.col:move(0, my)
 		self.col:move(mx, 0)
+		
+		if world.horizontal then
+			if iszero(mx) then
+			else
+				if mx > 0 then
+					print("left")
+				else
+					print("right")
+				end
+			end
+		else
+			if iszero(my) then
+			else
+				if my > 0 then
+					print("up")
+				else
+					print('down')
+				end
+			end
+		end
 	end
 end
 
@@ -39,14 +63,17 @@ end
 
 function Collidable:_apply_hor()
 	self.col:move(vector(self._move_x, 0))
+	self._move_x = 0
 end
 
 function Collidable:_apply_ver()
 	self.col:move(vector(0, self._move_y))
+	self._move_y = 0
 end
 
 function Collidable:Collidable_update(dt)
 	local x,y = self.col:center()
+	self._move_x, self._move_y = 0
 	self.pos.x, self.pos.y = x-self._width/2,y-self._height/2
 end
 
