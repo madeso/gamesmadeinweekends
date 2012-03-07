@@ -42,7 +42,7 @@ World = Class{function(self, path)
 		end
 	end
 	
-	self.camera = Camera:new(0,0)
+	self.camera = Camera(0,0)
 end}
 
 function World:add(o)

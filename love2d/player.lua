@@ -1,19 +1,15 @@
-require "oo"
 require "object"
-vector = require "hump/vector"
+Class = require 'hump.class'
+vector = require "hump.vector"
 require "tilesets"
 require "console"
 
-class "Player"
-{
-	speed = 90
-}
-
-function Player:__init(camera, x,y)
-	self.super = Object:new("ninja.png", x,y)
+Player = Class{function(self, camera, x,y)
+	self.speed = 90
+	self.super = Object("ninja.png", x,y)
 	self.velocity = vector(0,0)
 	self.camera = camera
-end
+end}
 
 function Player:enterWorld(world, c)
 	self.col = c:addRectangle(self.super.pos.x,self.super.pos.y,16,16)

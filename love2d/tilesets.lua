@@ -1,13 +1,12 @@
-require "oo"
 require "tileset"
+Class = require 'hump.class'
 
-class "Tilesets"
-{
-	sets = {};
-}
+Tilesets = Class{function(self)
+	self.sets = {}
+end}
 
 function Tilesets:add(img, size)
-	local set = Tileset:new(img, size)
+	local set = Tileset(img, size)
 	self.sets[img] = set
 	return set
 end
@@ -21,4 +20,4 @@ function Tilesets:get(img)
 	end
 end
 
-tilesets = Tilesets:new()
+tilesets = Tilesets()
