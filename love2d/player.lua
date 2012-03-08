@@ -19,11 +19,11 @@ function Player:update(dt)
 	local m = vector(0,0)
 	if love.keyboard.isDown("left") then
 		m = m - vector(1,0)
-		self.dir = true
+		self:face_left()
 	end
 	if love.keyboard.isDown("right") then
 		m = m + vector(1,0)
-		self.dir = false
+		self:face_right()
 	end
 	if love.keyboard.isDown("up") then
 		m = m - vector(0,1)
