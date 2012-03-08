@@ -4,6 +4,8 @@ Tileset = Class{function(self, img, size)
 	self.quads = {};
 	
 	self.img = love.graphics.newImage(img)
+	self.img:setWrap('clamp', 'clamp')
+	self.img:setFilter('nearest', 'nearest')
 	local w,h = size,size
 	local count = 0
 	for y=0,self.img:getHeight()-1,h do
