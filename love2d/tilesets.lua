@@ -13,11 +13,8 @@ end
 
 function Tilesets:get(img)
 	local set = self.sets[img]
-	if set == nil then
-		return self:add(img, 32)
-	else
-		return set
-	end
+	assert(set)
+	return set
 end
 
 tilesets = Tilesets()
