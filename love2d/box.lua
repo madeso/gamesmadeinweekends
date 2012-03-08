@@ -6,8 +6,8 @@ require "console"
 
 Box = Class{inherits=Collidable, function(self, x,y, speed)
 	Collidable.construct(self, "ninja.png", x,y, 16,16)
-	self.index = 70
 	self.speed = speed
+	self:setAnimation({70})
 end}
 
 function Box:update(dt)
