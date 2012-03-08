@@ -9,11 +9,13 @@ Player = Class{inherits=Collidable, function(self, camera, x,y)
 	self.speed = 90
 	self.velocity = vector(0,0)
 	self.camera = camera
+	--self.camera.zoom = 3
 end}
 
 
 function Player:update(dt)
 	self:Collidable_update(dt)
+	--self.camera:rotate(dt)
 	local m = vector(0,0)
 	if love.keyboard.isDown("left") then
 		m = m - vector(1,0)
