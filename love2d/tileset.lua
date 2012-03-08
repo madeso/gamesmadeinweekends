@@ -22,9 +22,13 @@ Tileset = Class{function(self, img, size)
 end}
 
 function Tileset:draw(img, x,y, dir)
-	if dir then
-		love.graphics.drawq(self.img, self.quads[img], x+self.size, y, 0, -1, 1)
+	local angle = 0
+	local scale = 1
+	if dir == 4 then
+		love.graphics.drawq(self.img, self.quads[img], x+self.size*scale, y, angle, -scale, scale)
+	elseif dir == 6 then
+		love.graphics.drawq(self.img, self.quads[img], x, y, angle, scale, scale)
 	else
-		love.graphics.drawq(self.img, self.quads[img], x, y)
+		assert(false, "invalid dir passed to Tileset:draw")
 	end
 end
