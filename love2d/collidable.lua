@@ -93,6 +93,7 @@ function Collidable:_apply_ver()
 end
 
 function Collidable:Collidable_update(dt)
+	self:Object_update(dt)
 	local x,y = self.col:center()
 	self._move_x, self._move_y = 0
 	self.pos.x, self.pos.y = x-self._width/2,y-self._height/2
