@@ -7,6 +7,8 @@ Object = Class{function(self, img, x,y,indices, timer)
 	self.img = tilesets:get(img)
 	self._Object_dir = 6
 	self:setAnimation(indices, timer)
+	self._Object_animationname = ''
+	self._Object_animations = {}
 end}
 
 function Object:Object_draw(world)
@@ -16,6 +18,13 @@ end
 
 function Object:draw(world)
 	self:Object_draw(world)
+end
+
+function Object:addAnimation(name, indices, timer)
+	local an = {indices=indices, timer=timer}
+	self._Object_animations[name] = an
+	print("adding ", name)
+	return name
 end
 
 function Object:setAnimation(indices, timer)
@@ -32,6 +41,16 @@ function Object:setAnimation(indices, timer)
 		self._Object_timer = timer
 	else
 		self._Object_timer = -1
+	end
+end
+
+function Object:changeAnimation(name)
+	if self._Object_animationname ~= name then
+		local an = self._Object_animations[name]
+		assert(an, name .. ' not found')
+		self:setAnimation(an.indices, an.timer)
+		self._Object_animationname = name
+		print('changing animation to ', name)
 	end
 end
 
