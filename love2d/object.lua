@@ -23,7 +23,6 @@ end
 function Object:addAnimation(name, indices, timer)
 	local an = {indices=indices, timer=timer}
 	self._Object_animations[name] = an
-	print("adding ", name)
 	return name
 end
 
@@ -50,7 +49,6 @@ function Object:changeAnimation(name)
 		assert(an, name .. ' not found')
 		self:setAnimation(an.indices, an.timer)
 		self._Object_animationname = name
-		print('changing animation to ', name)
 	end
 end
 
