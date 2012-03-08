@@ -5,6 +5,7 @@ require "tilesets"
 Object = Class{function(self, img, x,y,index)
 	self.pos = vector(x,y)
 	self.img = tilesets:get(img)
+	self.dir = false
 	if index ~= nil then
 		self.index = index
 	else
@@ -13,7 +14,7 @@ Object = Class{function(self, img, x,y,index)
 end}
 
 function Object:Object_draw(world)
-	self.img:draw(self.index, self.pos:unpack())
+	self.img:draw(self.index, self.pos.x, self.pos.y, self.dir)
 	--love.graphics.draw(self.img, self.pos:unpack())
 end
 
