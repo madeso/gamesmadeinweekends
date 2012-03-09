@@ -1,15 +1,17 @@
--- declare local variables
---// exportstring( string )
---// returns a "Lua" portable version of the string
-local function exportstring( s )
+iolib = {}
+
+--returns a "Lua" portable version of the string
+function iolib.exportstring( s )
 	return string.format("%q", s)
 end
 
 --// The Save Function
-function table.save(tbl,filename )
+function iolib.save(tbl,filename)
 	local charS,charE = "	","\n"
-	local file,err = io.open( filename, "wb" )
-	if err then return err end
+	local file = love.filesystem.newFile(filename)
+	local err = file:open('w')
+	--local file,err = io.open( filename, "wb" )
+	if err==false then return false end
 
 	-- initiate variables for save procedure
 	local tables,lookup = { tbl },{ [tbl] = 1 }
@@ -31,7 +33,7 @@ function table.save(tbl,filename )
 				end
 				file:write( charS.."{"..lookup[v].."},"..charE )
 			elseif stype == "string" then
-				file:write(  charS..exportstring( v )..","..charE )
+				file:write(  charS..iolib.exportstring( v )..","..charE )
 			elseif stype == "number" then
 				file:write(  charS..tostring( v )..","..charE )
 			end
@@ -51,7 +53,7 @@ function table.save(tbl,filename )
 					end
 					str = charS.."[{"..lookup[i].."}]="
 				elseif stype == "string" then
-					str = charS.."["..exportstring( i ).."]="
+					str = charS.."["..iolib.exportstring( i ).."]="
 				elseif stype == "number" then
 					str = charS.."["..tostring( i ).."]="
 				end
@@ -66,7 +68,7 @@ function table.save(tbl,filename )
 						end
 						file:write( str.."{"..lookup[v].."},"..charE )
 					elseif stype == "string" then
-						file:write( str..exportstring( v )..","..charE )
+						file:write( str..iolib.exportstring( v )..","..charE )
 					elseif stype == "number" then
 						file:write( str..tostring( v )..","..charE )
 					end
@@ -77,13 +79,17 @@ function table.save(tbl,filename )
 	end
 	file:write( "}" )
 	file:close()
+	
+	return true
 end
 
---// The Load Function
-function table.load( sfile )
-	local ftables,err = loadfile( sfile )
-	if err then return _,err end
-	local tables = ftables()
+--The Load Function
+function iolib.load( sfile )
+	local ok, chunk = pcall(love.filesystem.load, sfile)
+	if not ok then return _,false end
+	local tables
+	ok, tables = pcall(chunk)
+	if not ok then return _,false end
 	for idx = 1,#tables do
 		local tolinki = {}
 		for i,v in pairs( tables[idx] ) do
@@ -99,5 +105,5 @@ function table.load( sfile )
 			tables[idx][v[2]],tables[idx][v[1]] =  tables[idx][v[1]],nil
 		end
 	end
-	return tables[1]
+	return tables[1], true
 end

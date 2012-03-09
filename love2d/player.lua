@@ -3,6 +3,29 @@ Class = require 'hump.class'
 vector = require "hump.vector"
 require "tilesets"
 require "console"
+require 'iolib'
+
+function print_r (t, name, indent)
+  local tableList = {}
+  function table_r (t, name, indent, full)
+    local serial=string.len(full) == 0 and name
+        or type(name)~="number" and '["'..tostring(name)..'"]' or '['..name..']'
+    io.write(indent,serial,' = ') 
+    if type(t) == "table" then
+      if tableList[t] ~= nil then io.write('{}; -- ',tableList[t],' (self reference)\n')
+      else
+        tableList[t]=full..serial
+        if next(t) then -- Table not empty
+          io.write('{\n')
+          for key,value in pairs(t) do table_r(value,key,indent..'\t',full..serial) end 
+          io.write(indent,'};\n')
+        else io.write('{};\n') end
+      end
+    else io.write(type(t)~="number" and type(t)~="boolean" and '"'..tostring(t)..'"'
+                  or tostring(t),';\n') end
+  end
+  table_r(t,name or '__unnamed__',indent or '','')
+end
 
 Player = Class{inherits=Collidable, function(self, camera, x,y)
 	Collidable.construct(self, "ninja.png", x,y, 16,16)
@@ -54,6 +77,20 @@ end
 function Player:onkey(down, key, unicode)
 	if down and key == "x" then
 		console:print("bang!")
+	end
+	if down and key == "s" then
+		local file = {}
+		file.pos = {}
+		file.pos.x = self.pos.x
+		file.pos.y = self.pos.y
+		iolib.save(file, 'save')
+		console:print("saved to: " .. love.filesystem.getSaveDirectory())
+	end
+	if down and key=="l" then
+		local save, ok = iolib.load('save')
+		if ok then
+			self.col:moveTo(save.pos.x, save.pos.y)
+		end
 	end
 	if down and key == "_l" then
 		console:print("zing!")
