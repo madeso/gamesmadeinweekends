@@ -1,7 +1,7 @@
 function love.conf(t)
     t.title = "Basic 2d"        -- The title of the window the game is in (string)
     t.author = "sirGustav"        -- The author of the game (string)
-    t.identity = nil            -- The name of the save directory (string)
+    t.identity = 'basic2d'            -- The name of the save directory (string)
     t.console = true           -- Attach a console (boolean, Windows only)
     t.screen.width = 800        -- The window width (number)
     t.screen.height = 600       -- The window height (number)
