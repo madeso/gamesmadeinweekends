@@ -30,7 +30,8 @@ end
 Player = Class{inherits=Collidable, function(self, camera, x,y)
 	Collidable.construct(self, "ninja.png", x,y, 16,16)
 	self.speed = 90
-	self.velocity = vector(0,0)
+	self.velocity = 0
+	self.downt = 0
 	self.camera = camera
 	--self.camera.zoom = 3
 	
@@ -38,9 +39,20 @@ Player = Class{inherits=Collidable, function(self, camera, x,y)
 	self.anidle = self:addAnimation('idle', {1})
 end}
 
+function Player:colon_down()
+	self.downt = 0
+	self.velocity = 0
+end
+
+function Player:colon_up()
+	self.velocity = 0
+end
 
 function Player:update(dt)
 	self:Collidable_update(dt)
+	self.downt = self.downt + dt
+	self.velocity = self.velocity + dt*4
+	
 	--self.camera:rotate(dt)
 	local m = vector(0,0)
 	local ism = false
@@ -54,12 +66,7 @@ function Player:update(dt)
 		self:face_right()
 		ism = true
 	end
-	if love.keyboard.isDown("up") then
-		m = m - vector(0,1)
-	end
-	if love.keyboard.isDown("down") then
-		m = m + vector(0,1)
-	end
+	m = m + vector(0,self.velocity)
 	self:move(m*self.speed*dt)
 	
 	if ism then
@@ -77,6 +84,11 @@ end
 function Player:onkey(down, key, unicode)
 	if down and key == "x" then
 		console:print("bang!")
+	end
+	if down and key == "up" then
+		if self.downt < 0.1 then
+			self.velocity = -3
+		end
 	end
 	if down and key == "s" then
 		local file = {}
