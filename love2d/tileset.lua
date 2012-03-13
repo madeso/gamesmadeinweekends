@@ -24,10 +24,11 @@ end}
 function Tileset:draw(img, x,y, dir)
 	local angle = 0
 	local scale = 1
+	local half = self.size / 2
 	if dir == 4 then
-		love.graphics.drawq(self.img, self.quads[img], x+self.size*scale, y, angle, -scale, scale)
+		love.graphics.drawq(self.img, self.quads[img], x+self.size*scale-half, y-half, angle, -scale, scale)
 	elseif dir == 6 then
-		love.graphics.drawq(self.img, self.quads[img], x, y, angle, scale, scale)
+		love.graphics.drawq(self.img, self.quads[img], x-half, y-half, angle, scale, scale)
 	else
 		assert(false, "invalid dir passed to Tileset:draw")
 	end
