@@ -6,14 +6,14 @@ Object = Class{function(self, img, x,y,indices, timer)
 	self.pos = vector(x,y)
 	self.img = tilesets:get(img)
 	self._Object_dir = 6
+	self.hotspot = vector(self.img.size/2, self.img.size/2)
 	self:setAnimation(indices, timer)
 	self._Object_animationname = ''
 	self._Object_animations = {}
 end}
 
 function Object:Object_draw(world)
-	self.img:draw(self._Object_indices[self._Object_index], self.pos.x, self.pos.y, self._Object_dir)
-	--love.graphics.draw(self.img, self.pos:unpack())
+	self.img:draw(self._Object_indices[self._Object_index], self.pos.x+self.hotspot.x, self.pos.y+self.hotspot.y, self._Object_dir)
 end
 
 function Object:draw(world)
