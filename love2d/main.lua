@@ -9,7 +9,7 @@ function love.load()
 	world = World("level.tmx")
 	tilesets:add("ninja.png", 16)
 	world:add(Box(100, 100, 50))
-	world:add(Player(world:getCamera(), 400, -150))
+	world:add(Player(world:getCamera(), 400, -350))
 end
 
 function love.draw()

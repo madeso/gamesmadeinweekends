@@ -87,7 +87,7 @@ function Player:onkey(down, key, unicode)
 	end
 	if down and key == "up" then
 		if self.downt < 0.1 then
-			self.velocity = -3
+			self.velocity = -2.5
 		end
 	end
 	if down and key == "s" then
