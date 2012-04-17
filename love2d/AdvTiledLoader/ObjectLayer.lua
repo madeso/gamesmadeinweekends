@@ -53,92 +53,97 @@ function ObjectLayer:draw()
 	local iso = self.map.orientation == "isometric"	-- If true then the map is isometric
 	local tiles = self.map.tiles					-- The map tiles
 	local rng = self.map.drawRange					-- The drawing range. [1-4] = x,y,width,height
-	local drawList = {}								-- A list of the objects to be drawn
+	local drawList = {}	
+							-- A list of the objects to be drawn
+							
+	if self.map.drawObjects then
 	
-	-- Set the color and line width. Store the old values so we can revert them back at the end.
-	r,g,b,a = love.graphics.getColor()
-	line = love.graphics.getLineWidth()
-	love.graphics.setLineWidth(2)
-	self.color[4] = 255 * self.opacity
-	
-	-- Put only objects that are on the screen in the draw list. If the screen range isn't defined
-	-- add all objects
-	for i = 1,#self.objects do
-		obj = self.objects[i]
-		di = obj.drawInfo
-		-- Draw list is defined
-		if rng[1] and rng[2] and rng[3] and rng[4] then
-			if 	di.right > rng[1]-20 and 
-				di.bottom > rng[2]-20 and 
-				di.left < rng[1]+rng[3]+20 and 
-				di.top < rng[2]+rng[4]+20 then 
+		-- Set the color and line width. Store the old values so we can revert them back at the end.
+		r,g,b,a = love.graphics.getColor()
+		line = love.graphics.getLineWidth()
+		love.graphics.setLineWidth(2)
+		self.color[4] = 255 * self.opacity
+		
+		-- Put only objects that are on the screen in the draw list. If the screen range isn't defined
+		-- add all objects
+		for i = 1,#self.objects do
+			obj = self.objects[i]
+			di = obj.drawInfo
+			-- Draw list is defined
+			if rng[1] and rng[2] and rng[3] and rng[4] then
+				if 	di.right > rng[1]-20 and 
+					di.bottom > rng[2]-20 and 
+					di.left < rng[1]+rng[3]+20 and 
+					di.top < rng[2]+rng[4]+20 then 
+					
+						drawList[#drawList+1] = obj
+				end
 				
-					drawList[#drawList+1] = obj
+			-- Draw list isn't defined
+			else
+				drawList[#drawList+1] = obj
 			end
-			
-		-- Draw list isn't defined
-		else
-			drawList[#drawList+1] = obj
 		end
-	end
-	
-	-- Sort the draw list by the object's draw order
-	table.sort(drawList, drawSort)
+		
+		-- Sort the draw list by the object's draw order
+		table.sort(drawList, drawSort)
 
-	-- For every object in the draw list
-	for i = 1,#drawList do
-		obj = drawList[i]
-		di = obj.drawInfo
-		
-		-- If the object has a custom draw function then call it
-		if type(obj.draw) == "function" then
-			love.graphics.setColor(r,g,b,a)
-			obj.draw(di.x, di.y)
-		
-		-- The object has a gid - draw a tile
-		elseif obj.gid then
+		-- For every object in the draw list
+		for i = 1,#drawList do
+			obj = drawList[i]
+			di = obj.drawInfo
+			
+			-- If the object has a custom draw function then call it
+			if type(obj.draw) == "function" then
 				love.graphics.setColor(r,g,b,a)
-				tiles[obj.gid]:draw(di.x, di.y)
+				obj.draw(di.x, di.y)
+			
+			-- The object has a gid - draw a tile
+			elseif obj.gid then
+					love.graphics.setColor(r,g,b,a)
+					tiles[obj.gid]:draw(di.x, di.y)
+					
+			-- If map isn't set to draw tileless objects then do nothing
+			elseif self.map.draw_objects == false then
+			
+			-- Map is isometric - draw a parallelogram
+			elseif iso then
+			
+				-- Draw a parallelogram
+				offset = {}	
+				for k,v in ipairs(di) do 
+					offset[k] = v + (k+1)%2
+				end
+
+				love.graphics.setColor(self.color[1], self.color[2], self.color[3], 50)
+				love.graphics.polygon("fill", unpack(di))
 				
-		-- If map isn't set to draw tileless objects then do nothing
-		elseif self.map.draw_objects == false then
-		
-		-- Map is isometric - draw a parallelogram
-		elseif iso then
-		
-			-- Draw a parallelogram
-			offset = {}	
-			for k,v in ipairs(di) do 
-				offset[k] = v + (k+1)%2
+				love.graphics.setColor(0, 0, 0, 255 * self.opacity)
+				love.graphics.polygon("line", unpack(offset))
+				
+				love.graphics.setColor(unpack(self.color))
+				love.graphics.polygon("line", unpack(di))
+
+			-- Map is orthogonal - draw a rectangle
+			else
+				love.graphics.setColor(self.color[1], self.color[2], self.color[3], 50)
+				love.graphics.rectangle("fill", di.x+1, di.y+1, di[1]-1, di[2]-1)
+				
+				love.graphics.setColor(0, 0, 0, 255 * self.opacity)
+				love.graphics.rectangle("line", di.x+1, di.y+1, di[1], di[2])
+				love.graphics.print(obj.name, di.x+1, di.y-19)
+				
+				love.graphics.setColor(unpack(self.color))
+				love.graphics.rectangle("line", di.x, di.y, di[1], di[2])
+				love.graphics.print(obj.name, di.x, di.y-20)
 			end
-
-			love.graphics.setColor(self.color[1], self.color[2], self.color[3], 50)
-			love.graphics.polygon("fill", unpack(di))
-			
-			love.graphics.setColor(0, 0, 0, 255 * self.opacity)
-			love.graphics.polygon("line", unpack(offset))
-			
-			love.graphics.setColor(unpack(self.color))
-			love.graphics.polygon("line", unpack(di))
-
-		-- Map is orthogonal - draw a rectangle
-		else
-			love.graphics.setColor(self.color[1], self.color[2], self.color[3], 50)
-			love.graphics.rectangle("fill", di.x+1, di.y+1, di[1]-1, di[2]-1)
-			
-			love.graphics.setColor(0, 0, 0, 255 * self.opacity)
-			love.graphics.rectangle("line", di.x+1, di.y+1, di[1], di[2])
-			love.graphics.print(obj.name, di.x+1, di.y-19)
-			
-			love.graphics.setColor(unpack(self.color))
-			love.graphics.rectangle("line", di.x, di.y, di[1], di[2])
-			love.graphics.print(obj.name, di.x, di.y-20)
 		end
-	end
 
-	-- Set back the line width and color as they were before
-	love.graphics.setLineWidth(line)
-	love.graphics.setColor(r,g,b,a)
+		-- Set back the line width and color as they were before
+		love.graphics.setLineWidth(line)
+		love.graphics.setColor(r,g,b,a)
+	
+	end
 end
 
 -- Return the ObjectLayer class

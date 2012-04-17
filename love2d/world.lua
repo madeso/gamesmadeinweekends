@@ -21,8 +21,11 @@ end
 World = Class{function(self, path)
 	self.objects = {};
 	self.map = ATL_Loader.load(path)
+	self.map.drawObjects = false
 	self.collider = HC(100, on_collision, collision_stop)
 	self.debug_collisons = false
+	
+	local added = 0
 	
 	for tilename, tilelayer in pairs(self.map.tileLayers) do
 		print("Working on ", tilename, self.map.height, self.map.width)
@@ -33,16 +36,19 @@ World = Class{function(self, path)
 				if tile and tile ~= 0 then 
 					if tilenumber>0 then
 						--print(x,y, tilenumber)
-						local epsilon = 0.001
+						local epsilon = 0.0
 						local ctile = self.collider:addRectangle((x-1)* self.map.tileWidth, (y-1) * self.map.tileHeight, self.map.tileWidth-epsilon, self.map.tileHeight-epsilon)
 						ctile.type = nil
 						self.collider:addToGroup("tiles", ctile)
 						self.collider:setPassive(ctile)
+						added = added + 1
 					end
 				end
 			end
 		end
 	end
+	
+	print(added)
 	
 	self.camera = Camera(Vector(0,0))
 end}
