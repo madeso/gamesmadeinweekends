@@ -6,6 +6,8 @@ Vector = require 'hump.vector'
 ATL_Loader = require("AdvTiledLoader.Loader")
 HC = require 'hardon'
 
+require 'debug'
+
 -- this is called when two shapes collide
 function on_collision(dt, sa, sb, mx, my)
 	--print(string.format("Colliding. mtv = (%s - %s) (%s,%s)", tostring(sa.type), tostring(sb.type), mx, my))
@@ -18,7 +20,10 @@ function collision_stop(dt, shape_a, shape_b)
     --print("Stopped colliding")
 end
 
-World = Class{function(self, path)
+World = Class{function(self, path, creators)
+	if creators == nil then
+		creators = {}
+	end
 	self.objects = {};
 	self.map = ATL_Loader.load(path)
 	self.map.drawObjects = false
@@ -44,6 +49,24 @@ World = Class{function(self, path)
 						added = added + 1
 					end
 				end
+			end
+		end
+	end
+	
+	for layername, layer in pairs(self.map.objectLayers) do
+		print("Working on objectlayer ", layername)
+		for i,o in pairs(layer.objects) do
+			print("Object: #", i, ", name: ", o.name, ", type: ", o.type, ", pos: ", o.x, o.y)
+			c = creators[layername]
+			if c ~= nil then
+				col = c(o.x,o.y,o.properties)
+				if col ~= nil then
+					self:add(col)
+				else
+					print("Failed to create object")
+				end
+			else
+				print("No matching creator for object")
 			end
 		end
 	end
