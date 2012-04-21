@@ -3,15 +3,16 @@ require "box"
 require "player"
 require "tilesets"
 require "console"
+require "star"
 
-function createBox(x,y,p)
-	return Box(x,y,50)
+function createStar(x,y,p)
+	return Star(x,y)
 end
 
 function love.load()
 	love.graphics.setBackgroundColor( 100, 149, 237 )
 	tilesets:add("ninja.png", 16)
-	world = World("level.tmx", {lasse=createBox} )
+	world = World("level.tmx", {lasse=createStar} )
 	world:add(Box(100, 100, 50))
 	world:add(Player(world:getCamera(), 400, 20))
 	canplay = 3

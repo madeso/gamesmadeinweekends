@@ -26,7 +26,7 @@ end}
 
 function Console:print(t)
 	table.insert(self.entries, 0, CEntry(t))
-	
+	print(t)
 end
 
 function Console:draw()
