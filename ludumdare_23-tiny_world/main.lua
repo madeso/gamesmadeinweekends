@@ -16,6 +16,8 @@ function love.load()
 	world:add(Player(world:getCamera(), 400, 20))
 	canplay = 3
 	deltat = 1
+	acu = 0
+	STEP = 0.005
 	world.debug_collisons=true
 end
 
@@ -30,8 +32,12 @@ end
 function love.update(dt)
 	deltat=dt
 	if canplay==0 then
-		world:update(dt)
-		console:update(dt)
+		acu = acu + dt
+		while acu > STEP do
+			world:update(STEP)
+			console:update(STEP)
+			acu = acu - STEP
+		end
 	else
 		print(dt)
 		canplay = canplay - 1
