@@ -1092,8 +1092,8 @@
    <tile gid="15"/>
    <tile gid="0"/>
    <tile gid="0"/>
+   <tile gid="0"/>
    <tile gid="4"/>
-   <tile gid="5"/>
    <tile gid="5"/>
    <tile gid="5"/>
    <tile gid="5"/>
@@ -1208,6 +1208,6 @@
   </data>
  </layer>
  <objectgroup name="spikes" width="60" height="20">
-  <object x="192" y="512"/>
+  <object x="192" y="576"/>
  </objectgroup>
 </map>
