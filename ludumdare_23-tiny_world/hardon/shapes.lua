@@ -28,7 +28,10 @@ local math_abs, math_floor, math_min, math_max = math.abs, math.floor, math.min,
 local math_sqrt, math_log, math_pi, math_huge = math.sqrt, math.log, math.pi, math.huge
 
 local _PACKAGE = (...):match("^(.+)%.[^%.]+")
-local Class   = require(_PACKAGE .. '.class')
+if not common and common.class then
+	class_commons = true
+	require(_PACKAGE .. '.class')
+end
 local vector  = require(_PACKAGE .. '.vector')
 local Polygon = require(_PACKAGE .. '.polygon')
 
@@ -66,10 +69,11 @@ end
 --
 -- base class
 --
-local Shape = Class{name = 'Shape', function(self, t)
+local Shape = {}
+function Shape:init(t)
 	self._type = t
 	self._rotation = 0
-end}
+end
 
 function Shape:moveTo(x,y)
 	local cx,cy = self:center()
@@ -97,49 +101,35 @@ Shape.POINT    = setmetatable({}, {__tostring = function() return 'POINT' end})
 --
 -- class definitions
 --
-local ConvexPolygonShape = Class{name = 'ConvexPolygonShape', function(self, polygon)
-	Shape.construct(self, Shape.POLYGON)
+local ConvexPolygonShape = {}
+function ConvexPolygonShape:init(polygon)
+	Shape.init(self, Shape.POLYGON)
 	assert(polygon:isConvex(), "Polygon is not convex.")
 	self._polygon = polygon
-end}
-ConvexPolygonShape:inherit(Shape)
+end
 
-local ConcavePolygonShape = Class{name = 'ConcavePolygonShape', function(self, poly)
-	Shape.construct(self, Shape.COMPOUND)
+local ConcavePolygonShape = {}
+function ConcavePolygonShape:init(poly)
+	Shape.init(self, Shape.COMPOUND)
 	self._polygon = poly
 	self._shapes = poly:splitConvex()
 	for i,s in ipairs(self._shapes) do
-		self._shapes[i] = ConvexPolygonShape(s)
+		self._shapes[i] = common.instance(ConvexPolygonShape, s)
 	end
-end}
-ConcavePolygonShape:inherit(Shape)
-
-local function PolygonShape(polygon, ...)
-	-- create from coordinates if needed
-	if type(polygon) == "number" then
-		polygon = Polygon(polygon, ...)
-	else
-		polygon = polygon:clone()
-	end
-
-	if polygon:isConvex() then
-		return ConvexPolygonShape(polygon)
-	end
-	return ConcavePolygonShape(polygon)
 end
 
-local CircleShape = Class{name = 'CircleShape', function(self, cx,cy, radius)
-	Shape.construct(self, Shape.CIRCLE)
+local CircleShape = {}
+function CircleShape:init(cx,cy, radius)
+	Shape.init(self, Shape.CIRCLE)
 	self._center = vector(cx,cy)
 	self._radius = radius
-end}
-CircleShape:inherit(Shape)
+end
 
-local PointShape = Class{name = 'PointShape', function(self, x,y)
-	Shape.construct(self, Shape.POINT)
+local PointShape = {}
+function PointShape:init(x,y)
+	Shape.init(self, Shape.POINT)
 	self._pos = vector(x,y)
-end}
-PointShape:inherit(Shape)
+end
 
 --
 -- collision functions
@@ -179,9 +169,7 @@ function ConvexPolygonShape:collidesWith(other)
 	end
 
 	-- else: type is POLYGON, use the SAT
-	--print('collide?')
 	if not outcircles_intersect(self, other) then return false end
-	--print('sat')
 	return SAT(self, self:getAxes(), other, other:getAxes())
 end
 
@@ -273,19 +261,31 @@ function ConvexPolygonShape:intersectsRay(x,y, dx,dy)
 end
 
 -- circle intersection if distance of ray/center is smaller
--- than radius
+-- than radius.
+-- with r(s) = p + d*s = (x,y) + (dx,dy) * s defining the ray and
+-- (x - cx)^2 + (y - cy)^2 = r^2, this problem is eqivalent to
+-- solving [with c = (cx,cy)]:
+--
+--     d*d s^2 + 2 d*(p-c) s + (p-c)*(p-c)-r^2 = 0
 function CircleShape:intersectsRay(x,y, dx,dy)
 	local pc = vector(x,y) - self._center
 	local d = vector(dx,dy)
 
 	local a = d * d
-	local b = 4 * d * pc
+	local b = 2 * d * pc
 	local c = pc * pc - self._radius * self._radius
-	local discriminant = b*b - 4*a*c
-	if discriminant < 0 then return false end
+	local discr = b*b - 4*a*c
+	if discr < 0 then return false end
 
-	discriminant = math_sqrt(discriminant)
-	return true, math_min(-b + discriminant, -b - discriminant) / (2*a)
+	discr = math_sqrt(discr)
+	local s1,s2 = discr-b, -discr-b
+	if s1 < 0 then -- first solution is off the ray
+		return s2 >= 0, s2/(2*a)
+	elseif s2 < 0 then -- second solution is off the ray
+		return s1 >= 0, s1/(2*a)
+	end
+	-- both solutions on the ray
+	return true, math_min(s1,s2)/(2*a)
 end
 
 -- point shape intersects ray if it lies on the ray
@@ -332,6 +332,25 @@ end
 
 function PointShape:outcircle()
 	return self._pos.x, self._pos.y, 0
+end
+
+function ConvexPolygonShape:bbox()
+	return self._polygon:getBBox()
+end
+
+function ConcavePolygonShape:bbox()
+	return self._polygon:getBBox()
+end
+
+function CircleShape:bbox()
+	local cx,cy = self._center:unpack()
+	local r = self._radius
+	return cx-r,cy-r, cx+r,cy+r
+end
+
+function PointShape:bbox()
+	local x,y = self._pos:unpack()
+	return x,y,x,y
 end
 
 
@@ -401,19 +420,49 @@ function ConcavePolygonShape:draw(mode)
 end
 
 function CircleShape:draw(mode, segments)
-	local segments = segments or math_max(3, math_floor(math_pi * math_log(self._radius)))
-	love.graphics.circle(mode, self._center.x, self._center.y, self._radius, segments)
+	love.graphics.circle(mode or 'line', self._center.x, self._center.y, self._radius)
 end
 
 function PointShape:draw()
 	love.graphics.point(self._pos.x, self._pos.y)
 end
 
+
+Shape = common.class('Shape', Shape)
+ConvexPolygonShape  = common.class('ConvexPolygonShape',  ConvexPolygonShape,  Shape)
+ConcavePolygonShape = common.class('ConcavePolygonShape', ConcavePolygonShape, Shape)
+CircleShape         = common.class('CircleShape',         CircleShape,         Shape)
+PointShape          = common.class('PointShape',          PointShape,          Shape)
+
+local function newPolygonShape(polygon, ...)
+	-- create from coordinates if needed
+	if type(polygon) == "number" then
+		polygon = common.instance(Polygon, polygon, ...)
+	else
+		polygon = polygon:clone()
+	end
+
+	if polygon:isConvex() then
+		return common.instance(ConvexPolygonShape, polygon)
+	end
+	return common.instance(ConcavePolygonShape, polygon)
+end
+
+local function newCircleShape(...)
+	return common.instance(CircleShape, ...)
+end
+
+local function newPointShape(...)
+	return common.instance(PointShape, ...)
+end
+
 return {
 	ConcavePolygonShape = ConcavePolygonShape,
-	ConvexPolygonShape = ConvexPolygonShape,
-	PolygonShape = PolygonShape,
-	CircleShape  = CircleShape,
-	PointShape   = PointShape,
+	ConvexPolygonShape  = ConvexPolygonShape,
+	CircleShape         = CircleShape,
+	PointShape          = PointShape,
+	newPolygonShape     = newPolygonShape,
+	newCircleShape      = newCircleShape,
+	newPointShape       = newPointShape,
 }
 
