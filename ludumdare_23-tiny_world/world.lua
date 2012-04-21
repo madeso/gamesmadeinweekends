@@ -29,6 +29,7 @@ World = Class{function(self, path, creators)
 	self.map.drawObjects = false
 	self.collider = HC(100, on_collision, collision_stop)
 	self.debug_collisons = false
+	self.tiles = {}
 	
 	local added = 0
 	
@@ -46,6 +47,7 @@ World = Class{function(self, path, creators)
 						ctile.type = nil
 						self.collider:addToGroup("tiles", ctile)
 						self.collider:setPassive(ctile)
+						self.tiles[#self.tiles+1] = ctile
 						added = added + 1
 					end
 				end
@@ -85,7 +87,17 @@ end
 function World:draw()
 	love.graphics.setColor(255, 255, 255, 255)
 	self.camera:attach()
+	
 	self.map:draw()
+	
+	if self.debug_collisons then
+		for _,ti in ipairs(self.tiles) do
+			love.graphics.setColor(255,0,0,100)
+			ti:draw("fill")
+			love.graphics.setColor(255,255,255,255)
+		end
+	end
+	
 	for i,o in ipairs(self.objects) do
 		o:draw(self)
 	end
