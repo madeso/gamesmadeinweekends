@@ -18,7 +18,7 @@ function love.load()
 	deltat = 1
 	acu = 0
 	STEP = 0.005
-	world.debug_collisons=true
+	--world.debug_collisons=true
 end
 
 function love.draw()
