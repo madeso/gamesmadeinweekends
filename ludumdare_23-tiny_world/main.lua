@@ -4,18 +4,19 @@ require "tilesets"
 require "console"
 require "spike"
 
-function createStar(x,y,p)
-	return Star(x,y)
+function createSpike(x,y,p)
+	return Spike(x,y)
 end
 
 function love.load()
 	love.graphics.setBackgroundColor( 100, 149, 237 )
 	tilesets:add("ninja.png", 32)
-	world = World("level.tmx", {lasse=createStar} )
+	world = World("level.tmx", {spikes=createSpike} )
 	-- world:add(Box(100, 100, 50))
 	world:add(Player(world:getCamera(), 400, 20))
 	canplay = 3
 	deltat = 1
+	world.debug_collisons=true
 end
 
 function love.draw()

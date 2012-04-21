@@ -18,10 +18,10 @@ Player = Class{inherits=Collidable, function(self, camera, x,y)
 	self.groundfriction = 8
 	--self.camera.zoom = 3
 	
-	self.anmove = self:addAnimation('move', {2,1,3,1}, 0.15)
-	self.anidle = self:addAnimation('idle', {1})
-	self.anjump = self:addAnimation('jump', {2})
-	self.anfall = self:addAnimation('fall', {3})
+	self.anmove = self:addAnimation('move', {3,2,4,2}, 0.15)
+	self.anidle = self:addAnimation('idle', {2})
+	self.anjump = self:addAnimation('jump', {3})
+	self.anfall = self:addAnimation('fall', {4})
 end}
 
 function Player:colon_down()
@@ -31,6 +31,10 @@ end
 
 function Player:colon_up()
 	self.velocity = 0
+end
+
+function Player:colon_with(other, world)
+	return false
 end
 
 function Player:update(dt)
