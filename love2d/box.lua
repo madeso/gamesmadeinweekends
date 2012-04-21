@@ -4,7 +4,7 @@ vector = require "hump.vector"
 require "tilesets"
 require "console"
 
-Box = Class{inherits=Collidable, function(self, x,y, speed)
+Box = Class{inherits=Collidable, name="Box", function(self, x,y, speed)
 	Collidable.construct(self, "ninja.png", x,y, 16,16)
 	self.speed = speed
 	self:setAnimation({70})

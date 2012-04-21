@@ -1,7 +1,7 @@
 require "tileset"
 Class = require 'hump.class'
 
-Tilesets = Class{function(self)
+Tilesets = Class{name="Tilesets", function(self)
 	self.sets = {}
 end}
 

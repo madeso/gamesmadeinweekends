@@ -4,7 +4,7 @@ vector = require "hump.vector"
 require "tilesets"
 require "console"
 
-Collidable = Class{inherits=Object, function(self, texture, x,y,width,height)
+Collidable = Class{name="Collidable", inherits=Object, function(self, texture, x,y,width,height)
 	Object.construct(self, texture, x,y)
 	self._width,self._height = width,height
 end}
@@ -100,7 +100,7 @@ function Collidable:Collidable_update(dt)
 end
 
 function Collidable:update(dt)
-	self:Collidable_update()
+	self:Collidable_update(dt)
 end
 
 function Collidable:post_update(dt)

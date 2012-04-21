@@ -2,7 +2,7 @@ vector = require "hump.vector"
 Class = require 'hump.class'
 require "tilesets"
 
-Object = Class{function(self, img, x,y,indices, timer)
+Object = Class{name="Object", function(self, img, x,y,indices, timer)
 	self.pos = vector(x,y)
 	self.img = tilesets:get(img)
 	self._Object_dir = 6
@@ -10,6 +10,7 @@ Object = Class{function(self, img, x,y,indices, timer)
 	self:setAnimation(indices, timer)
 	self._Object_animationname = ''
 	self._Object_animations = {}
+	self._Object_animationtimer = 0
 end}
 
 function Object:Object_draw(world)
