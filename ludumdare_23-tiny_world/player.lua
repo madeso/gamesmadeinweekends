@@ -20,6 +20,8 @@ Player = Class{inherits=Collidable, function(self, camera, x,y)
 	
 	self.anmove = self:addAnimation('move', {2,1,3,1}, 0.15)
 	self.anidle = self:addAnimation('idle', {1})
+	self.anjump = self:addAnimation('jump', {2})
+	self.anfall = self:addAnimation('fall', {3})
 end}
 
 function Player:colon_down()
@@ -74,10 +76,18 @@ function Player:update(dt)
 	local moves = vector(self.hormo,0) * self.speed + vector(0,self.velocity)
 	self:move(moves*dt)
 	
-	if ism then
-		self:changeAnimation(self.anmove)
+	if onground then
+		if ism then
+			self:changeAnimation(self.anmove)
+		else
+			self:changeAnimation(self.anidle)
+		end
 	else
-		self:changeAnimation(self.anidle)
+		if self.velocity > 0 then
+			self:changeAnimation(self.anfall)
+		else
+			self:changeAnimation(self.anjump)
+		end
 	end
 end
 
