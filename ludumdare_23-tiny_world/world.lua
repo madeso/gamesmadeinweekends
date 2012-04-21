@@ -96,6 +96,14 @@ function World:getCamera()
 	return self.camera
 end
 
+function World:isFree(x,y)
+	-- select the units under the mouse cursor
+    --for _, shape in ipairs(self.collider:shapesAt(x,y)) do
+    --    return false
+    --end
+	return true
+end
+
 function World:update(dt)
 	for i,o in ipairs(self.objects) do
 		o:update(dt)
