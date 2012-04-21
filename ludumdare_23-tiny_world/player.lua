@@ -27,11 +27,13 @@ Player = Class{inherits=Collidable, function(self, camera, x,y)
 	self.anfall = self:addAnimation('fall', {4})
 end}
 
-function Player:colon_down()
+function Player:colon_down(world)
 	self.downt = 0
 	self.velocity = 0
-	self.lastsafex = self.pos.x
-	self.lastsafey = self.pos.y
+	if self:test(world) then
+		self.lastsafex = self.pos.x
+		self.lastsafey = self.pos.y
+	end
 end
 
 function Player:colon_up()
@@ -45,6 +47,17 @@ function Player:colon_with(other, world)
 		self.velocity = 0
 	end
 	return false
+end
+
+function Player:test(world)
+	local x,y = self.pos.x, self.pos.y
+	if world:isFree(x-10,y) and world:isFree(x+10,y) then
+		print("free")
+		return true
+	else
+		print("not free")
+		return false
+	end
 end
 
 function Player:update(dt)

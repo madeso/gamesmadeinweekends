@@ -41,18 +41,18 @@ function Collidable:_onCollision(other, world, mx, my)
 			if iszero(mx) then
 			else
 				if mx > 0 then
-					self:colon_left()
+					self:colon_left(world)
 				else
-					self:colon_right()
+					self:colon_right(world)
 				end
 			end
 		else
 			if iszero(my) then
 			else
 				if my > 0 then
-					self:colon_up()
+					self:colon_up(world)
 				else
-					self:colon_down()
+					self:colon_down(world)
 				end
 			end
 		end
