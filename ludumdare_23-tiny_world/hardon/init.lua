@@ -25,18 +25,22 @@ THE SOFTWARE.
 ]]--
 
 local _NAME = (...)
-local Class       = require(_NAME .. '.class')
+if not (common and common.class and common.instance) then
+	class_commons = true
+	require(_NAME .. '.class')
+end
 local Shapes      = require(_NAME .. '.shapes')
 local Spatialhash = require(_NAME .. '.spatialhash')
 local vector      = require(_NAME .. '.vector')
 
-local PolygonShape = Shapes.PolygonShape
-local CircleShape  = Shapes.CircleShape
-local PointShape   = Shapes.PointShape
+local newPolygonShape = Shapes.newPolygonShape
+local newCircleShape  = Shapes.newCircleShape
+local newPointShape   = Shapes.newPointShape
 
 local function __NULL__() end
 
-local HC = Class{name = "HardonCollider", function(self, cell_size, callback_collide, callback_stop)
+local HC = {}
+function HC:init(cell_size, callback_collide, callback_stop)
 	self._active_shapes  = {}
 	self._passive_shapes = {}
 	self._ghost_shapes   = {}
@@ -47,8 +51,8 @@ local HC = Class{name = "HardonCollider", function(self, cell_size, callback_col
 
 	self.on_collide = callback_collide or __NULL__
 	self.on_stop    = callback_stop    or __NULL__
-	self._hash      = Spatialhash(cell_size)
-end}
+	self._hash      = common.instance(Spatialhash, cell_size)
+end
 
 function HC:clear()
 	self._active_shapes  = {}
@@ -58,7 +62,7 @@ function HC:clear()
 	self._shape_ids      = setmetatable({}, {__mode = "k"}) -- reverse lookup
 	self.groups          = {}
 	self._colliding_last_frame = {}
-	self._hash           = Spatialhash(self.hash.cell_size)
+	self._hash           = common.instance(Spatialhash, self._hash.cell_size)
 	return self
 end
 
@@ -83,113 +87,66 @@ function HC:setCallbacks(collide, stop)
 	return self
 end
 
-local function new_shape(self, shape, ul,lr)
+local function new_shape(self, shape)
+	local x1,y1,x2,y2 = shape:bbox()
+
 	self._current_shape_id = self._current_shape_id + 1
 	self._active_shapes[self._current_shape_id] = shape
 	self._shape_ids[shape] = self._current_shape_id
-	self._hash:insert(shape, ul,lr)
+	self._hash:insert(shape, {x=x1,y=y1}, {x=x2,y=y2})
 	shape._groups = {}
-	return shape
-end
 
--- create polygon shape and add it to internal structures
-function HC:addPolygon(...)
-	local shape = PolygonShape(...)
 	local hash = self._hash
-
-	-- replace shape member function with a function that updates
-	-- the hash
-	local function hash_aware_member(oldfunc)
-		return function(self, ...)
-			local x1,y1, x2,y2 = self._polygon:getBBox()
-			oldfunc(self, ...)
-			local x3,y3, x4,y4 = self._polygon:getBBox()
-			hash:update(shape, vector(x1,y1), vector(x2,y2), vector(x3,y3), vector(x4,y4))
-		end
+	local move, rotate = shape.move, shape.rotate
+	function shape:move(...)
+		local x1,y1,x2,y2 = self:bbox()
+		move(self, ...)
+		local x3,y3,x4,y4 = self:bbox()
+		hash:update(self, {x=x1,y=y1}, {x=x2,y=y2}, {x=x3,y=y3}, {x=x4,y=y4})
 	end
 
-	shape.move = hash_aware_member(shape.move)
-	shape.rotate = hash_aware_member(shape.rotate)
+	function shape:rotate(...)
+		local x1,y1,x2,y2 = self:bbox()
+		rotate(self, ...)
+		local x3,y3,x4,y4 = self:bbox()
+		hash:update(self, {x=x1,y=y1}, {x=x2,y=y2}, {x=x3,y=y3}, {x=x4,y=y4})
+	end
 
-	function shape:_getNeighbors()
-		local x1,y1, x2,y2 = self._polygon:getBBox()
-		return hash:getNeighbors(self, vector(x1,y1), vector(x2,y2))
+	function shape:neighbors()
+		local x1,y1, x2,y2 = self:bbox()
+		return pairs(hash:getNeighbors(self, {x=x1,y=y1}, {x=x2,y=y2}))
 	end
 
 	function shape:_removeFromHash()
-		local x1,y1, x2,y2 = self._polygon:getBBox()
-		hash:remove(shape) --, vector(x1,y1), vector(x2,y2))
+		local x1,y1, x2,y2 = self:bbox()
+		hash:remove(shape, {x=x1,y=y1}, {x=x2,y=y2})
 	end
 
-	local x1,y1, x2,y2 = shape._polygon:getBBox()
-	return new_shape(self, shape, vector(x1,y1), vector(x2,y2))
+	return shape
+end
+
+function HC:activeShapes()
+	local next, t, k, v = next, self._active_shapes
+	return function()
+		k, v = next(t, k)
+		return v
+	end
+end
+
+function HC:addPolygon(...)
+	return new_shape(self, newPolygonShape(...))
 end
 
 function HC:addRectangle(x,y,w,h)
 	return self:addPolygon(x,y, x+w,y, x+w,y+h, x,y+h)
 end
 
--- create new polygon approximation of a circle
 function HC:addCircle(cx, cy, radius)
-	local shape = CircleShape(cx,cy, radius)
-	local hash = self._hash
-
-	local function hash_aware_member(oldfunc)
-		return function(self, ...)
-			local r = vector(self._radius, self._radius)
-			local c1 = self._center
-			oldfunc(self, ...)
-			local c2 = self._center
-			hash:update(self, c1-r, c1+r, c2-r, c2+r)
-		end
-	end
-
-	shape.move = hash_aware_member(shape.move)
-	shape.rotate = hash_aware_member(shape.rotate)
-
-	function shape:_getNeighbors()
-		local c,r = self._center, vector(self._radius, self._radius)
-		return hash:getNeighbors(self, c-r, c+r)
-	end
-
-	function shape:_removeFromHash()
-		local c,r = self._center, vector(self._radius, self._radius)
-		hash:remove(self, c-r, c+r)
-	end
-
-	local c,r = shape._center, vector(radius,radius)
-	return new_shape(self, shape, c-r, c+r)
+	return new_shape(self, newCircleShape(cx,cy, radius))
 end
 
 function HC:addPoint(x,y)
-	local shape = PointShape(x,y)
-	local hash = self._hash
-
-	local function hash_aware_member(oldfunc)
-		return function(self, ...)
-			rawset(hash:cell(self._pos), self, nil)
-			oldfunc(self, ...)
-			rawset(hash:cell(self._pos), self, self)
-		end
-	end
-
-	shape.move = hash_aware_member(shape.move)
-	shape.rotate = hash_aware_member(shape.rotate)
-
-	function shape:_getNeighbors()
-		local set = {}
-		for _,other in pairs(hash:cell(self._pos)) do
-			rawset(set, other, other)
-		end
-		rawset(set, self, nil)
-		return set
-	end
-
-	function shape:_removeFromHash()
-		hash:remove(self, self._pos, self._pos)
-	end
-
-	return new_shape(self, shape, shape._pos, shape._pos)
+	return new_shape(self, newPointShape(x,y))
 end
 
 function HC:share_group(shape, other)
@@ -198,7 +155,6 @@ function HC:share_group(shape, other)
 	end
 	return false
 end
-
 
 -- get unique indentifier for an unordered pair of shapes, i.e.:
 -- collision_id(s,t) = collision_id(t,s)
@@ -212,9 +168,8 @@ end
 function HC:update(dt)
 	-- collect colliding shapes
 	local tested, colliding = {}, {}
-	for _,shape in pairs(self._active_shapes) do
-		local neighbors = shape:_getNeighbors()
-		for _,other in pairs(neighbors) do
+	for shape in self:activeShapes() do
+		for other in shape:neighbors() do
 			local id = collision_id(self, shape,other)
 			if not tested[id] then
 				if not (self._ghost_shapes[other] or self:share_group(shape, other)) then
@@ -242,8 +197,20 @@ function HC:update(dt)
 	self._colliding_last_frame = colliding
 end
 
+-- get list of shapes at point (x,y)
+function HC:shapesAt(x, y)
+	local shapes = {}
+	for s in pairs(self._hash:cell{x=x,y=y}) do
+		if s:contains(x,y) then
+			shapes[#shapes+1] = s
+		end
+	end
+	return shapes
+end
+
 -- remove shape from internal tables and the hash
-function HC:remove(shape)
+function HC:remove(shape, ...)
+	if not shape then return end
 	local id = self._shape_ids[shape]
 	if id then
 		self._active_shapes[id] = nil
@@ -253,7 +220,7 @@ function HC:remove(shape)
 	self._shape_ids[shape] = nil
 	shape:_removeFromHash()
 
-	return shape
+	return self:remove(...)
 end
 
 -- group support
@@ -327,4 +294,11 @@ function HC:setSolid(shape, ...)
 	return self:setSolid(...)
 end
 
-return setmetatable({new = HC}, {__call = function(_,...) return HC(...) end})
+-- the module
+HC = common.class("HardonCollider", HC)
+local function new(...)
+	return common.instance(HC, ...)
+end
+
+return setmetatable({HardonCollider = HC, new = new},
+	{__call = function(_,...) return new(...) end})
