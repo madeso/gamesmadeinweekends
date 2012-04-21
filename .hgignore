@@ -14,3 +14,4 @@ glob:ludumdare_22-alone/bin/myflashgame.swf
 glob:ludumdare_22-alone/obj/*
 glob:minigame/city-hacking/play.lnk
 glob:ludumdare_23-tiny_world/dist/generate.bat
+glob:lala/*
