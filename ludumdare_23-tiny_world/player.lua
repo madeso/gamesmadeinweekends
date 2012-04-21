@@ -49,13 +49,17 @@ function Player:colon_with(other, world)
 	return false
 end
 
+function Player:draw(world)
+	self:Collidable_draw(world)
+end
+
 function Player:test(world)
 	local x,y = self.pos.x, self.pos.y
-	if world:isFree(x-10,y) and world:isFree(x+10,y) then
-		print("free")
+	if world:isFree(x-15,y+35)==false and world:isFree(x+47,y+35)==false then
+		print("ok")
 		return true
 	else
-		print("not free")
+		print("not ok")
 		return false
 	end
 end
