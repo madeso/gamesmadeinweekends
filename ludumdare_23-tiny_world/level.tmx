@@ -1207,4 +1207,7 @@
    <tile gid="20"/>
   </data>
  </layer>
+ <objectgroup name="spikes" width="60" height="20">
+  <object x="192" y="512"/>
+ </objectgroup>
 </map>
