@@ -18,6 +18,9 @@ Player = Class{inherits=Collidable, function(self, camera, x,y)
 	self.groundfriction = 8
 	--self.camera.zoom = 3
 	
+	self.lastsafex = x
+	self.lastsafey = y
+	
 	self.anmove = self:addAnimation('move', {3,2,4,2}, 0.15)
 	self.anidle = self:addAnimation('idle', {2})
 	self.anjump = self:addAnimation('jump', {3})
@@ -27,6 +30,8 @@ end}
 function Player:colon_down()
 	self.downt = 0
 	self.velocity = 0
+	self.lastsafex = self.pos.x
+	self.lastsafey = self.pos.y
 end
 
 function Player:colon_up()
@@ -34,6 +39,11 @@ function Player:colon_up()
 end
 
 function Player:colon_with(other, world)
+	if other:is_a(Spike) then
+		self.col:moveTo( self.lastsafex, self.lastsafey )
+		self.hormo = 0
+		self.velocity = 0
+	end
 	return false
 end
 
