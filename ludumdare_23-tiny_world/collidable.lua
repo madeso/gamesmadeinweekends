@@ -4,9 +4,12 @@ vector = require "hump.vector"
 require "tilesets"
 require "console"
 
-Collidable = Class{name="Collidable", inherits=Object, function(self, texture, x,y,width,height)
+Collidable = Class{name="Collidable", inherits=Object, function(self, texture, x,y,width,height,xadjust,yadjust)
 	Object.construct(self, texture, x,y)
 	self._width,self._height = width,height
+	self._xadjust = xadjust or 0
+	self._yadjust = yadjust or self._xadjust
+	print("adjusting: ", self._xadjust, self._yadjust)
 end}
 
 function Collidable:enterWorld(world, c)
@@ -15,10 +18,10 @@ function Collidable:enterWorld(world, c)
 end
 
 function Collidable:Collidable_draw(world)
-	self:Object_draw()
 	if world.debug_collisons then
 		self.col:draw("fill")
 	end
+	self:Object_draw()
 end
 
 function Collidable:draw(world)
@@ -96,7 +99,7 @@ function Collidable:Collidable_update(dt)
 	self:Object_update(dt)
 	local x,y = self.col:center()
 	self._move_x, self._move_y = 0
-	self.pos.x, self.pos.y = x-self._width/2,y-self._height/2
+	self.pos.x, self.pos.y = x-self._width/2+self._xadjust,y-self._height/2-self._yadjust
 end
 
 function Collidable:update(dt)
