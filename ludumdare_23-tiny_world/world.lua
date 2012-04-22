@@ -26,6 +26,7 @@ World = Class{function(self, path, creators)
 	end
 	self.objects = {};
 	self.map = ATL_Loader.load(path)
+	self.map.useSpriteBatch = true
 	self.map.drawObjects = false
 	self.collider = HC(100, on_collision, collision_stop)
 	self.debug_collisons = false
