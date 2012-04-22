@@ -66,8 +66,9 @@ function Object:Object_update(dt)
 	if self._Object_timer > 0 then
 		while self._Object_animationtimer > self._Object_timer do
 			self._Object_animationtimer = self._Object_animationtimer - self._Object_timer
-			self._Object_index = self._Object_index + 1
+			--self._Object_index = self._Object_index + 1
 			self._Object_index = (self._Object_index % #self._Object_indices)+1
+			print(self._Object_index)
 		end
 	end
 end
