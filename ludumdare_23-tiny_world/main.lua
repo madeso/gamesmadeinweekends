@@ -29,12 +29,17 @@ function createRat(x,y,p)
 	return Rat(x,y)
 end
 
+function createPlayer(x,y,p,world)
+	print("creating player")
+	return Player(world:getCamera(), x, y)
+end
+
 function love.load()
 	love.graphics.setBackgroundColor( 100, 149, 237 )
 	tilesets:add("ninja.png", 64)
-	world = World("level.tmx", {spikes=createSpike,rats=createRat} )
+	world = World("level.tmx", {spikes=createSpike,rats=createRat,player=createPlayer} )
 	-- world:add(Box(100, 100, 50))
-	world:add(Player(world:getCamera(), 400, 20))
+	--world:add()
 	canplay = 3
 	deltat = 1
 	acu = 0
