@@ -103,7 +103,7 @@ function sgame:keypressed(key, unicode)
 end
 
 function sgame:keyreleased(key)
-	if key == "d" then
+	if key == "p" then
 		loadWorld()
 	end
 	world:onkey(false, key, nil)

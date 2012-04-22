@@ -108,12 +108,12 @@ function Player:update(dt)
 	local ism = false
 	if love.keyboard.isDown("left") and love.keyboard.isDown("right") then
 	else	
-		if love.keyboard.isDown("left") then
+		if love.keyboard.isDown("left") or love.keyboard.isDown("a") then
 			m = -1
 			self:face_left()
 			ism = true
 		end
-		if love.keyboard.isDown("right") then
+		if love.keyboard.isDown("right") or love.keyboard.isDown("d") then
 			m = 1
 			self:face_right()
 			ism = true
@@ -162,10 +162,12 @@ function Player:post_update(dt)
 end
 
 function Player:onkey(down, key, unicode)
-	if down and key == "up" then
-		if self.downt < 0.1 then
-			self.velocity = -self.jumpspeed
-			playSound(self.sndjump)
+	if down then
+		if key == "up" or key == "x" or key=="w" or key==" " then
+			if self.downt < 0.1 then
+				self.velocity = -self.jumpspeed
+				playSound(self.sndjump)
+			end
 		end
 	end
 	if down and key == "s" then
