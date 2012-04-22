@@ -36,20 +36,22 @@ World = Class{function(self, path, creators)
 	
 	for tilename, tilelayer in pairs(self.map.tileLayers) do
 		print("Working on ", tilename, self.map.height, self.map.width)
-		for y=1,self.map.height do
-			for x=1,self.map.width do
-				local tilenumber = tilelayer.tileData[y][x]
-				local tile = self.map.tiles[tilenumber]
-				if tile and tile ~= 0 then 
-					if tilenumber>0 then
-						--print(x,y, tilenumber)
-						local epsilon = 0.0
-						local ctile = self.collider:addRectangle((x-1)* self.map.tileWidth, (y-1) * self.map.tileHeight, self.map.tileWidth-epsilon, self.map.tileHeight-epsilon)
-						ctile.type = nil
-						self.collider:addToGroup("tiles", ctile)
-						self.collider:setPassive(ctile)
-						self.tiles[#self.tiles+1] = ctile
-						added = added + 1
+		if tilename == "col" then
+			for y=1,self.map.height do
+				for x=1,self.map.width do
+					local tilenumber = tilelayer.tileData[y][x]
+					local tile = self.map.tiles[tilenumber]
+					if tile and tile ~= 0 then 
+						if tilenumber>0 then
+							--print(x,y, tilenumber)
+							local epsilon = 0.0
+							local ctile = self.collider:addRectangle((x-1)* self.map.tileWidth, (y-1) * self.map.tileHeight, self.map.tileWidth-epsilon, self.map.tileHeight-epsilon)
+							ctile.type = nil
+							self.collider:addToGroup("tiles", ctile)
+							self.collider:setPassive(ctile)
+							self.tiles[#self.tiles+1] = ctile
+							added = added + 1
+						end
 					end
 				end
 			end
