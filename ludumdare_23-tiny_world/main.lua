@@ -21,6 +21,10 @@ require "console"
 require "spike"
 require "rat"
 require "star"
+require "goal"
+Gamestate = require "hump.gamestate"
+
+sgame = Gamestate.new()
 
 function createSpike(x,y,p)
 	return Spike(x,y)
@@ -34,15 +38,24 @@ function createStar(x,y,p)
 	return Star(x,y)
 end
 
+function createGoal(x,y,p)
+	return Goal(x,y)
+end
+
 function createPlayer(x,y,p,world)
 	print("creating player")
 	return Player(world:getCamera(), x, y)
 end
 
+function loadWorld()
+	world = World("level.tmx", creators)
+end
+
 function love.load()
 	love.graphics.setBackgroundColor( 100, 149, 237 )
 	tilesets:add("ninja.png", 64)
-	world = World("level.tmx", {spikes=createSpike,rats=createRat,player=createPlayer,stars=createStar} )
+	creators = {spikes=createSpike,rats=createRat,player=createPlayer,stars=createStar,goal=createGoal}
+	loadWorld()
 	-- world:add(Box(100, 100, 50))
 	--world:add()
 	canplay = 3
@@ -51,9 +64,11 @@ function love.load()
 	STEP = 0.005
 	--playMusic("bu-a-banana-and-simplices.it")
 	--world.debug_collisons=true
+	Gamestate.registerEvents()
+    Gamestate.switch(sgame)
 end
 
-function love.draw()
+function sgame:draw()
 	world:draw()
 	console:draw()
 	fps = 1/deltat
@@ -61,7 +76,7 @@ function love.draw()
 	love.graphics.print(string.format("%d", fps), 100, 10)
 end
 
-function love.update(dt)
+function sgame:update(dt)
 	deltat=dt
 	if canplay==0 then
 		acu = acu + dt
@@ -77,7 +92,7 @@ function love.update(dt)
 	end
 end
 
-function love.keypressed(key, unicode)
+function sgame:keypressed(key, unicode)
 	if key == "escape" then
 		love.event.push("q")
 	end
@@ -87,14 +102,17 @@ function love.keypressed(key, unicode)
 	end
 end
 
-function love.keyreleased(key)
+function sgame:keyreleased(key)
+	if key == "d" then
+		loadWorld()
+	end
 	world:onkey(false, key, nil)
 end
 
-function love.mousepressed(x, y, button)
+function sgame:mousepressed(x, y, button)
 	world:onkey(true, "_"..button, nil)
 end
 
-function love.mousereleased(x, y, button)
+function sgame:mousereleased(x, y, button)
 	world:onkey(false, "_"..button, nil)
 end
