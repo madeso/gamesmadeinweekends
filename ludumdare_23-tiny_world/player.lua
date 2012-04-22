@@ -6,7 +6,7 @@ require "console"
 require 'iolib'
 
 Player = Class{inherits=Collidable, function(self, camera, x,y)
-	Collidable.construct(self, "ninja.png", x,y, 32,32)
+	Collidable.construct(self, "ninja.png", x,y, 64,64)
 	self.speed = 230
 	self.gravity = 900
 	self.jumpspeed = 343
@@ -17,7 +17,6 @@ Player = Class{inherits=Collidable, function(self, camera, x,y)
 	self.airfriction = 1
 	self.groundfriction = 8
 	self.BUMP = 1
-	--self.camera.zoom = 3
 	
 	self.lastsafex = x
 	self.lastsafey = y
@@ -68,10 +67,10 @@ end
 function Player:test(world)
 	local x,y = self.pos.x, self.pos.y
 	if world:isFree(x-15,y+35)==false and world:isFree(x+47,y+35)==false then
-		print("ok")
+		--print("ok")
 		return true
 	else
-		print("not ok")
+		--print("not ok")
 		return false
 	end
 end
@@ -80,6 +79,9 @@ function Player:update(dt)
 	self:Collidable_update(dt)
 	self.downt = self.downt + dt
 	self.velocity = self.velocity + dt*self.gravity
+	
+	-- mindfuck
+	--self.camera.zoom = 1.5 - math.abs(self.velocity) / (self.jumpspeed * 3)
 	
 	--self.camera:rotate(dt)
 	local m = -self.hormo
