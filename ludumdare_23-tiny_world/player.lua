@@ -16,6 +16,7 @@ Player = Class{inherits=Collidable, function(self, camera, x,y)
 	self.hormo = 0
 	self.airfriction = 1
 	self.groundfriction = 8
+	self.BUMP = 1
 	--self.camera.zoom = 3
 	
 	self.lastsafex = x
@@ -45,6 +46,17 @@ function Player:colon_with(other, world)
 		self.col:moveTo( self.lastsafex, self.lastsafey )
 		self.hormo = 0
 		self.velocity = 0
+	end
+	if other:is_a(Rat) then
+		if self.velocity > 0 then
+			self.velocity = -self.jumpspeed*2
+		else
+			if other.pos.x > self.pos.x then
+				self.hormo = -self.BUMP
+			else
+				self.hormo = self.BUMP
+			end
+		end
 	end
 	return false
 end
