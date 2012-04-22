@@ -8,8 +8,8 @@ require "player.lua"
 require "debug.lua"
 
 Rat = Class{inherits=Collidable, name="Rat", function(self, x,y)
-	Collidable.construct(self, "ninja.png", x,y, 10,20,-10,12)
-	self:setAnimation({2})
+	Collidable.construct(self, "ninja.png", x,y, 20,40,-20,24)
+	self:setAnimation({26, 27, 28, 27}, 0.1)
 	self.velocity = 0
 	self.gravity = 100
 	self.dir = 1

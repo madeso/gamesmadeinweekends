@@ -15,7 +15,7 @@ end
 
 function love.load()
 	love.graphics.setBackgroundColor( 100, 149, 237 )
-	tilesets:add("ninja.png", 32)
+	tilesets:add("ninja.png", 64)
 	world = World("level.tmx", {spikes=createSpike,rats=createRat} )
 	-- world:add(Box(100, 100, 50))
 	world:add(Player(world:getCamera(), 400, 20))
