@@ -1209,8 +1209,10 @@
  </layer>
  <objectgroup name="spikes" width="60" height="20">
   <object x="192" y="576"/>
+  <object x="1632" y="576"/>
  </objectgroup>
  <objectgroup name="rats" width="60" height="20">
   <object x="832" y="544"/>
+  <object x="1504" y="576"/>
  </objectgroup>
 </map>

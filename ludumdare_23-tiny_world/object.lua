@@ -68,7 +68,6 @@ function Object:Object_update(dt)
 			self._Object_animationtimer = self._Object_animationtimer - self._Object_timer
 			--self._Object_index = self._Object_index + 1
 			self._Object_index = (self._Object_index % #self._Object_indices)+1
-			print(self._Object_index)
 		end
 	end
 end

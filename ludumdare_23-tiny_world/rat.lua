@@ -17,7 +17,11 @@ Rat = Class{inherits=Collidable, name="Rat", function(self, x,y)
 end}
 
 function Rat:colon_with(other, world)
-	return true
+	if other:is_a(Spike) then
+		return false
+	else
+		return true
+	end
 end
 
 function Rat:colon_down()
