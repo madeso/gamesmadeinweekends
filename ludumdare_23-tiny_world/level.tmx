@@ -1210,4 +1210,7 @@
  <objectgroup name="spikes" width="60" height="20">
   <object x="192" y="576"/>
  </objectgroup>
+ <objectgroup name="rats" width="60" height="20">
+  <object x="832" y="544"/>
+ </objectgroup>
 </map>
