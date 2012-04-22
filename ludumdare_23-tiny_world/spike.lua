@@ -23,6 +23,7 @@ end
 
 function Spike:colon_down()
 	self.velocity = 0
+	self:setPassive()
 end
 
 function Spike:update(dt)

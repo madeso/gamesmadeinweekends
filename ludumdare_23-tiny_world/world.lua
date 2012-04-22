@@ -31,6 +31,7 @@ World = Class{function(self, path, creators)
 	self.collider = HC(100, on_collision, collision_stop)
 	self.debug_collisons = false
 	self.tiles = {}
+	self.camera = Camera(Vector(0,0))
 	
 	local added = 0
 	
@@ -64,7 +65,7 @@ World = Class{function(self, path, creators)
 			print("Object: #", i, ", name: ", o.name, ", type: ", o.type, ", pos: ", o.x, o.y)
 			c = creators[layername]
 			if c ~= nil then
-				col = c(o.x,o.y,o.properties)
+				col = c(o.x,o.y,o.properties,self)
 				if col ~= nil then
 					self:add(col)
 				else
@@ -77,8 +78,6 @@ World = Class{function(self, path, creators)
 	end
 	
 	print(added)
-	
-	self.camera = Camera(Vector(0,0))
 end}
 
 function World:add(o)
