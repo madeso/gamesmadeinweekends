@@ -9,12 +9,14 @@ Collidable = Class{name="Collidable", inherits=Object, function(self, texture, x
 	self._width,self._height = width,height
 	self._xadjust = xadjust or 0
 	self._yadjust = yadjust or self._xadjust
+	self._isActive = true
 	print("adjusting: ", self._xadjust, self._yadjust)
 end}
 
 function Collidable:enterWorld(world, c)
 	self.col = c:addRectangle(self.pos.x,self.pos.y,self._width,self._height)
 	self.col.type = self
+	self.hardon = c
 end
 
 function Collidable:Collidable_draw(world)
@@ -71,6 +73,11 @@ end
 function Collidable:colon_left()
 end
 
+function Collidable:setPassive()
+	self.hardon:setPassive(self.col)
+	self._isActive = false
+end
+
 function Collidable:colon_right()
 end
 
@@ -81,8 +88,10 @@ function Collidable:colon_up()
 end
 
 function Collidable:move(xy)
-	self._move_x = xy.x
-	self._move_y = xy.y
+	if self._isActive then
+		self._move_x = xy.x
+		self._move_y = xy.y
+	end
 end
 
 function Collidable:_apply_hor()
