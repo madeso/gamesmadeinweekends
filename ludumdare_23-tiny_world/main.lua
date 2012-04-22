@@ -1,3 +1,19 @@
+function playSound(s)
+	love.audio.stop(s)
+	love.audio.rewind(s)
+	love.audio.play(s)
+end
+
+function sfx(path)
+	return love.audio.newSource(path, "static")
+end
+
+function playMusic(path)
+	local m = love.audio.newSource(path, "stream")
+	m:setLooping(true)
+	m:play()
+end
+
 require "world"
 require "player"
 require "tilesets"
@@ -23,6 +39,7 @@ function love.load()
 	deltat = 1
 	acu = 0
 	STEP = 0.005
+	--playMusic("bu-a-banana-and-simplices.it")
 	--world.debug_collisons=true
 end
 
