@@ -6,7 +6,7 @@ require "console"
 require 'iolib'
 
 Player = Class{inherits=Collidable, function(self, camera, x,y)
-	Collidable.construct(self, "ninja.png", x,y, 64,64)
+	Collidable.construct(self, "ninja.png", x,y, 28,64, -14, -2)
 	self.speed = 230
 	self.gravity = 900
 	self.jumpspeed = 343
@@ -17,6 +17,7 @@ Player = Class{inherits=Collidable, function(self, camera, x,y)
 	self.airfriction = 1
 	self.groundfriction = 8
 	self.BUMP = 1
+	self.star = nil
 	
 	self.lastsafex = x
 	self.lastsafey = y
@@ -30,15 +31,12 @@ Player = Class{inherits=Collidable, function(self, camera, x,y)
 	self.sndsuperjump = sfx("superjump.wav")
 	self.sndpush = sfx("push.wav")
 	self.snddie = sfx("die.wav")
+	self.sndstar = sfx("star.wav")
 end}
 
 function Player:colon_down(world)
 	self.downt = 0
 	self.velocity = 0
-	if self:test(world) then
-		self.lastsafex = self.pos.x
-		self.lastsafey = self.pos.y
-	end
 end
 
 function Player:colon_up()
@@ -46,6 +44,19 @@ function Player:colon_up()
 end
 
 function Player:colon_with(other, world)
+	if other:is_a(Star) then
+		if other.selected then
+		else
+			self.lastsafex = self.pos.x
+			self.lastsafey = self.pos.y
+			if self.star ~= nil then
+				self.star:deselect()
+			end
+			self.star = other
+			self.star:select()
+			playSound(self.sndstar)
+		end
+	end
 	if other:is_a(Spike) then
 		self.col:moveTo( self.lastsafex, self.lastsafey )
 		playSound(self.snddie)
