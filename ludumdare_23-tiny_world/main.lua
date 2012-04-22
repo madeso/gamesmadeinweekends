@@ -20,6 +20,7 @@ require "tilesets"
 require "console"
 require "spike"
 require "rat"
+require "star"
 
 function createSpike(x,y,p)
 	return Spike(x,y)
@@ -27,6 +28,10 @@ end
 
 function createRat(x,y,p)
 	return Rat(x,y)
+end
+
+function createStar(x,y,p)
+	return Star(x,y)
 end
 
 function createPlayer(x,y,p,world)
@@ -37,7 +42,7 @@ end
 function love.load()
 	love.graphics.setBackgroundColor( 100, 149, 237 )
 	tilesets:add("ninja.png", 64)
-	world = World("level.tmx", {spikes=createSpike,rats=createRat,player=createPlayer} )
+	world = World("level.tmx", {spikes=createSpike,rats=createRat,player=createPlayer,stars=createStar} )
 	-- world:add(Box(100, 100, 50))
 	--world:add()
 	canplay = 3

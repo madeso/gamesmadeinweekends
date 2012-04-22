@@ -8,7 +8,7 @@ require "player.lua"
 require "debug.lua"
 
 Spike = Class{inherits=Collidable, name="Spike", function(self, x,y)
-	Collidable.construct(self, "ninja.png", x,y, 20,40,-20,24)
+	Collidable.construct(self, "ninja.png", x,y, 40,25,-10,36)
 	self:setAnimation({1})
 	self.velocity = 0
 	self.gravity = 100
