@@ -25,6 +25,11 @@ Player = Class{inherits=Collidable, function(self, camera, x,y)
 	self.anidle = self:addAnimation('idle', {2})
 	self.anjump = self:addAnimation('jump', {3})
 	self.anfall = self:addAnimation('fall', {4})
+	
+	self.sndjump = sfx("jump.wav")
+	self.sndsuperjump = sfx("superjump.wav")
+	self.sndpush = sfx("push.wav")
+	self.snddie = sfx("die.wav")
 end}
 
 function Player:colon_down(world)
@@ -43,17 +48,21 @@ end
 function Player:colon_with(other, world)
 	if other:is_a(Spike) then
 		self.col:moveTo( self.lastsafex, self.lastsafey )
+		playSound(self.snddie)
 		self.hormo = 0
 		self.velocity = 0
 	end
 	if other:is_a(Rat) then
 		if self.velocity > 0 then
 			self.velocity = -self.jumpspeed*2
+			playSound(self.sndsuperjump)
 		else
 			if other.pos.x > self.pos.x then
 				self.hormo = -self.BUMP
+				playSound(self.sndpush)
 			else
 				self.hormo = self.BUMP
+				playSound(self.sndpush)
 			end
 		end
 	end
@@ -142,12 +151,10 @@ function Player:post_update(dt)
 end
 
 function Player:onkey(down, key, unicode)
-	if down and key == "x" then
-		console:print("bang!")
-	end
 	if down and key == "up" then
 		if self.downt < 0.1 then
 			self.velocity = -self.jumpspeed
+			playSound(self.sndjump)
 		end
 	end
 	if down and key == "s" then
@@ -165,7 +172,6 @@ function Player:onkey(down, key, unicode)
 		end
 	end
 	if down and key == "_l" then
-		console:print("zing!")
 		local loc = self.camera:worldCoords(love.mouse.getPosition())
 		self.col:moveTo( loc.x, loc.y )
 	end
