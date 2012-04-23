@@ -32,6 +32,7 @@ World = Class{function(self, path, creators)
 	self.debug_collisons = false
 	self.tiles = {}
 	self.camera = Camera(Vector(0,0))
+	self.data = {}
 	
 	local added = 0
 	
