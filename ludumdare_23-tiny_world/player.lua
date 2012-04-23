@@ -57,6 +57,10 @@ function Player:colon_with(other, world)
 			playSound(self.sndstar)
 		end
 	end
+	if other:is_a(Goal) then
+		world.data.goal = other.next
+		print("The goal is", world.data.goal)
+	end
 	if other:is_a(Spike) then
 		self.col:moveTo( self.lastsafex, self.lastsafey )
 		playSound(self.snddie)
