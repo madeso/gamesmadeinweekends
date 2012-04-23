@@ -41,7 +41,9 @@ function smenu:enter()
 	loadWorld()
 end
 function smenu:keyreleased(key)
-    if key == ' ' then
+    if key == "escape" then
+		love.event.push("q")
+	else
 		Gamestate.switch(sgame)
 	end
 end
@@ -57,7 +59,9 @@ function sdone:draw()
     love.graphics.draw(self.bg, 0, 0)
 end
 function sdone:keyreleased(key)
-    if key == ' ' then
+	if key == "escape" then
+		love.event.push("q")
+    else
 		Gamestate.switch(smenu)
 	end
 end
@@ -111,7 +115,7 @@ function sgame:draw()
 	console:draw()
 	fps = 1/deltat
 	love.graphics.setColor(0,0,0, 255)
-	love.graphics.print(string.format("%d", fps), 100, 10)
+	--love.graphics.print(string.format("%d", fps), 100, 10)
 end
 
 function sgame:update(dt)
