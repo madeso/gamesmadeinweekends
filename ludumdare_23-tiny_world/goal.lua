@@ -7,9 +7,10 @@ require 'iolib'
 require "player.lua"
 require "debug.lua"
 
-Goal = Class{inherits=Collidable, name="Goal", function(self, x,y)
+Goal = Class{inherits=Collidable, name="Goal", function(self, x,y,nxt)
 	Collidable.construct(self, "ninja.png", x,y, 40,25,-10,36)
 	self:setAnimation({25})
+	self.next = nxt or "done"
 end}
 
 function Goal:colon_with(other, world)
