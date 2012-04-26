@@ -4,8 +4,8 @@ vector = require "hump.vector"
 require "tilesets"
 require "console"
 require 'iolib'
-require "player.lua"
-require "debug.lua"
+require "player"
+require "debug"
 
 Goal = Class{inherits=Collidable, name="Goal", function(self, x,y,nxt)
 	Collidable.construct(self, "ninja.png", x,y, 40,25,-10,36)

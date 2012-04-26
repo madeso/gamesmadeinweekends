@@ -32,20 +32,32 @@ if not (common and common.class and common.instance) then
 	class_commons = true
 	require(_PACKAGE .. '.class')
 end
-local vector = require(_PACKAGE .. '.vector')
 
--- special cell accesor metamethods, so vectors are converted
--- to a string before using as keys
-local cell_meta = {}
-function cell_meta.__newindex(tbl, key, val)
-	return rawset(tbl, key.x..","..key.y, val)
+-- transparent cell accessor methods
+-- cells = {[0] = {[0] = <>, [1] = <>, ... }, [1] = {...}, ...}
+local cells_meta = {}
+function cells_meta.__newindex(tbl, key, val)
+	local cell = rawget(tbl, key.x)
+	if not cell then
+		rawset(tbl, key.x, {[key.y] = val})
+	else
+		rawset(cell, key.y, val)
+	end
 end
-function cell_meta.__index(tbl, key)
-	local key = key.x..","..key.y
-	local ret = rawget(tbl, key)
+
+function cells_meta.__index(tbl, key)
+	local cell = rawget(tbl, key.x)
+	if not cell then
+		local ret = setmetatable({}, {__mode = "kv"})
+		cell = {[key.y] = ret}
+		rawset(tbl, key.x, cell)
+		return ret
+	end
+
+	local ret = rawget(cell, key.y)
 	if not ret then
 		ret = setmetatable({}, {__mode = "kv"})
-		rawset(tbl, key, ret)
+		rawset(cell, key.y, ret)
 	end
 	return ret
 end
@@ -53,7 +65,7 @@ end
 local Spatialhash = {}
 function Spatialhash:init(cell_size)
 	self.cell_size = cell_size or 100
-	self.cells = setmetatable({}, cell_meta)
+	self.cells = setmetatable({}, cells_meta)
 end
 
 function Spatialhash:cellCoords(v)
@@ -69,7 +81,7 @@ function Spatialhash:insert(obj, ul, lr)
 	local lr = self:cellCoords(lr)
 	for i = ul.x,lr.x do
 		for k = ul.y,lr.y do
-			rawset(self.cells[ {x=i,y=k} ], obj, obj)
+			rawset(self.cells[{x=i,y=k}], obj, obj)
 		end
 	end
 end
@@ -95,6 +107,7 @@ end
 
 -- update an objects position
 function Spatialhash:update(obj, ul_old, lr_old, ul_new, lr_new)
+	print('hash:update', obj)
 	local ul_old, lr_old = self:cellCoords(ul_old), self:cellCoords(lr_old)
 	local ul_new, lr_new = self:cellCoords(ul_new), self:cellCoords(lr_new)
 
@@ -133,17 +146,18 @@ end
 
 function Spatialhash:draw(how, show_empty, print_key)
 	if show_empty == nil then show_empty = true end
-	for k,cell in pairs(self.cells) do
-		local empty = true
-		(function() for _ in pairs(cell) do empty = false; return end end)()
-		if show_empty or not empty then
-			local x,y = k:match("([^,]+),([^,]+)")
-			x = x * self.cell_size
-			y = y * self.cell_size
-			love.graphics.rectangle(how, x,y, self.cell_size, self.cell_size)
+	for k1,v in pairs(self.cells) do
+		for k2,cell in pairs(v) do
+			local empty = true
+			(function() for _ in pairs(cell) do empty = false; return end end)()
+			if show_empty or not empty then
+				local x = k1 * self.cell_size
+				local y = k2 * self.cell_size
+				love.graphics.rectangle(how or 'line', x,y, self.cell_size, self.cell_size)
 
-			if print_key then
-				love.graphics.print(k, x+3,y+3)
+				if print_key then
+					love.graphics.print(("%d:%d"):format(k1,k2), x+3,y+3)
+				end
 			end
 		end
 	end

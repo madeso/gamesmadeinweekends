@@ -4,8 +4,8 @@ vector = require "hump.vector"
 require "tilesets"
 require "console"
 require 'iolib'
-require "player.lua"
-require "debug.lua"
+require "player"
+require "debug"
 
 Spike = Class{inherits=Collidable, name="Spike", function(self, x,y)
 	Collidable.construct(self, "ninja.png", x,y, 40,25,-10,36)
