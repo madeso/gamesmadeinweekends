@@ -46,7 +46,7 @@ World = Class{function(self, path, creators)
 					if tile and tile ~= nil then 
 						--print(x,y, tilenumber)
 						local epsilon = 0.0
-						local ctile = self.collider:addRectangle((x-1)* self.map.tileWidth, (y-1) * self.map.tileHeight, self.map.tileWidth-epsilon, self.map.tileHeight-epsilon)
+						local ctile = self.collider:addRectangle((x)* self.map.tileWidth, (y) * self.map.tileHeight, self.map.tileWidth-epsilon, self.map.tileHeight-epsilon)
 						ctile.type = nil
 						self.collider:addToGroup("tiles", ctile)
 						self.collider:setPassive(ctile)
@@ -136,6 +136,9 @@ function World:update(dt)
 end
 
 function World:onkey(down, key, unicode)
+	if key=='o' then
+		self.debug_collisons = not self.debug_collisons
+	end
 	for i,o in ipairs(self.objects) do
 		o:onkey(down, key, unicode)
 	end
