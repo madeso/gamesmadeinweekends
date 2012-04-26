@@ -4,8 +4,8 @@ vector = require "hump.vector"
 require "tilesets"
 require "console"
 require 'iolib'
-require "player.lua"
-require "debug.lua"
+require "player"
+require "debug"
 
 Rat = Class{inherits=Collidable, name="Rat", function(self, x,y)
 	Collidable.construct(self, "ninja.png", x,y, 50,45,-6,24)
