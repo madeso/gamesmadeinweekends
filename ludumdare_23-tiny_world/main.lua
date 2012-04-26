@@ -40,9 +40,9 @@ function smenu:enter()
 	print("entered menu")
 	loadWorld()
 end
-function smenu:keyreleased(key)
+function smenu:keypressed(key)
     if key == "escape" then
-		love.event.push("q")
+		love.event.quit()
 	else
 		Gamestate.switch(sgame)
 	end
@@ -58,9 +58,9 @@ function sdone:draw()
 	love.graphics.setColor(255,255,255,255)
     love.graphics.draw(self.bg, 0, 0)
 end
-function sdone:keyreleased(key)
+function sdone:keypressed(key)
 	if key == "escape" then
-		love.event.push("q")
+		love.event.quit()
     else
 		Gamestate.switch(smenu)
 	end
@@ -144,7 +144,7 @@ end
 
 function sgame:keypressed(key, unicode)
 	if key == "escape" then
-		love.event.push("q")
+		love.event.quit()
 	end
 	
 	if canplay==0 then
@@ -153,9 +153,6 @@ function sgame:keypressed(key, unicode)
 end
 
 function sgame:keyreleased(key)
-	if key == "p" then
-		loadWorld()
-	end
 	world:onkey(false, key, nil)
 end
 
