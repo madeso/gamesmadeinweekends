@@ -4,6 +4,7 @@ Vector = require 'hump.vector'
 --require "console"
 
 ATL_Loader = require("AdvTiledLoader.Loader")
+ATL_Loader.path = ""
 HC = require 'hardon'
 
 require 'debug'
@@ -37,23 +38,20 @@ World = Class{function(self, path, creators)
 	local added = 0
 	
 	for tilename, tilelayer in pairs(self.map.tileLayers) do
-		print("Working on ", tilename, self.map.height, self.map.width)
+		print("Working on ", tilename, self.map.height, self.map.width, tilelayer)
 		if tilename == "col" then
 			for y=1,self.map.height do
 				for x=1,self.map.width do
-					local tilenumber = tilelayer.tileData[y][x]
-					local tile = self.map.tiles[tilenumber]
-					if tile and tile ~= 0 then 
-						if tilenumber>0 then
-							--print(x,y, tilenumber)
-							local epsilon = 0.0
-							local ctile = self.collider:addRectangle((x-1)* self.map.tileWidth, (y-1) * self.map.tileHeight, self.map.tileWidth-epsilon, self.map.tileHeight-epsilon)
-							ctile.type = nil
-							self.collider:addToGroup("tiles", ctile)
-							self.collider:setPassive(ctile)
-							self.tiles[#self.tiles+1] = ctile
-							added = added + 1
-						end
+					local tile = tilelayer.tileData(x,y)
+					if tile and tile ~= nil then 
+						--print(x,y, tilenumber)
+						local epsilon = 0.0
+						local ctile = self.collider:addRectangle((x-1)* self.map.tileWidth, (y-1) * self.map.tileHeight, self.map.tileWidth-epsilon, self.map.tileHeight-epsilon)
+						ctile.type = nil
+						self.collider:addToGroup("tiles", ctile)
+						self.collider:setPassive(ctile)
+						self.tiles[#self.tiles+1] = ctile
+						added = added + 1
 					end
 				end
 			end
