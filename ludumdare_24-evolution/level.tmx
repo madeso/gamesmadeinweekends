@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="60" height="40" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="tiles" tilewidth="32" tileheight="32">
+  <image source="tiles.png" width="384" height="768"/>
+ </tileset>
+ <layer name="col" width="60" height="40">
+  <data encoding="base64" compression="zlib">
+   eJzt0sEKwjAQRdFWqzu17f9/rG8TCEJAom0258BdThiGTBMAAAAAAABwhjld0jUt6ZbuQzc61iM90yutaUv7oF3K7Xtu/svs0W+35svty83rv9eqvPE5+089e/XsVv+9ViP+4zd7jdoNgH5vBGEDSQ==
+  </data>
+ </layer>
+ <objectgroup name="creators" width="60" height="40">
+  <object x="2024" y="1028"/>
+  <object x="1990" y="892"/>
+  <object x="1976" y="788"/>
+  <object x="1932" y="650"/>
+  <object x="1876" y="516"/>
+  <object x="1822" y="366"/>
+  <object x="1764" y="254"/>
+  <object x="1672" y="120"/>
+  <object x="1548" y="26"/>
+  <object x="1410" y="-78"/>
+  <object x="1238" y="-98"/>
+  <object x="950" y="-102"/>
+  <object x="744" y="-108"/>
+  <object x="568" y="-62"/>
+  <object x="416" y="2"/>
+  <object x="288" y="58"/>
+  <object x="170" y="152"/>
+  <object x="46" y="292"/>
+  <object x="-8" y="392"/>
+  <object x="-116" y="606"/>
+  <object x="-158" y="746"/>
+  <object x="-96" y="490"/>
+  <object x="846" y="-112"/>
+  <object x="1104" y="-112"/>
+  <object x="1466" y="-14"/>
+  <object x="1692" y="206"/>
+  <object x="2124" y="1088"/>
+  <object x="2114" y="830"/>
+  <object x="2010" y="594"/>
+  <object x="1944" y="264"/>
+  <object x="1786" y="68"/>
+  <object x="1608" y="-116"/>
+  <object x="1344" y="-216"/>
+  <object x="1010" y="-232"/>
+  <object x="718" y="-216"/>
+  <object x="438" y="-154"/>
+  <object x="210" y="-50"/>
+  <object x="-22" y="116"/>
+  <object x="-164" y="316"/>
+  <object x="-296" y="566"/>
+  <object x="-310" y="850"/>
+  <object x="-446" y="722"/>
+  <object x="-370" y="390"/>
+  <object x="-198" y="88"/>
+  <object x="-54" y="-52"/>
+  <object x="222" y="-218"/>
+  <object x="502" y="-288" width="2"/>
+  <object x="854" y="-362"/>
+  <object x="1212" y="-358"/>
+  <object x="1510" y="-282"/>
+  <object x="1764" y="-102"/>
+  <object x="1940" y="92"/>
+  <object x="2078" y="366"/>
+  <object x="2160" y="674"/>
+  <object x="2232" y="1006"/>
+  <object x="-362" y="1004"/>
+ </objectgroup>
+ <objectgroup name="player" width="60" height="40" visible="0">
+  <object x="957" y="824"/>
+ </objectgroup>
+ <objectgroup name="partners" width="60" height="40">
+  <object x="1488" y="972"/>
+  <object x="1632" y="976"/>
+  <object x="1738" y="958"/>
+  <object x="240" y="948"/>
+  <object x="314" y="944"/>
+  <object x="386" y="942"/>
+  <object x="456" y="950"/>
+ </objectgroup>
+</map>
