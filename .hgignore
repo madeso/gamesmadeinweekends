@@ -16,3 +16,4 @@ glob:minigame/city-hacking/play.lnk
 glob:ludumdare_23-tiny_world/dist/generate.bat
 glob:lala/*
 glob:minigame/city-hacking/compile.bat
+glob:*.exe
