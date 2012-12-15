@@ -38,10 +38,8 @@ function love.load()
 end
 
 function newgame()
-	player = Object()
-	player.image = 2
-	player.animation = {2,4,1,3}
-	player.animationspeed = 0.25
+	punch = 0
+	player = Player()
 	objects = {}
 	table.insert(objects, Object())
 end
@@ -108,19 +106,24 @@ function Object()
 	self.drawnight = true
 	self.dead = false
 	
-	self.animation = {1,3}
+	self.animation = {21}
 	self.animationspeed = 1
 	self.animationtimer = 0
 	self.animationindex = 1
+	self.animationname = ""
 	
-	self.life = 3
+	function self:setanimation(name, timer, anim)
+		if name ~= self.animationname then
+			self.animationspeed = timer
+			self.animation = anim
+			self.image = anim[1]
+			self.animationindex = 1
+			self.animationtimer = 0
+			self.animationname = name
+		end
+	end
 	
 	function self:update(dt)
-		if self.life < 0 then
-			self.dead = true
-		else
-			self.life = self.life - dt
-		end
 		self.animationtimer = self.animationtimer + dt
 		if self.animationtimer > self.animationspeed then
 			self.animationtimer = self.animationtimer - self.animationspeed
@@ -159,14 +162,36 @@ function draw_object(o, nightval, worldrotation)
 	end
 end
 
+punchtimer = 0
+
 function love.update(dt)
 	local move = 0
+	local moving = false
 	if leftkey then
 		move = -1
 		player.dir = 4
+		moving = true
 	elseif rightkey then
 		move = 1
 		player.dir = 6
+		moving = true
+	end
+	
+	if punch > 0 then
+		punchtimer = 0.2
+		player:move(move*0.002)
+	end
+	
+	if punchtimer > 0 then
+		punchtimer = punchtimer - dt
+		player:setanimation("punching", 0.10, {6, 7, 6, 8})
+	else
+		if moving then
+			player:setanimation("walk", 0.15, {2, 3, 4, 5})
+			player:move(move*dt*0.05)
+		else
+			player:setanimation("idle", 1, {1})
+		end
 	end
 	
 	for i,o in pairs(objects) do
@@ -175,11 +200,12 @@ function love.update(dt)
 	remove_if(objects, object_is_dead)
 	player:update(dt)
 	
-	player:move(move*dt*0.05)
-	worldtime = worldtime + dt * 0.1
+	worldtime = worldtime + dt * 0.01
 	if worldtime > 1 then
 		worldtime = 1
 	end
+	
+	punch = 0
 end
 
 function object_is_dead(obj)
@@ -205,6 +231,10 @@ function onkey(key, down)
 	if key == "right" then
 		rightkey = down
 	end
+	
+	if key == " " and down then
+		punch = punch + 1
+	end
 end
 
 function remove_if(list, func)
@@ -219,4 +249,12 @@ function remove_if(list, func)
                 i = table.remove(toremove)
                 table.remove(list,i)
         end
+end
+
+function Player()
+	local player = Object()
+	player.image = 1
+	player.animation = {1, 2}
+	player.animationspeed = 0.8
+	return player
 end
