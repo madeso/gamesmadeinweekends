@@ -3,6 +3,8 @@ PLAYERSIZE = 32
 WORLDY = 150
 WORLDYCHANGE = 250
 
+TWOPI = 2*math.pi
+
 require "tileset"
 Camera = require "hump.camera"
 
@@ -10,7 +12,6 @@ citybg = {}
 citynight = {}
 citylines = {}
 city = 1
-worldrotation = 0
 
 worldtime = 0
 
@@ -32,6 +33,15 @@ function love.load()
 	sky.parallax2 = love.graphics.newImage("gfx/sky-parallax2.png")
 	sky.parallax3 = love.graphics.newImage("gfx/sky-parallax3.png")
 	sky.signal = love.graphics.newImage("gfx/sky-signal.png")
+	
+	newgame()
+end
+
+function newgame()
+	player = Object()
+	player.image = 2
+	objects = {}
+	table.insert(objects, Object())
 end
 
 function draw_sky(x)
@@ -68,6 +78,7 @@ function love.draw()
 end
 
 function draw_world()
+	local worldrotation = player.pos
 	local nightval = math.max(0.4,1-worldtime)
 	love.graphics.setColor(255*nightval,255*nightval,255*nightval)
 	love.graphics.draw(citybg[city], 0, 0, worldrotation, 1,1, 512,512)
@@ -82,22 +93,42 @@ function draw_world()
 	
 	tiles:start()
 	
-	local object = {}
-	object.image = 1
-	object.dir = 6
-	object.pos = worldrotation * 8
-	object.drawnight = true
+	for i,o in pairs(objects) do
+		draw_object(o, nightval, worldrotation)
+	end
 	
-	draw_object(object, nightval)
+	draw_object(player, nightval, worldrotation)
 	
 	tiles:stop()
 end
 
-function draw_object(o, nightval)
+function Object()
+	local self = {}
+	self.image = 1
+	self.dir = 6
+	self.pos = 0
+	self.drawnight = true
+	
+	function self:move(d)
+		self.pos = self.pos - d * math.pi
+		
+		if self.pos > TWOPI then
+			self.pos = self.pos - TWOPI
+		end
+		if self.pos < 0 then
+			self.pos = self.pos + TWOPI
+		end
+	end
+	
+	return self
+end
+
+function draw_object(o, nightval, worldrotation)
 	local dist = WORLDSIZE+PLAYERSIZE
-	local x = dist * math.cos(o.pos)
-	local y = dist * math.sin(o.pos)
-	local ang = o.pos + 0.5 * math.pi
+	local pos = o.pos - worldrotation - 0.5*math.pi
+	local x = dist * math.cos(pos)
+	local y = dist * math.sin(pos)
+	local ang = pos + 0.5 * math.pi
 	if o.drawnight then
 		tiles:draw(o.image,x,y,o.dir, 1, ang, 255, 255*nightval)
 	else
@@ -106,12 +137,37 @@ function draw_object(o, nightval)
 end
 
 function love.update(dt)
-	worldrotation = worldrotation + dt * 0.05 * math.pi
+	local move = 0
+	if leftkey then
+		move = -1
+	elseif rightkey then
+		move = 1
+	end
+	
+	player:move(move*dt*0.05)
 	worldtime = worldtime + dt * 0.1
 	if worldtime > 1 then
 		worldtime = 1
 	end
-	if worldrotation > 2*math.pi then
-		worldrotation = worldrotation - 2*math.pi
+end
+
+function love.keypressed(key, unicode)
+	onkey(key, true)
+end
+
+function love.keyreleased(key)
+	onkey(key, false)
+end
+
+leftkey = false
+rightkey = false
+
+function onkey(key, down)
+	if key == "left" then
+		leftkey = down
+	end
+	
+	if key == "right" then
+		rightkey = down
 	end
 end
