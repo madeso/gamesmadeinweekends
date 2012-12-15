@@ -59,14 +59,18 @@ function draw_sky(x)
 end
 
 function love.draw()
-	local worldy = WORLDY + WORLDYCHANGE * worldtime
 	draw_sky(worldtime)
 	
-	local nightval = math.max(0.4,1-worldtime)
-	
+	local worldy = WORLDY + WORLDYCHANGE * worldtime
 	cam:lookAt(0,-worldy)
-	cam:attach()
 	
+	cam:attach()
+	draw_world()
+	cam:detach()
+end
+
+function draw_world()
+	local nightval = math.max(0.4,1-worldtime)
 	love.graphics.setColor(255*nightval,255*nightval,255*nightval)
 	love.graphics.draw(citybg[city], 0, 0, worldrotation, 1,1, 512,512)
 	love.graphics.setColor(255,255,255, 255 * math.min(1, 2*worldtime))
@@ -79,23 +83,28 @@ function love.draw()
 	love.graphics.circle("line", 0, -WORLDSIZE-PLAYERSIZE, PLAYERSIZE)
 	
 	tiles:start()
-	local image = 1
-	local dir = 6
-	local pos = worldrotation * 8
-	local drawnight = true
 	
-	local dist = WORLDSIZE+PLAYERSIZE
-	local x = dist * math.cos(pos)
-	local y = dist * math.sin(pos)
-	local ang = pos + 0.5 * math.pi
-	if drawnight then
-		tiles:draw(image,x,y,dir, 1, ang, 255, 255*nightval)
-	else
-		tiles:draw(image,x,y,dir, 1, ang)
-	end
+	local object = {}
+	object.image = 1
+	object.dir = 6
+	object.pos = worldrotation * 8
+	object.drawnight = true
+	
+	draw_object(object, nightval)
+	
 	tiles:stop()
-	
-	cam:detach()
+end
+
+function draw_object(o, nightval)
+	local dist = WORLDSIZE+PLAYERSIZE
+	local x = dist * math.cos(o.pos)
+	local y = dist * math.sin(o.pos)
+	local ang = o.pos + 0.5 * math.pi
+	if o.drawnight then
+		tiles:draw(o.image,x,y,o.dir, 1, ang, 255, 255*nightval)
+	else
+		tiles:draw(o.image,x,y,o.dir, 1, ang)
+	end
 end
 
 function love.update(dt)
