@@ -1,5 +1,5 @@
 --[[
-Copyright (c) 2010 Matthias Richter
+Copyright (c) 2010-2012 Matthias Richter
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -25,16 +25,30 @@ THE SOFTWARE.
 ]]--
 
 local _PATH = (...):match('^(.*[%./])[^%.%/]+$') or ''
-local vector = vector or Vector or require(_PATH..'vector')
+local cos, sin = math.cos, math.sin
 
 local camera = {}
 camera.__index = camera
 
-local function new(pos, zoom, rot)
-	local pos  = pos or vector(love.graphics.getWidth(), love.graphics.getHeight()) / 2
-	local zoom = zoom or 1
-	local rot  = rot or 0
-	return setmetatable({pos = pos, zoom = zoom, rot = rot}, camera)
+local function new(x,y, zoom, rot)
+	x,y  = x or love.graphics.getWidth()/2, y or love.graphics.getHeight()/2
+	zoom = zoom or 1
+	rot  = rot or 0
+	return setmetatable({x = x, y = y, scale = zoom, rot = rot}, camera)
+end
+
+function camera:lookAt(x,y)
+	self.x, self.y = x,y
+	return self
+end
+
+function camera:move(x,y)
+	self.x, self.y = self.x + x, self.y + y
+	return self
+end
+
+function camera:pos()
+	return self.x, self.y
 end
 
 function camera:rotate(phi)
@@ -42,19 +56,28 @@ function camera:rotate(phi)
 	return self
 end
 
-function camera:move(p,q)
-	p = type(p) == "number" and vector(p,q) or p
-	self.pos = self.pos + p
+function camera:rotateTo(phi)
+	self.rot = phi
+	return self
+end
+
+function camera:zoom(mul)
+	self.scale = self.scale * mul
+	return self
+end
+
+function camera:zoomTo(zoom)
+	self.scale = zoom
 	return self
 end
 
 function camera:attach()
-	local center = vector(love.graphics.getWidth(), love.graphics.getHeight()) / (self.zoom * 2)
+	local cx,cy = love.graphics.getWidth()/(2*self.scale), love.graphics.getHeight()/(2*self.scale)
 	love.graphics.push()
-	love.graphics.scale(self.zoom)
-	love.graphics.translate(center:unpack())
+	love.graphics.scale(self.scale)
+	love.graphics.translate(cx, cy)
 	love.graphics.rotate(self.rot)
-	love.graphics.translate((-self.pos):unpack())
+	love.graphics.translate(-self.x, -self.y)
 end
 
 function camera:detach()
@@ -67,23 +90,26 @@ function camera:draw(func)
 	self:detach()
 end
 
-function camera:cameraCoords(p, q)
-	p = type(p) == "number" and vector(p,q) or p
+function camera:cameraCoords(x,y)
+	-- x,y = ((x,y) - (self.x, self.y)):rotated(self.rot) * self.scale + center
 	local w,h = love.graphics.getWidth(), love.graphics.getHeight()
-	p = (p - self.pos):rotate_inplace(self.rot)
-	return vector(p.x * self.zoom + w/2, p.y * self.zoom + h/2)
+	local c,s = cos(self.rot), sin(self.rot)
+	x,y = x - self.x, y - self.y
+	x,y = c*x - s*y, s*x + c*y
+	return x*self.scale + w/2, y*self.scale + h/2
 end
 
-function camera:worldCoords(p, q)
-	p = type(p) == "number" and vector(p,q) or p
-
+function camera:worldCoords(x,y)
+	-- x,y = (((x,y) - center) / self.scale):rotated(-self.rot) + (self.x,self.y)
 	local w,h = love.graphics.getWidth(), love.graphics.getHeight()
-	p = vector((p.x-w/2) / self.zoom, (p.y-h/2) / self.zoom):rotate_inplace(-self.rot)
-	return p + self.pos
+	local c,s = cos(-self.rot), sin(-self.rot)
+	x,y = (x - w/2) / self.scale, (y - h/2) / self.scale
+	x,y = c*x - s*y, s*x + c*y
+	return x+self.x, y+self.y
 end
 
 function camera:mousepos()
-	return self:worldCoords(vector(love.mouse.getPosition()))
+	return self:worldCoords(love.mouse.getPosition())
 end
 
 -- the module
