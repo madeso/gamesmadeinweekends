@@ -1,5 +1,5 @@
 --[[
-Copyright (c) 2010-2011 Matthias Richter
+Copyright (c) 2010-2012 Matthias Richter
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -73,7 +73,7 @@ function GS.registerEvents(callbacks)
 	callbacks = callbacks or all_callbacks
 	for _, f in ipairs(callbacks) do
 		registry[f] = love[f]
-		love[f] = function(...) GS[f](...) end
+		love[f] = function(...) return GS[f](...) end
 	end
 end
 
@@ -81,7 +81,7 @@ end
 setmetatable(GS, {__index = function(_, func)
 	return function(...)
 		registry[func](...)
-		current[func](current, ...)
+		return current[func](current, ...)
 	end
 end})
 
