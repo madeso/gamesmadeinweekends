@@ -9,6 +9,10 @@ KEYLEFT = "left"
 KEYRIGHT = "right"
 KEYPUNCH = " "
 
+KEYLEFT = "joy1-An1"
+KEYRIGHT = "joy1-Ap1"
+KEYPUNCH = "joy1-3"
+
 require "tileset"
 Camera = require "hump.camera"
 
@@ -270,7 +274,7 @@ function love.joystickpressed( joystick, button )
 	onkey("joy"..tostring(joystick).."-"..tostring(button), true)
 end
 
-function love.joystickpressed( joystick, button )
+function love.joystickreleased( joystick, button )
 	onkey("joy"..tostring(joystick).."-"..tostring(button), false)
 end
 
@@ -310,7 +314,7 @@ function sendjoykeys()
 			end
 			if data.axesr[axis] ~= right then
 				data.axesr[axis] = right
-				onkey("joy"..tostring(joystick).."-Ar"..tostring(axis), right)
+				onkey("joy"..tostring(joystick).."-Ap"..tostring(axis), right)
 			end
 		end
 	end
