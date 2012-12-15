@@ -3,6 +3,8 @@ PLAYERSIZE = 32
 WORLDY = 150
 WORLDYCHANGE = 250
 
+require "tileset"
+
 citybg = {}
 citynight = {}
 citylines = {}
@@ -14,6 +16,8 @@ worldtime = 0
 sky = {}
 
 function love.load()
+	tiles = Tileset("gfx/tiles.png", 64)
+	
 	for i=1, 1 do
 		table.insert( citybg, love.graphics.newImage("gfx/city" .. i ..  ".png") )
 		table.insert( citynight, love.graphics.newImage("gfx/city" .. i ..  "-night.png") )
@@ -67,11 +71,28 @@ function love.draw()
 	love.graphics.setColor(255,0,0)
     love.graphics.circle("line", 400, 300+worldy, WORLDSIZE)
 	love.graphics.circle("line", 400, 300-WORLDSIZE-PLAYERSIZE+worldy, PLAYERSIZE)
+	
+	tiles:start()
+	local image = 1
+	local dir = 6
+	local pos = worldrotation * 8
+	local drawnight = true
+	
+	local dist = WORLDSIZE+PLAYERSIZE
+	local x = dist * math.cos(pos)
+	local y = dist * math.sin(pos)
+	local ang = pos + 0.5 * math.pi
+	if drawnight then
+		tiles:draw(image,400+x,300+worldy+y,dir, 1, ang, 255, 255*nightval)
+	else
+		tiles:draw(image,400+x,300+worldy+y,dir, 1, ang)
+	end
+	tiles:stop()
 end
 
 function love.update(dt)
 	worldrotation = worldrotation + dt * 0.05 * math.pi
-	worldtime = worldtime + dt * 0.05
+	worldtime = worldtime + dt * 0.01
 	if worldtime > 1 then
 		worldtime = 1
 	end
