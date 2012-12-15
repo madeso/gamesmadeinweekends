@@ -4,6 +4,7 @@ WORLDY = 150
 WORLDYCHANGE = 250
 
 require "tileset"
+Camera = require "hump.camera"
 
 citybg = {}
 citynight = {}
@@ -12,6 +13,8 @@ city = 1
 worldrotation = 0
 
 worldtime = 0
+
+cam = Camera(0,0)
 
 sky = {}
 
@@ -61,16 +64,19 @@ function love.draw()
 	
 	local nightval = math.max(0.4,1-worldtime)
 	
+	cam:lookAt(0,-worldy)
+	cam:attach()
+	
 	love.graphics.setColor(255*nightval,255*nightval,255*nightval)
-	love.graphics.draw(citybg[city], 400, 300+worldy, worldrotation, 1,1, 512,512)
+	love.graphics.draw(citybg[city], 0, 0, worldrotation, 1,1, 512,512)
 	love.graphics.setColor(255,255,255, 255 * math.min(1, 2*worldtime))
-	love.graphics.draw(citynight[city], 400, 300+worldy, worldrotation, 1,1, 512,512)
+	love.graphics.draw(citynight[city], 0, 0, worldrotation, 1,1, 512,512)
 	love.graphics.setColor(255,255,255,255)
-	love.graphics.draw(citylines[city], 400, 300+worldy, worldrotation, 1,1, 512,512)
+	love.graphics.draw(citylines[city], 0, 0, worldrotation, 1,1, 512,512)
 	
 	love.graphics.setColor(255,0,0)
-    love.graphics.circle("line", 400, 300+worldy, WORLDSIZE)
-	love.graphics.circle("line", 400, 300-WORLDSIZE-PLAYERSIZE+worldy, PLAYERSIZE)
+    love.graphics.circle("line", 0, 0, WORLDSIZE)
+	love.graphics.circle("line", 0, -WORLDSIZE-PLAYERSIZE, PLAYERSIZE)
 	
 	tiles:start()
 	local image = 1
@@ -83,16 +89,18 @@ function love.draw()
 	local y = dist * math.sin(pos)
 	local ang = pos + 0.5 * math.pi
 	if drawnight then
-		tiles:draw(image,400+x,300+worldy+y,dir, 1, ang, 255, 255*nightval)
+		tiles:draw(image,x,y,dir, 1, ang, 255, 255*nightval)
 	else
-		tiles:draw(image,400+x,300+worldy+y,dir, 1, ang)
+		tiles:draw(image,x,y,dir, 1, ang)
 	end
 	tiles:stop()
+	
+	cam:detach()
 end
 
 function love.update(dt)
 	worldrotation = worldrotation + dt * 0.05 * math.pi
-	worldtime = worldtime + dt * 0.01
+	worldtime = worldtime + dt * 0.1
 	if worldtime > 1 then
 		worldtime = 1
 	end
