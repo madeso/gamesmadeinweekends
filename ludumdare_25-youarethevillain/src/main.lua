@@ -106,13 +106,21 @@ function Object()
 	self.dir = 6
 	self.pos = 0
 	self.drawnight = true
+	self.dead = false
 	
 	self.animation = {1,3}
 	self.animationspeed = 1
 	self.animationtimer = 0
 	self.animationindex = 1
 	
+	self.life = 3
+	
 	function self:update(dt)
+		if self.life < 0 then
+			self.dead = true
+		else
+			self.life = self.life - dt
+		end
 		self.animationtimer = self.animationtimer + dt
 		if self.animationtimer > self.animationspeed then
 			self.animationtimer = self.animationtimer - self.animationspeed
@@ -164,6 +172,7 @@ function love.update(dt)
 	for i,o in pairs(objects) do
 		o:update(dt)
 	end
+	remove_if(objects, object_is_dead)
 	player:update(dt)
 	
 	player:move(move*dt*0.05)
@@ -171,6 +180,10 @@ function love.update(dt)
 	if worldtime > 1 then
 		worldtime = 1
 	end
+end
+
+function object_is_dead(obj)
+	return obj.dead
 end
 
 function love.keypressed(key, unicode)
@@ -192,4 +205,18 @@ function onkey(key, down)
 	if key == "right" then
 		rightkey = down
 	end
+end
+
+function remove_if(list, func)
+        local toremove = {}
+        for i,item in ipairs(list) do
+                if func(item) then
+                        table.insert(toremove, i)
+                end
+        end
+        local i = 0
+        while #toremove ~= 0 do
+                i = table.remove(toremove)
+                table.remove(list,i)
+        end
 end
