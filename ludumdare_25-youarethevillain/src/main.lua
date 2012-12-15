@@ -125,7 +125,7 @@ end
 
 function draw_object(o, nightval, worldrotation)
 	local dist = WORLDSIZE+PLAYERSIZE
-	local pos = o.pos - worldrotation - 0.5*math.pi
+	local pos = -o.pos + worldrotation - 0.5*math.pi
 	local x = dist * math.cos(pos)
 	local y = dist * math.sin(pos)
 	local ang = pos + 0.5 * math.pi
