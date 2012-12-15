@@ -5,6 +5,10 @@ WORLDYCHANGE = 250
 
 TWOPI = 2*math.pi
 
+KEYLEFT = "left"
+KEYRIGHT = "right"
+KEYPUNCH = " "
+
 require "tileset"
 Camera = require "hump.camera"
 
@@ -165,6 +169,7 @@ end
 punchtimer = 0
 
 function love.update(dt)
+	sendjoykeys()
 	local move = 0
 	local moving = false
 	if leftkey then
@@ -224,15 +229,17 @@ leftkey = false
 rightkey = false
 
 function onkey(key, down)
-	if key == "left" then
+	print(down, key)
+	
+	if key == KEYLEFT then
 		leftkey = down
 	end
 	
-	if key == "right" then
+	if key == KEYRIGHT then
 		rightkey = down
 	end
 	
-	if key == " " and down then
+	if key == KEYPUNCH and down then
 		punch = punch + 1
 	end
 end
@@ -257,4 +264,54 @@ function Player()
 	player.animation = {1, 2}
 	player.animationspeed = 0.8
 	return player
+end
+
+function love.joystickpressed( joystick, button )
+	onkey("joy"..tostring(joystick).."-"..tostring(button), true)
+end
+
+function love.joystickpressed( joystick, button )
+	onkey("joy"..tostring(joystick).."-"..tostring(button), false)
+end
+
+function sendjoykeys()
+	local joysticks = love.joystick.getNumJoysticks()
+	
+	if js == nil then
+		js = {}
+		for joystick=1, joysticks do
+			local data = {}
+			data.axes = love.joystick.getNumAxes(joystick)
+			data.axesl = {}
+			data.axesr = {}
+			for axis=1, data.axes do
+				data.axesl[axis] = false
+				data.axesr[axis] = false
+			end
+			js[joystick] = data
+		end
+	end
+	
+	for joystick=1, joysticks do
+		local data = js[joystick]
+		for axis=1, data.axes do
+			local direction = love.joystick.getAxis(joystick, axis)
+			local left = false
+			local right = false
+			if direction > 0.5 then
+				right = true
+			end
+			if direction < -0.5 then
+				left = true
+			end
+			if data.axesl[axis] ~= left then
+				data.axesl[axis] = left
+				onkey("joy"..tostring(joystick).."-An"..tostring(axis), left)
+			end
+			if data.axesr[axis] ~= right then
+				data.axesr[axis] = right
+				onkey("joy"..tostring(joystick).."-Ar"..tostring(axis), right)
+			end
+		end
+	end
 end
