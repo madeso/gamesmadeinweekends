@@ -40,6 +40,8 @@ end
 function newgame()
 	player = Object()
 	player.image = 2
+	player.animation = {2,4,1,3}
+	player.animationspeed = 0.25
 	objects = {}
 	table.insert(objects, Object())
 end
@@ -87,10 +89,6 @@ function draw_world()
 	love.graphics.setColor(255,255,255,255)
 	love.graphics.draw(citylines[city], 0, 0, worldrotation, 1,1, 512,512)
 	
-	love.graphics.setColor(255,0,0)
-    love.graphics.circle("line", 0, 0, WORLDSIZE)
-	love.graphics.circle("line", 0, -WORLDSIZE-PLAYERSIZE, PLAYERSIZE)
-	
 	tiles:start()
 	
 	for i,o in pairs(objects) do
@@ -108,6 +106,23 @@ function Object()
 	self.dir = 6
 	self.pos = 0
 	self.drawnight = true
+	
+	self.animation = {1,3}
+	self.animationspeed = 1
+	self.animationtimer = 0
+	self.animationindex = 1
+	
+	function self:update(dt)
+		self.animationtimer = self.animationtimer + dt
+		if self.animationtimer > self.animationspeed then
+			self.animationtimer = self.animationtimer - self.animationspeed
+			self.animationindex = self.animationindex + 1
+			if self.animationindex > #self.animation then
+				self.animationindex = 1
+			end
+			self.image = self.animation[self.animationindex]
+		end
+	end
 	
 	function self:move(d)
 		self.pos = self.pos - d * math.pi
@@ -140,9 +155,16 @@ function love.update(dt)
 	local move = 0
 	if leftkey then
 		move = -1
+		player.dir = 4
 	elseif rightkey then
 		move = 1
+		player.dir = 6
 	end
+	
+	for i,o in pairs(objects) do
+		o:update(dt)
+	end
+	player:update(dt)
 	
 	player:move(move*dt*0.05)
 	worldtime = worldtime + dt * 0.1
