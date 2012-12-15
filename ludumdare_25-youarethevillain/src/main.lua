@@ -14,8 +14,6 @@ worldrotation = 0
 
 worldtime = 0
 
-cam = Camera(0,0)
-
 sky = {}
 
 function love.load()
@@ -62,7 +60,7 @@ function love.draw()
 	draw_sky(worldtime)
 	
 	local worldy = WORLDY + WORLDYCHANGE * worldtime
-	cam:lookAt(0,-worldy)
+	local cam = Camera(0,-worldy, 1, 0)
 	
 	cam:attach()
 	draw_world()
