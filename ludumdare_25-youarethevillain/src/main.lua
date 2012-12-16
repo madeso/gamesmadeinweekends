@@ -331,9 +331,9 @@ end
 
 function on_player_punched(obj, dir, pl)
 	if obj.class == "civ" and dir == pl.dir then
-		obj:onhurt()
+		obj:onhurt(player)
 	elseif obj.class == "hero" and dir == pl.dir then
-		obj:onhurt()
+		obj:onhurt(player)
 	end
 end
 
@@ -360,6 +360,12 @@ function Player()
 	player.moving = 0
 	player.charging = false
 	player.chargetimer = 0
+	
+	function player:onhurt(other)
+		self.charging = false
+		-- todo: kickback
+	end
+	
 	return player
 end
 
@@ -418,17 +424,23 @@ function Hero_Dog()
 	--dog.pos = math.random() * 2 * math.pi
 	dog.pos = math.pi * 0.25
 	
-	function dog:onhurt()
-		if self.state ~= 3 and self.state ~= 7 and self.state ~= 6 and self.state ~= 1 then
-			self.health = self.health -1
-			if self.health <= 0 then
-				-- dead
-				self.timer = 2
-				self.state = 7
-			else
-				-- hurt
-				self.timer = 0.25
-				self.state = 3
+	function dog:onhurt(other)
+		if self.state == 6 then
+			if other ~= nil then
+				other:onhurt(self)
+			end
+		else
+			if self.state ~= 3 and self.state ~= 7 and self.state ~= 1 then
+				self.health = self.health -1
+				if self.health <= 0 then
+					-- dead
+					self.timer = 2
+					self.state = 7
+				else
+					-- hurt
+					self.timer = 0.25
+					self.state = 3
+				end
 			end
 		end
 	end
@@ -449,14 +461,13 @@ function Hero_Dog()
 		elseif self.state == 2 then
 			-- walking
 			if distance(self.pos, player.pos) < 0.05 * math.pi then
-				self.timer = 2
-				self.state = 4
+				self:setPunchBlockorLaugh()
 			end
 			
 			self:setanimation("walk", 0.25, {2, 3, 4, 3})
 			local mdir = 1
 			self.dir = 6
-			if player.pos > self.pos then
+			if onleftside(self.pos, player.pos) then
 				mdir = -1
 				self.dir = 4
 			end
@@ -465,8 +476,7 @@ function Hero_Dog()
 			-- hurt
 			self:setanimation("hurt", 1, {9})
 			if self.timer < 0 then
-				self.state = 6
-				self.timer = 2
+				self:setPunchOrBlock()
 			end
 		elseif self.state == 4 then
 			-- laughing
@@ -476,7 +486,7 @@ function Hero_Dog()
 			end
 		elseif self.state == 5 then
 			-- punching
-			self:setanimation("punching", 0.25, {6,7})
+			self:setanimation("punching", 0.10, {6,7})
 			if self.timer <= 0 then
 				self.state = 2
 			end
@@ -500,11 +510,44 @@ function Hero_Dog()
 		
 		self:obj_update(dt)
 	end
+	function dog:setPunchOrBlock()
+		if math.random() > 0.5 then
+			-- punching
+			self.timer = 1+math.random()
+			self.state = 5
+		else
+			-- blocking
+			self.timer = 2+math.random()
+			self.state = 6
+		end
+	end
+	function dog:setPunchBlockorLaugh()
+		local r = math.random()
+		if r < 0.40 then
+			-- punch
+			self.timer = 1+math.random()
+			self.state = 5
+		elseif r < 0.80 then
+			-- block
+			self.timer = 1+math.random()
+			self.state = 6
+		else
+			-- laugh
+			self.timer = 1+2*math.random()
+			self.state = 4
+		end
+	end
 	return dog
 end
 
+function onleftside(a,b)
+	local _, right = getdirectiondata(a,b)
+	return right == false
+end
+
 function distance(a,b)
-	return math.abs(a-b)
+	local dist, _ = getdirectiondata(a,b)
+	return dist
 end
 
 function PhysObj(dx,dy, grav, rinc)
@@ -600,6 +643,25 @@ function _on_close(obj, pos, range, func, data)
 		end
 		func(obj, dir, data)
 	end
+end
+
+function getdirectiondata(b,a)
+	local right =  a < b
+	local range = math.abs(a-b)
+	
+	local temp = math.abs(a+(2*math.pi)-b)
+	if temp < range then
+		right = a+(2*math.pi) < b
+		range = temp
+	end
+	
+	temp = math.abs(a-(2*math.pi)-b)
+	if temp < range then
+		right = a-(2*math.pi) < b
+		range = temp
+	end
+	
+	return range, right
 end
 
 function love.joystickpressed( joystick, button )
