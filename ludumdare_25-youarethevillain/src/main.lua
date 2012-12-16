@@ -48,8 +48,6 @@ citynight = {}
 citylines = {}
 city = 1
 
-worldtime = 0
-
 sky = {}
 
 function love.load()
@@ -70,7 +68,7 @@ function love.load()
 	sky.signal = love.graphics.newImage("gfx/sky-signal.png")
 	
 	Gamestate.registerEvents()
-	Gamestate.switch(SGame)
+	Gamestate.switch(SFadeInToWorld)
 	newgame()
 end
 
@@ -107,21 +105,31 @@ function draw_sky(x)
 	love.graphics.draw(sky.front, 0, 0)
 end
 
-function draw_everything()
+function draw_screen()
+	love.graphics.rectangle('fill', 0, 0, 800,600)
+end
+
+function draw_title(y)
+	love.graphics.print("TITLE", 20, 100*y)
+end
+
+function draw_everything(worldtime, drawobjects, drawplayer, drawhud)
 	draw_sky(worldtime)
 	
 	local worldy = WORLDY + WORLDYCHANGE * worldtime
 	local cam = Camera(0,-worldy, 1, 0)
 	
 	cam:attach()
-	draw_world()
+	draw_world(worldtime, drawobjects, drawplayer)
 	cam:detach()
 	
-	love.graphics.setColor(255, 255, 255, 255)
-	love.graphics.print("health: " .. tostring(player.health), 0,0)
+	if drawhud then
+		love.graphics.setColor(255, 255, 255, 255)
+		love.graphics.print("health: " .. tostring(player.health), 0,0)
+	end
 end
 
-function draw_world()
+function draw_world(worldtime, drawobjects, drawplayer)
 	local worldrotation = player.pos
 	local nightval = math.max(0.4,1-worldtime)
 	love.graphics.setColor(255*nightval,255*nightval,255*nightval)
@@ -133,11 +141,15 @@ function draw_world()
 	
 	tiles:start()
 	
-	for i,o in pairs(objects) do
-		draw_object(o, nightval, worldrotation)
+	if drawobjects then
+		for i,o in pairs(objects) do
+			draw_object(o, nightval, worldrotation)
+		end
 	end
 	
-	draw_object(player, nightval, worldrotation)
+	if drawplayer then
+		draw_object(player, nightval, worldrotation)
+	end
 	
 	tiles:stop()
 end
@@ -311,11 +323,6 @@ function game_update(dt)
 		table.insert(objects, o)
 	end
 	newobjects = {}
-	
-	worldtime = worldtime + dt * 0.01
-	if worldtime > 1 then
-		worldtime = 1
-	end
 	
 	punch = 0
 	
