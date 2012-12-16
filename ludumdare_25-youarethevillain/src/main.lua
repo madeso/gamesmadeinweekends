@@ -255,6 +255,11 @@ function love.update(dt)
 		end
 	end
 	
+	player:move(player.kickbackdir * player.kickback * 0.8 * dt)
+	if player.kickback > 0 then
+		player.kickback = player.kickback - dt
+	end
+	
 	if walking then
 		player.moving = player.moving + dt
 	else
@@ -360,10 +365,22 @@ function Player()
 	player.moving = 0
 	player.charging = false
 	player.chargetimer = 0
+	player.kickback = 0
+	player.kickbackdir = 1
 	
 	function player:onhurt(other)
+		local power = 1
+		if self.charging then
+			power = power * 2
+		end
+		self.kickback = 0.3 * power
 		self.charging = false
-		-- todo: kickback
+		
+		if onleftside(self.pos, other.pos) then
+			self.kickbackdir = -1
+		else
+			self.kickbackdir = -1
+		end
 	end
 	
 	return player
@@ -421,6 +438,7 @@ function Hero_Dog()
 	dog.timer = 1
 	dog.health = 10
 	dog.state = 1
+	dog.punchtimer = 0
 	--dog.pos = math.random() * 2 * math.pi
 	dog.pos = math.pi * 0.25
 	
@@ -438,7 +456,7 @@ function Hero_Dog()
 					self.state = 7
 				else
 					-- hurt
-					self.timer = 0.25
+					self.timer = 0.5
 					self.state = 3
 				end
 			end
@@ -460,7 +478,7 @@ function Hero_Dog()
 			self:setanimation("spawning", 1, {1})
 		elseif self.state == 2 then
 			-- walking
-			if distance(self.pos, player.pos) < 0.05 * math.pi then
+			if distance(self.pos, player.pos) < 0.045 * math.pi then
 				self:setPunchBlockorLaugh()
 			end
 			
@@ -486,9 +504,16 @@ function Hero_Dog()
 			end
 		elseif self.state == 5 then
 			-- punching
-			self:setanimation("punching", 0.10, {6,7})
+			DOGPUNCHSPEED = 0.10
+			self:setanimation("punching", DOGPUNCHSPEED, {6,7})
+			self.punchtimer = self.punchtimer - dt
+			if self.punchtimer <= 0 then
+				self.punchtimer = self.punchtimer + DOGPUNCHSPEED
+				on_close(self.pos, PUNCHRANGE, on_dog_punched, self)
+			end
 			if self.timer <= 0 then
 				self.state = 2
+				self.punchtimer = 0
 			end
 		elseif self.state == 6 then
 			-- blocking
@@ -538,6 +563,12 @@ function Hero_Dog()
 		end
 	end
 	return dog
+end
+
+function on_dog_punched(obj, dir, dog)
+	if obj.class == "player" and dog.dir == dir then
+		obj:onhurt(obj)
+	end
 end
 
 function onleftside(a,b)
