@@ -1,6 +1,7 @@
 SGame = SetupGamestates(Gamestate.new())
 SFadeInToWorld = SetupGamestates(Gamestate.new())
 SEnterTitle = SetupGamestates(Gamestate.new())
+SPressStart = SetupGamestates(Gamestate.new())
 
 function basic_scroll(dt)
 	player:move(0.01*dt)
@@ -8,6 +9,32 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+function SPressStart:draw()
+	draw_everything(0, false, false, false)
+	draw_title(1)
+	
+	love.graphics.setColor(255, 255, 255, 255)
+	if self.timer < 0.5 then
+		love.graphics.print("PRESS ANY KEY", 300, 550, 0, 2)
+	end
+end
+
+function SPressStart:update(dt)
+	self.timer = self.timer + dt*1
+	if self.timer > 1 then
+		self.timer = self.timer - 1
+	end
+	basic_scroll(dt)
+end
+function SPressStart:enter()
+	self.timer = 0
+end
+function SPressStart:onkey()
+	Gamestate.switch(SGame)
+end
+
 --------------------------------------------------------------------------------
 
 function SEnterTitle:draw()
@@ -18,7 +45,7 @@ end
 function SEnterTitle:update(dt)
 	self.timer = self.timer + dt*1
 	if self.timer > 1 then
-		Gamestate.switch(SGame)
+		Gamestate.switch(SPressStart)
 	end
 	basic_scroll(dt)
 end
