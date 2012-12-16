@@ -16,6 +16,12 @@ end
 function SMenyToBlack:draw()
 	draw_everything(0, false, false, false)
 	draw_title(1)
+	
+	-- direct copy from meny
+	draw_meny(2)
+	draw_meny_item(0, 0, "New Game")
+	draw_meny_item(1, 0, "Quit")
+	
 	love.graphics.setColor(0,0,0,255*self.timer)
 	draw_screen()
 end
