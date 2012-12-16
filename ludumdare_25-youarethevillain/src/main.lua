@@ -57,6 +57,7 @@ function newgame()
 	objects = {}
 	newobjects = {}
 	table.insert(objects, Civilian())
+	table.insert(objects, Hero_Dog())
 end
 
 function draw_sky(x)
@@ -331,6 +332,8 @@ end
 function on_player_punched(obj, dir, pl)
 	if obj.class == "civ" and dir == pl.dir then
 		obj:onhurt()
+	elseif obj.class == "hero" and dir == pl.dir then
+		obj:onhurt()
 	end
 end
 
@@ -402,6 +405,106 @@ function Civilian()
 		self:obj_update(dt)
 	end
 	return civ
+end
+
+function Hero_Dog()
+	local dog = Object()
+	dog.class = "hero"
+	dog.baseimage = 40
+	dog.obj_update = dog.update
+	dog.timer = 1
+	dog.health = 10
+	dog.state = 1
+	--dog.pos = math.random() * 2 * math.pi
+	dog.pos = math.pi * 0.25
+	
+	function dog:onhurt()
+		if self.state ~= 3 and self.state ~= 7 and self.state ~= 6 and self.state ~= 1 then
+			self.health = self.health -1
+			if self.health <= 0 then
+				-- dead
+				self.timer = 2
+				self.state = 7
+			else
+				-- hurt
+				self.timer = 0.25
+				self.state = 3
+			end
+		end
+	end
+	
+	function dog:update(dt)
+		if self.timer > 0 then
+			self.timer = self.timer - dt
+		end
+		
+		if self.state == 1 then
+			-- spawning
+			self.alpha = 255 * (1-self.timer)
+			if self.timer <= 0 then
+				self.alpha = 255
+				self.state = 2
+			end
+			self:setanimation("spawning", 1, {1})
+		elseif self.state == 2 then
+			-- walking
+			if distance(self.pos, player.pos) < 0.05 * math.pi then
+				self.timer = 2
+				self.state = 4
+			end
+			
+			self:setanimation("walk", 0.25, {2, 3, 4, 3})
+			local mdir = 1
+			self.dir = 6
+			if player.pos > self.pos then
+				mdir = -1
+				self.dir = 4
+			end
+			self:move(mdir * 0.05 * dt)
+		elseif self.state == 3 then
+			-- hurt
+			self:setanimation("hurt", 1, {9})
+			if self.timer < 0 then
+				self.state = 6
+				self.timer = 2
+			end
+		elseif self.state == 4 then
+			-- laughing
+			self:setanimation("laughing", 1, {8})
+			if self.timer <= 0 then
+				self.state = 2
+			end
+		elseif self.state == 5 then
+			-- punching
+			self:setanimation("punching", 0.25, {6,7})
+			if self.timer <= 0 then
+				self.state = 2
+			end
+		elseif self.state == 6 then
+			-- blocking
+			self:setanimation("block", 1, {5})
+			if self.timer <= 0 then
+				self.state = 2
+			end
+		elseif self.state == 7 then
+			-- die
+			self.alpha = 255 * self.timer/2
+			self:setanimation("cry", 0.25, {10,11})
+			if self.timer <= 0 then
+				self.dead = true
+			end
+		else
+			-- unknown
+			self.state = 1
+		end
+		
+		self:obj_update(dt)
+	end
+	return dog
+end
+
+function distance(a,b)
+	return math.abs(a-b)
 end
 
 function PhysObj(dx,dy, grav, rinc)
