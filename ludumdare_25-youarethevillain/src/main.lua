@@ -2,6 +2,7 @@ WORLDSIZE = 300
 PLAYERSIZE = 32
 WORLDY = 150
 WORLDYCHANGE = 250
+PUNCHRANGE = 0.2
 
 TWOPI = 2*math.pi
 
@@ -253,6 +254,13 @@ function onkey(key, down)
 	
 	if key == KEYPUNCH and down then
 		punch = punch + 1
+		on_close(player.pos, PUNCHRANGE, on_player_punched)
+	end
+end
+
+function on_player_punched(obj)
+	if obj.class == "civ" then
+		obj:onhurt()
 	end
 end
 
@@ -295,10 +303,14 @@ function Civilian()
 		civ.mdir = -1
 	end
 	
+	function civ:onhurt()
+		self.hurt = 0.1
+	end
+	
 	function civ:update(dt)
 		if self.hurt > 0 then
 			self.hurt = self.hurt - dt
-			self:setanimation("hurt", 1, {3})
+			self:setanimation("hurt", 1, {math.random(3,5)})
 		else
 			self:setanimation("walk", 1, {1, 2})
 		end
@@ -306,6 +318,24 @@ function Civilian()
 		self:obj_update(dt)
 	end
 	return civ
+end
+
+function on_close(pos, range, func)
+	for i,o in pairs(objects) do
+		_on_close(o, pos, range, func)
+	end
+	_on_close(player, pos, range, func)
+end
+
+function _on_close(obj, pos, range, func)
+	local isclose = false
+	if math.abs(obj.pos-pos) < range then
+		isclose = true
+	end
+	
+	if isclose then
+		func(obj)
+	end
 end
 
 function love.joystickpressed( joystick, button )
