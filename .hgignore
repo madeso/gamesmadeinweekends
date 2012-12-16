@@ -19,3 +19,5 @@ glob:minigame/city-hacking/compile.bat
 glob:*.exe
 syntax: glob
 ludumdare_25-youarethevillain/src/*.png
+ludumdare_25-youarethevillain/*.png
+ludumdare_25-youarethevillain/release/*.love
