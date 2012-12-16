@@ -49,7 +49,10 @@ function newgame()
 	punch = 0
 	player = Player()
 	objects = {}
-	table.insert(objects, Object())
+	table.insert(objects, Civilian())
+	table.insert(objects, Civilian())
+	table.insert(objects, Civilian())
+	table.insert(objects, Civilian())
 end
 
 function draw_sky(x)
@@ -113,8 +116,9 @@ function Object()
 	self.pos = 0
 	self.drawnight = true
 	self.dead = false
+	self.baseimage = 0
 	
-	self.animation = {21}
+	self.animation = {1}
 	self.animationspeed = 1
 	self.animationtimer = 0
 	self.animationindex = 1
@@ -124,7 +128,7 @@ function Object()
 		if name ~= self.animationname then
 			self.animationspeed = timer
 			self.animation = anim
-			self.image = anim[1]
+			self.image = self.baseimage + anim[1]
 			self.animationindex = 1
 			self.animationtimer = 0
 			self.animationname = name
@@ -139,7 +143,7 @@ function Object()
 			if self.animationindex > #self.animation then
 				self.animationindex = 1
 			end
-			self.image = self.animation[self.animationindex]
+			self.image = self.baseimage + self.animation[self.animationindex]
 		end
 	end
 	
@@ -268,10 +272,40 @@ end
 
 function Player()
 	local player = Object()
+	player.class = "player"
 	player.image = 1
 	player.animation = {1, 2}
 	player.animationspeed = 0.8
 	return player
+end
+
+function Civilian()
+	local civ = Object()
+	civ.class = "civ"
+	civ.baseimage = 20
+	civ.obj_update = civ.update
+	civ.hurt = 0
+	civ.pos = math.random() * 2 * math.pi
+	local dir = math.random() > 0.5
+	if dir then
+		civ.dir = 6
+		civ.mdir = 1
+	else
+		civ.dir = 4
+		civ.mdir = -1
+	end
+	
+	function civ:update(dt)
+		if self.hurt > 0 then
+			self.hurt = self.hurt - dt
+			self:setanimation("hurt", 1, {3})
+		else
+			self:setanimation("walk", 1, {1, 2})
+		end
+		self:move(self.mdir * 0.01 * dt)
+		self:obj_update(dt)
+	end
+	return civ
 end
 
 function love.joystickpressed( joystick, button )
