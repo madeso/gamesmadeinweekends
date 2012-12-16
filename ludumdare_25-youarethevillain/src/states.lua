@@ -7,6 +7,7 @@ SMenyToBlack = SetupGamestates(Gamestate.new())
 SFadeIntoGame = SetupGamestates(Gamestate.new())
 SIngame = SetupGamestates(Gamestate.new())
 SMoveDeadPlayer = SetupGamestates(Gamestate.new())
+SDeadMeny = SetupGamestates(Gamestate.new())
 
 function basic_scroll(dt)
 	player:move(0.01*dt)
@@ -14,6 +15,37 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+function SDeadMeny:draw()
+	draw_gameover(1)
+	
+	draw_meny(2)
+	draw_meny_item(0, self.index, "New Game")
+	draw_meny_item(1, self.index, "Quit to meny")
+end
+
+function SDeadMeny:update(dt)
+end
+function SDeadMeny:enter()
+	self.index = 0
+end
+function SDeadMeny:onkey(key, code, down)
+	if down then
+		if meny_isaction(key) then
+			if self.index == 0 then
+				-- todo better state
+				Gamestate.switch(SFadeIntoGame)
+			elseif self.index == 1 then
+				-- todo better state
+				Gamestate.switch(SMeny)
+			end
+		else
+			self.index = meny_changeindex(key, self.index, 2)
+		end
+	end
+end
+
 --------------------------------------------------------------------------------
 
 function draw_gameover(timer)
@@ -33,7 +65,7 @@ function draw_gameover(timer)
 	local cam = Camera(0,-worldy, 1, 0)
 	cam:attach()
 	tiles:start()
-	tiles:draw(11,x - timer * 200,y, player.dir, 1, 0)
+	tiles:draw(11,x - timer * 150,y, player.dir, 1, 0)
 	tiles:stop()
 	cam:detach()
 end
@@ -45,7 +77,7 @@ end
 function SMoveDeadPlayer:update(dt)
 	self.timer = self.timer + dt
 	if self.timer > 1 then
-		Gamestate.switch(SFadeIntoGame)
+		Gamestate.switch(SDeadMeny)
 	end
 end
 function SMoveDeadPlayer:enter()
