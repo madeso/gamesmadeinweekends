@@ -452,7 +452,7 @@ function Hero_Dog()
 				self.health = self.health -1
 				if self.health <= 0 then
 					-- dead
-					self.timer = 2
+					self.timer = 4
 					self.state = 7
 				else
 					-- hurt
@@ -523,8 +523,8 @@ function Hero_Dog()
 			end
 		elseif self.state == 7 then
 			-- die
-			self.alpha = 255 * self.timer/2
-			self:setanimation("cry", 0.25, {10,11})
+			self.alpha = 255 * self.timer/4
+			self:setanimation("cry", 0.5, {10,11})
 			if self.timer <= 0 then
 				self.dead = true
 			end
