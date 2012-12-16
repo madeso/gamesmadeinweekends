@@ -235,6 +235,10 @@ rightkey = false
 function onkey(key, down)
 	print(down, key)
 	
+	if key == "escape" and down then
+		love.event.quit()
+	end
+	
 	if key == KEYLEFT then
 		leftkey = down
 	end
