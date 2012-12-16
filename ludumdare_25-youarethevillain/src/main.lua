@@ -264,12 +264,12 @@ function onkey(key, down)
 	
 	if key == KEYPUNCH and down then
 		punch = punch + 1
-		on_close(player.pos, PUNCHRANGE, on_player_punched)
+		on_close(player.pos, PUNCHRANGE, on_player_punched, player)
 	end
 end
 
-function on_player_punched(obj, dir)
-	if obj.class == "civ" and dir == player.dir then
+function on_player_punched(obj, dir, pl)
+	if obj.class == "civ" and dir == pl.dir then
 		obj:onhurt()
 	end
 end
@@ -401,14 +401,14 @@ function Bodypart(bi, head, pos, dir)
 	return b
 end
 
-function on_close(pos, range, func)
+function on_close(pos, range, func, data)
 	for i,o in pairs(objects) do
-		_on_close(o, pos, range, func)
+		_on_close(o, pos, range, func, data)
 	end
-	_on_close(player, pos, range, func)
+	_on_close(player, pos, range, func, data)
 end
 
-function _on_close(obj, pos, range, func)
+function _on_close(obj, pos, range, func, data)
 	local isclose = false
 	local dir = false
 	
@@ -432,7 +432,7 @@ function _on_close(obj, pos, range, func)
 		else
 			dir = 4
 		end
-		func(obj, dir)
+		func(obj, dir, data)
 	end
 end
 
