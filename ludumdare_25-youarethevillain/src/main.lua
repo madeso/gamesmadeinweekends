@@ -71,7 +71,7 @@ function love.load()
 	
 	Gamestate.registerEvents()
 	--Gamestate.switch(SFadeInToWorld)
-	Gamestate.switch(SMeny)
+	Gamestate.switch(SGame)
 	newgame()
 end
 
@@ -470,7 +470,7 @@ function Player()
 			self.hurt = 0.25
 			self.health = self.health - dmg
 			if self.health <= 0 then
-				newgame()
+				Gamestate.switch(SMoveDeadPlayer)
 			end
 		end
 		self.kickback = 0.3 * power

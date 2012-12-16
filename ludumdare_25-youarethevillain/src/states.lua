@@ -6,6 +6,7 @@ SMeny = SetupGamestates(Gamestate.new())
 SMenyToBlack = SetupGamestates(Gamestate.new())
 SFadeIntoGame = SetupGamestates(Gamestate.new())
 SIngame = SetupGamestates(Gamestate.new())
+SMoveDeadPlayer = SetupGamestates(Gamestate.new())
 
 function basic_scroll(dt)
 	player:move(0.01*dt)
@@ -13,6 +14,46 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+function draw_gameover(timer)
+	draw_everything(global_worldtime, true, false, true)
+	
+	love.graphics.setColor(0,0,0,255*timer)
+	draw_screen()
+	
+	love.graphics.setColor(255,255,255,255)
+	
+	local dist = WORLDSIZE+PLAYERSIZE
+	local pos = -math.pi * 0.5
+	local x = dist * math.cos(pos)
+	local y = dist * math.sin(pos)
+	
+	local worldy = WORLDY + WORLDYCHANGE * global_worldtime
+	local cam = Camera(0,-worldy, 1, 0)
+	cam:attach()
+	tiles:start()
+	tiles:draw(11,x - timer * 200,y, player.dir, 1, 0)
+	tiles:stop()
+	cam:detach()
+end
+
+function SMoveDeadPlayer:draw()
+	draw_gameover(self.timer)
+end
+
+function SMoveDeadPlayer:update(dt)
+	self.timer = self.timer + dt
+	if self.timer > 1 then
+		Gamestate.switch(SFadeIntoGame)
+	end
+end
+function SMoveDeadPlayer:enter()
+	self.timer = 0
+end
+function SMoveDeadPlayer:onkey(key, code, down)
+end
+
 --------------------------------------------------------------------------------
 
 function SIngame:draw()
