@@ -270,8 +270,8 @@ function love.update(dt)
 		end
 	end
 	
-	player:move(player.kickbackdir * player.kickback * 0.8 * dt)
 	if player.kickback > 0 then
+		player:move(player.kickbackdir * player.kickback * 0.8 * dt)
 		player.kickback = player.kickback - dt
 	end
 	
