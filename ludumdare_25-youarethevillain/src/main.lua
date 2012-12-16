@@ -2,7 +2,7 @@ WORLDSIZE = 300
 PLAYERSIZE = 32
 WORLDY = 150
 WORLDYCHANGE = 250
-PUNCHRANGE = 0.2
+PUNCHRANGE = 0.15
 
 TWOPI = 2*math.pi
 
@@ -50,10 +50,14 @@ function newgame()
 	punch = 0
 	player = Player()
 	objects = {}
+	newobjects = {}
 	table.insert(objects, Civilian())
 	table.insert(objects, Civilian())
 	table.insert(objects, Civilian())
 	table.insert(objects, Civilian())
+	local c = Civilian()
+	c.pos = 0
+	table.insert(objects, c)
 end
 
 function draw_sky(x)
@@ -115,6 +119,8 @@ function Object()
 	self.image = 1
 	self.dir = 6
 	self.pos = 0
+	self.rot = 0
+	self.y = 0
 	self.drawnight = true
 	self.dead = false
 	self.baseimage = 0
@@ -163,11 +169,11 @@ function Object()
 end
 
 function draw_object(o, nightval, worldrotation)
-	local dist = WORLDSIZE+PLAYERSIZE
+	local dist = WORLDSIZE+PLAYERSIZE+o.y
 	local pos = -o.pos + worldrotation - 0.5*math.pi
 	local x = dist * math.cos(pos)
 	local y = dist * math.sin(pos)
-	local ang = pos + 0.5 * math.pi
+	local ang = pos + 0.5 * math.pi + o.rot
 	if o.drawnight then
 		tiles:draw(o.image,x,y,o.dir, 1, ang, 255, 255*nightval)
 	else
@@ -213,6 +219,10 @@ function love.update(dt)
 	end
 	remove_if(objects, object_is_dead)
 	player:update(dt)
+	for i,o in pairs(newobjects) do
+		table.insert(objects, o)
+	end
+	newobjects = {}
 	
 	worldtime = worldtime + dt * 0.01
 	if worldtime > 1 then
@@ -258,8 +268,8 @@ function onkey(key, down)
 	end
 end
 
-function on_player_punched(obj)
-	if obj.class == "civ" then
+function on_player_punched(obj, dir)
+	if obj.class == "civ" and dir == player.dir then
 		obj:onhurt()
 	end
 end
@@ -305,6 +315,9 @@ function Civilian()
 	
 	function civ:onhurt()
 		self.hurt = 0.1
+		
+		table.insert(newobjects, Bodypart(self.baseimage, true, self.pos, self.dir))
+		table.insert(newobjects, Bodypart(self.baseimage, false, self.pos, self.dir))
 	end
 	
 	function civ:update(dt)
@@ -312,12 +325,62 @@ function Civilian()
 			self.hurt = self.hurt - dt
 			self:setanimation("hurt", 1, {math.random(3,5)})
 		else
-			self:setanimation("walk", 1, {1, 2})
+			self:setanimation("walk", 0.5, {1, 2})
 		end
 		self:move(self.mdir * 0.01 * dt)
 		self:obj_update(dt)
 	end
 	return civ
+end
+
+function PhysObj(dx,dy, grav, rinc)
+	local p = Object()
+	p.obj_update = p.update
+	p.dx = dx
+	p.dy = dy
+	p.boxy = 0
+	p.grav = grav
+	p.rinc = rinc
+	function p:update(dt)
+		self:move(self.dx * dt)
+		self.y = self.y + self.dy * dt
+		self.dy = self.dy - self.grav * dt
+		self.rot = self.rot + self.rinc * dt
+		if self.y+self.boxy < 0 then
+			self.dy = -self.dy * 0.7
+			self.dx = self.dx * 0.7
+		end
+		self:obj_update(dt)
+	end
+	return p
+end
+
+function randomsign()
+	if math.random() < 0.5 then
+		return 1
+	else
+		return -1
+	end
+end
+
+function Bodypart(bi, head, pos, dir)
+	local b = PhysObj(0.05*math.random()*randomsign(),40 * math.random(), 20, 0)
+	b.class = "bpart"
+	b.pos = pos
+	b.dir = dir
+	b.baseimage = bi
+	b.usespeed = true
+	
+	if head then
+		b:setanimation("idle", 1, {math.random(6,7)})
+		b.boxy = 20
+	else
+		b:setanimation("idle", 1, {math.random(8,9)})
+		b.boxy = 0
+		b.dy = b.dy * 2
+	end
+	
+	return b
 end
 
 function on_close(pos, range, func)
@@ -329,12 +392,27 @@ end
 
 function _on_close(obj, pos, range, func)
 	local isclose = false
+	local dir = false
+	
 	if math.abs(obj.pos-pos) < range then
+		isclose = true
+		dir = obj.pos < pos
+	end
+	
+	if math.abs(obj.pos+(2*math.pi)-pos) < range then
+		isclose = true
+	end
+	if math.abs(obj.pos-(2*math.pi)-pos) < range then
 		isclose = true
 	end
 	
 	if isclose then
-		func(obj)
+		if dir then
+			dir = 6
+		else
+			dir = 4
+		end
+		func(obj, dir)
 	end
 end
 
