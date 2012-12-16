@@ -419,9 +419,11 @@ function _on_close(obj, pos, range, func)
 	
 	if math.abs(obj.pos+(2*math.pi)-pos) < range then
 		isclose = true
+		dir = obj.pos+(2*math.pi) < pos
 	end
 	if math.abs(obj.pos-(2*math.pi)-pos) < range then
 		isclose = true
+		dir = obj.pos-(2*math.pi) < pos
 	end
 	
 	if isclose then
