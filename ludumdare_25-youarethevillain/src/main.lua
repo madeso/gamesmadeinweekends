@@ -197,6 +197,10 @@ function love.update(dt)
 		moving = true
 	end
 	
+	if not moving and player.charging then
+		player.charging = false
+	end
+	
 	if punchtimer <= 0 and blocking then
 		punch = 0
 		move = 0
@@ -205,23 +209,45 @@ function love.update(dt)
 	end
 	
 	if punch > 0 then
-		punchtimer = 0.2
-		player:move(move*0.002)
+		if player.moving>0.05 and punchtimer <= 0 then
+			-- charge!
+			player.charging = true
+		else
+			punchtimer = 0.2
+			player:move(move*0.002)
+			player.moving = 0
+		end
 	end
 	
-	if isblocking then
-		player:setanimation("blocking", 1, {9})
+	local walking = false
+	
+	if player.charging then
+		player:move(move*dt*0.2)
+		player:setanimation("charge", 0.12, {12, 13})
 	else
-		if punchtimer > 0 then
-			punchtimer = punchtimer - dt
-			player:setanimation("punching", 0.10, {6, 7, 6, 8})
+		if isblocking then
+			player:setanimation("blocking", 1, {9})
 		else
-			if moving then
-				player:setanimation("walk", 0.15, {2, 3, 4, 5})
-				player:move(move*dt*0.05)
+			if punchtimer > 0 then
+				punchtimer = punchtimer - dt
+				player:setanimation("punching", 0.10, {6, 7, 6, 8})
 			else
-				player:setanimation("idle", 1, {1})
+				if moving then
+					player:setanimation("walk", 0.15, {2, 3, 4, 5})
+					player:move(move*dt*0.05)
+					walking = true
+				else
+					player:setanimation("idle", 1, {1})
+				end
 			end
+		end
+	end
+	
+	if walking then
+		player.moving = player.moving + dt
+	else
+		if player.moving > 0 then
+			player.moving = player.moving - dt
 		end
 	end
 	
@@ -313,6 +339,8 @@ function Player()
 	player.image = 1
 	player.animation = {1, 2}
 	player.animationspeed = 0.8
+	player.moving = 0
+	player.charging = false
 	return player
 end
 
