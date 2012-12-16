@@ -82,6 +82,7 @@ function newgame()
 	player = Player()
 	objects = {}
 	newobjects = {}
+	global_worldtime = 0
 	table.insert(objects, Civilian())
 	table.insert(objects, Hero_Dog())
 end
@@ -391,7 +392,8 @@ function game_onkey(key, down)
 	--print(down, key)
 	
 	if key == "escape" and down then
-		love.event.quit()
+		--love.event.quit()
+		Gamestate.switch(SIngame)
 	end
 	
 	if key == KEYLEFT then

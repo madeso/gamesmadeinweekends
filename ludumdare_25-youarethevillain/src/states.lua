@@ -5,6 +5,7 @@ SPressStart = SetupGamestates(Gamestate.new())
 SMeny = SetupGamestates(Gamestate.new())
 SMenyToBlack = SetupGamestates(Gamestate.new())
 SFadeIntoGame = SetupGamestates(Gamestate.new())
+SIngame = SetupGamestates(Gamestate.new())
 
 function basic_scroll(dt)
 	player:move(0.01*dt)
@@ -12,6 +13,39 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+function SIngame:draw()
+	draw_everything(global_worldtime, true, true, true)
+	love.graphics.setColor(0,0,0,100)
+	draw_screen()
+	love.graphics.setColor(255,255,255,255)
+	
+	draw_meny(2)
+	draw_meny_item(0, self.index, "Continue")
+	draw_meny_item(1, self.index, "Abort")
+end
+
+function SIngame:update(dt)
+end
+function SIngame:enter()
+	self.index = 0
+end
+function SIngame:onkey(key, code, down)
+	if down then
+		if meny_isaction(key) then
+			if self.index == 0 then
+				Gamestate.switch(SGame)
+			elseif self.index == 1 then
+				-- todo correct state
+				Gamestate.switch(SMeny)
+			end
+		else
+			self.index = meny_changeindex(key, self.index, 2)
+		end
+	end
+end
+
 --------------------------------------------------------------------------------
 
 function SFadeIntoGame:draw()
@@ -22,7 +56,7 @@ function SFadeIntoGame:draw()
 end
 
 function SFadeIntoGame:update(dt)
-	basic_scroll(dt)
+	--basic_scroll(dt)
 	self.timer = self.timer + dt*1
 	if self.timer > 1 then
 		Gamestate.switch(SGame)
@@ -30,6 +64,7 @@ function SFadeIntoGame:update(dt)
 end
 function SFadeIntoGame:enter()
 	self.timer = 0
+	newgame()
 end
 function SFadeIntoGame:onkey(key, code, down)
 end
@@ -165,21 +200,20 @@ end
 --------------------------------------------------------------------------------
 
 function SGame:draw()
-	draw_everything(self.worldtime, true, true, true)
+	draw_everything(global_worldtime, true, true, true)
 end
 function SGame:onkey(key, code, down)
 	game_onkey(key, down)
 end
 function SGame:update(dt)
-	self.worldtime = self.worldtime + dt * 0.01
-	if self.worldtime > 1 then
-		self.worldtime = 1
+	global_worldtime = global_worldtime + dt * 0.01
+	if global_worldtime > 1 then
+		global_worldtime = 1
 	end
 	
 	game_update(dt)
 end
 function SGame:enter()
-	self.worldtime = 0
 end
 
 --------------------------------------------------------------------------------
