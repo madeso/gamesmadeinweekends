@@ -189,68 +189,83 @@ function love.update(dt)
 	local move = 0
 	local moving = false
 	local isblocking = false
-	if leftkey then
-		move = -1
-		player.dir = 4
-		moving = true
-	elseif rightkey then
-		move = 1
-		player.dir = 6
-		moving = true
-	end
 	
-	if not moving and player.charging then
-		player.charging = false
-	end
-	
-	if punchtimer <= 0 and blocking then
-		punch = 0
-		move = 0
-		moving = false
-		isblocking = true
-	end
-	
-	if punch > 0 then
-		if player.moving>0.05 and punchtimer <= 0 then
-			-- charge!
-			player.charging = true
-		else
-			punchtimer = 0.2
-			player:move(move*0.002)
-			player.moving = 0
-		end
-	end
-	
-	if player.charging then
-		player.chargetimer = player.chargetimer + dt
-		while player.chargetimer > CHARGETIME do
-			player.chargetimer = player.chargetimer - CHARGETIME
-			player_punch()
-		end
+	if player.hurt > 0 then
+		player.hurt = player.hurt - dt
+		player:setanimation("hurt", 1, {10})
 	else
-		player.chargetimer = 0
-	end
-	
-	local walking = false
-	
-	if player.charging then
-		player:move(move*dt*0.2)
-		player:setanimation("charge", 0.12, {12, 13})
-	else
-		if isblocking then
-			player:setanimation("blocking", 1, {9})
-		else
-			if punchtimer > 0 then
-				punchtimer = punchtimer - dt
-				player:setanimation("punching", 0.10, {6, 7, 6, 8})
+		if leftkey then
+			move = -1
+			player.dir = 4
+			moving = true
+		elseif rightkey then
+			move = 1
+			player.dir = 6
+			moving = true
+		end
+		
+		if not moving and player.charging then
+			player.charging = false
+		end
+		
+		if punchtimer <= 0 and blocking then
+			punch = 0
+			move = 0
+			moving = false
+			isblocking = true
+		end
+		player.isblocking = isblocking
+		
+		if punch > 0 then
+			if player.moving>0.05 and punchtimer <= 0 then
+				-- charge!
+				player.charging = true
 			else
-				if moving then
-					player:setanimation("walk", 0.15, {2, 3, 4, 5})
-					player:move(move*dt*0.05)
-					walking = true
+				punchtimer = 0.2
+				player:move(move*0.002)
+				player.moving = 0
+			end
+		end
+		
+		if player.charging then
+			player.chargetimer = player.chargetimer + dt
+			while player.chargetimer > CHARGETIME do
+				player.chargetimer = player.chargetimer - CHARGETIME
+				player_punch()
+			end
+		else
+			player.chargetimer = 0
+		end
+		
+		local walking = false
+		
+		if player.charging then
+			player:move(move*dt*0.2)
+			player:setanimation("charge", 0.12, {12, 13})
+		else
+			if isblocking then
+				player:setanimation("blocking", 1, {9})
+			else
+				if punchtimer > 0 then
+					punchtimer = punchtimer - dt
+					player:setanimation("punching", 0.10, {6, 7, 6, 8})
 				else
-					player:setanimation("idle", 1, {1})
+					if moving then
+						player:setanimation("walk", 0.15, {2, 3, 4, 5})
+						player:move(move*dt*0.05)
+						walking = true
+					else
+						player:setanimation("idle", 1, {1})
+					end
 				end
+			end
+		end
+		
+		if walking then
+			player.moving = player.moving + dt
+		else
+			if player.moving > 0 then
+				player.moving = player.moving - dt
 			end
 		end
 	end
@@ -258,14 +273,6 @@ function love.update(dt)
 	player:move(player.kickbackdir * player.kickback * 0.8 * dt)
 	if player.kickback > 0 then
 		player.kickback = player.kickback - dt
-	end
-	
-	if walking then
-		player.moving = player.moving + dt
-	else
-		if player.moving > 0 then
-			player.moving = player.moving - dt
-		end
 	end
 	
 	for i,o in pairs(objects) do
@@ -363,15 +370,28 @@ function Player()
 	player.animation = {1, 2}
 	player.animationspeed = 0.8
 	player.moving = 0
+	player.health = 3
+	player.isblocking = false
 	player.charging = false
 	player.chargetimer = 0
 	player.kickback = 0
 	player.kickbackdir = 1
+	player.hurt = 0
 	
 	function player:onhurt(other)
 		local power = 1
+		local dmg = 1
 		if self.charging then
 			power = power * 2
+			dmg = 2
+		end
+		if self.isblocking then
+			power = power * 0.25
+			dmg = 0
+		end
+		if dmg > 0 then
+			self.hurt = 0.25
+			-- todo decrease health and kill
 		end
 		self.kickback = 0.3 * power
 		self.charging = false
@@ -436,11 +456,11 @@ function Hero_Dog()
 	dog.baseimage = 40
 	dog.obj_update = dog.update
 	dog.timer = 1
-	dog.health = 10
+	dog.health = 15
 	dog.state = 1
 	dog.punchtimer = 0
-	--dog.pos = math.random() * 2 * math.pi
-	dog.pos = math.pi * 0.25
+	dog.pos = math.random() * 2 * math.pi
+	--dog.pos = math.pi * 0.25
 	
 	function dog:onhurt(other)
 		if self.state == 6 then
