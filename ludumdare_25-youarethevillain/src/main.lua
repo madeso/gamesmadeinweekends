@@ -48,16 +48,11 @@ end
 
 function newgame()
 	punch = 0
+	civcount = 0
 	player = Player()
 	objects = {}
 	newobjects = {}
 	table.insert(objects, Civilian())
-	table.insert(objects, Civilian())
-	table.insert(objects, Civilian())
-	table.insert(objects, Civilian())
-	local c = Civilian()
-	c.pos = 0
-	table.insert(objects, c)
 end
 
 function draw_sky(x)
@@ -121,6 +116,7 @@ function Object()
 	self.pos = 0
 	self.rot = 0
 	self.y = 0
+	self.alpha = 255
 	self.drawnight = true
 	self.dead = false
 	self.baseimage = 0
@@ -175,7 +171,7 @@ function draw_object(o, nightval, worldrotation)
 	local y = dist * math.sin(pos)
 	local ang = pos + 0.5 * math.pi + o.rot
 	if o.drawnight then
-		tiles:draw(o.image,x,y,o.dir, 1, ang, 255, 255*nightval)
+		tiles:draw(o.image,x,y,o.dir, 1, ang, o.alpha, 255*nightval)
 	else
 		tiles:draw(o.image,x,y,o.dir, 1, ang)
 	end
@@ -230,6 +226,10 @@ function love.update(dt)
 	end
 	
 	punch = 0
+	
+	if civcount < 20 then
+		table.insert(objects, Civilian())
+	end
 end
 
 function object_is_dead(obj)
@@ -303,6 +303,8 @@ function Civilian()
 	civ.baseimage = 20
 	civ.obj_update = civ.update
 	civ.hurt = 0
+	civ.health = 5
+	civcount = civcount + 1
 	civ.pos = math.random() * 2 * math.pi
 	local dir = math.random() > 0.5
 	if dir then
@@ -314,10 +316,16 @@ function Civilian()
 	end
 	
 	function civ:onhurt()
-		self.hurt = 0.1
+		self.health = self.health -1
 		
-		table.insert(newobjects, Bodypart(self.baseimage, true, self.pos, self.dir))
-		table.insert(newobjects, Bodypart(self.baseimage, false, self.pos, self.dir))
+		if self.health <= 0 then
+			self.dead = true
+			table.insert(newobjects, Bodypart(self.baseimage, true, self.pos, self.dir))
+			table.insert(newobjects, Bodypart(self.baseimage, false, self.pos, self.dir))
+			civcount = civcount - 1
+		else
+			self.hurt = 0.1
+		end
 	end
 	
 	function civ:update(dt)
@@ -341,7 +349,17 @@ function PhysObj(dx,dy, grav, rinc)
 	p.boxy = 0
 	p.grav = grav
 	p.rinc = rinc
+	p.life = -1
 	function p:update(dt)
+		if self.life > 0 then
+			self.life = self.life - dt
+			if self.life < 1 then
+				self.alpha = 255 * self.life
+			end
+			if self.life <= 0 then
+				self.dead = true
+			end
+		end
 		self:move(self.dx * dt)
 		self.y = self.y + self.dy * dt
 		self.dy = self.dy - self.grav * dt
@@ -369,7 +387,7 @@ function Bodypart(bi, head, pos, dir)
 	b.pos = pos
 	b.dir = dir
 	b.baseimage = bi
-	b.usespeed = true
+	b.life = 8
 	
 	if head then
 		b:setanimation("idle", 1, {math.random(6,7)})
