@@ -9,16 +9,39 @@ TWOPI = 2*math.pi
 
 KEYLEFT = "left"
 KEYRIGHT = "right"
-KEYPUNCH = "space"
+KEYPUNCH = " "
 KEYBLOCK = "down"
 
-KEYLEFT = "joy1-An1"
-KEYRIGHT = "joy1-Ap1"
-KEYPUNCH = "joy1-3"
-KEYBLOCK = "joy1-2"
+--KEYLEFT = "joy1-An1"
+--KEYRIGHT = "joy1-Ap1"
+--KEYPUNCH = "joy1-3"
+--KEYBLOCK = "joy1-2"
 
 require "tileset"
 Camera = require "hump.camera"
+Gamestate = require "hump.gamestate"
+
+function SetupGamestates(gs)
+	function gs:keypressed(key, unicode)
+		self:onkey(key, true)
+	end
+	
+	function gs:keyreleased(key)
+		self:onkey(key, false)
+	end
+	
+	function gs:joystickpressed( joystick, button )
+		self:onkey("joy"..tostring(joystick).."-"..tostring(button), true)
+	end
+
+	function gs:joystickreleased( joystick, button )
+		self:onkey("joy"..tostring(joystick).."-"..tostring(button), false)
+	end
+	
+	return gs
+end
+
+require "states"
 
 citybg = {}
 citynight = {}
@@ -46,6 +69,8 @@ function love.load()
 	sky.parallax3 = love.graphics.newImage("gfx/sky-parallax3.png")
 	sky.signal = love.graphics.newImage("gfx/sky-signal.png")
 	
+	Gamestate.registerEvents()
+	Gamestate.switch(SGame)
 	newgame()
 end
 
@@ -82,7 +107,7 @@ function draw_sky(x)
 	love.graphics.draw(sky.front, 0, 0)
 end
 
-function love.draw()
+function draw_everything()
 	draw_sky(worldtime)
 	
 	local worldy = WORLDY + WORLDYCHANGE * worldtime
@@ -187,8 +212,7 @@ end
 
 punchtimer = 0
 
-function love.update(dt)
-	sendjoykeys()
+function game_update(dt)
 	local move = 0
 	local moving = false
 	local isblocking = false
@@ -304,18 +328,10 @@ function object_is_dead(obj)
 	return obj.dead
 end
 
-function love.keypressed(key, unicode)
-	onkey(key, true)
-end
-
-function love.keyreleased(key)
-	onkey(key, false)
-end
-
 leftkey = false
 rightkey = false
 
-function onkey(key, down)
+function game_onkey(key, down)
 	print(down, key)
 	
 	if key == "escape" and down then
@@ -727,14 +743,7 @@ function getdirectiondata(b,a)
 	return range, right
 end
 
-function love.joystickpressed( joystick, button )
-	onkey("joy"..tostring(joystick).."-"..tostring(button), true)
-end
-
-function love.joystickreleased( joystick, button )
-	onkey("joy"..tostring(joystick).."-"..tostring(button), false)
-end
-
+-- todo: incorperate into states
 function sendjoykeys()
 	local joysticks = love.joystick.getNumJoysticks()
 	
