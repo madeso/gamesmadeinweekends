@@ -67,6 +67,8 @@ function love.load()
 	sky.parallax3 = love.graphics.newImage("gfx/sky-parallax3.png")
 	sky.signal = love.graphics.newImage("gfx/sky-signal.png")
 	
+	gametitle = love.graphics.newImage("gfx/title.png")
+	
 	Gamestate.registerEvents()
 	Gamestate.switch(SFadeInToWorld)
 	newgame()
@@ -110,7 +112,8 @@ function draw_screen()
 end
 
 function draw_title(y)
-	love.graphics.print("TITLE", 20, 100*y)
+	--love.graphics.print("TITLE", 20, 100*y)
+	love.graphics.draw(gametitle, 0, -150*(1-y))
 end
 
 function draw_everything(worldtime, drawobjects, drawplayer, drawhud)
