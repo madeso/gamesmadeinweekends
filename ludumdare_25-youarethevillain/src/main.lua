@@ -8,11 +8,13 @@ TWOPI = 2*math.pi
 
 KEYLEFT = "left"
 KEYRIGHT = "right"
-KEYPUNCH = " "
+KEYPUNCH = "space"
+KEYBLOCK = "down"
 
 KEYLEFT = "joy1-An1"
 KEYRIGHT = "joy1-Ap1"
 KEYPUNCH = "joy1-3"
+KEYBLOCK = "joy1-2"
 
 require "tileset"
 Camera = require "hump.camera"
@@ -48,6 +50,7 @@ end
 
 function newgame()
 	punch = 0
+	blocking = false
 	civcount = 0
 	player = Player()
 	objects = {}
@@ -183,6 +186,7 @@ function love.update(dt)
 	sendjoykeys()
 	local move = 0
 	local moving = false
+	local isblocking = false
 	if leftkey then
 		move = -1
 		player.dir = 4
@@ -193,20 +197,31 @@ function love.update(dt)
 		moving = true
 	end
 	
+	if punchtimer <= 0 and blocking then
+		punch = 0
+		move = 0
+		moving = false
+		isblocking = true
+	end
+	
 	if punch > 0 then
 		punchtimer = 0.2
 		player:move(move*0.002)
 	end
 	
-	if punchtimer > 0 then
-		punchtimer = punchtimer - dt
-		player:setanimation("punching", 0.10, {6, 7, 6, 8})
+	if isblocking then
+		player:setanimation("blocking", 1, {9})
 	else
-		if moving then
-			player:setanimation("walk", 0.15, {2, 3, 4, 5})
-			player:move(move*dt*0.05)
+		if punchtimer > 0 then
+			punchtimer = punchtimer - dt
+			player:setanimation("punching", 0.10, {6, 7, 6, 8})
 		else
-			player:setanimation("idle", 1, {1})
+			if moving then
+				player:setanimation("walk", 0.15, {2, 3, 4, 5})
+				player:move(move*dt*0.05)
+			else
+				player:setanimation("idle", 1, {1})
+			end
 		end
 	end
 	
@@ -265,6 +280,10 @@ function onkey(key, down)
 	if key == KEYPUNCH and down then
 		punch = punch + 1
 		on_close(player.pos, PUNCHRANGE, on_player_punched, player)
+	end
+	
+	if key == KEYBLOCK then
+		blocking = down
 	end
 end
 
