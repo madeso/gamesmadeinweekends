@@ -3,6 +3,7 @@ PLAYERSIZE = 32
 WORLDY = 150
 WORLDYCHANGE = 250
 PUNCHRANGE = 0.15
+CHARGETIME = 0.05
 
 TWOPI = 2*math.pi
 
@@ -219,6 +220,16 @@ function love.update(dt)
 		end
 	end
 	
+	if player.charging then
+		player.chargetimer = player.chargetimer + dt
+		while player.chargetimer > CHARGETIME do
+			player.chargetimer = player.chargetimer - CHARGETIME
+			player_punch()
+		end
+	else
+		player.chargetimer = 0
+	end
+	
 	local walking = false
 	
 	if player.charging then
@@ -305,12 +316,16 @@ function onkey(key, down)
 	
 	if key == KEYPUNCH and down then
 		punch = punch + 1
-		on_close(player.pos, PUNCHRANGE, on_player_punched, player)
+		player_punch()
 	end
 	
 	if key == KEYBLOCK then
 		blocking = down
 	end
+end
+
+function player_punch()
+	on_close(player.pos, PUNCHRANGE, on_player_punched, player)
 end
 
 function on_player_punched(obj, dir, pl)
@@ -341,6 +356,7 @@ function Player()
 	player.animationspeed = 0.8
 	player.moving = 0
 	player.charging = false
+	player.chargetimer = 0
 	return player
 end
 
