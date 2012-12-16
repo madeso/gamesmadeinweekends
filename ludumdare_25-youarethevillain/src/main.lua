@@ -535,6 +535,12 @@ function Hero_Dog()
 				self.state = 2
 				self.punchtimer = 0
 			end
+			
+			local mdir = 1
+			if self.dir==4 then
+				mdir = -1
+			end
+			self:move(mdir * 0.02 * dt)
 		elseif self.state == 6 then
 			-- blocking
 			self:setanimation("block", 1, {5})
