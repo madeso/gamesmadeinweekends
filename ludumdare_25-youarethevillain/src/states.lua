@@ -2,6 +2,7 @@ SGame = SetupGamestates(Gamestate.new())
 SFadeInToWorld = SetupGamestates(Gamestate.new())
 SEnterTitle = SetupGamestates(Gamestate.new())
 SPressStart = SetupGamestates(Gamestate.new())
+SMeny = SetupGamestates(Gamestate.new())
 
 function basic_scroll(dt)
 	player:move(0.01*dt)
@@ -9,6 +10,39 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+function SMeny:draw()
+	draw_everything(0, false, false, false)
+	draw_title(1)
+	
+	draw_meny(2)
+	draw_meny_item(0, self.index, "New Game")
+	draw_meny_item(1, self.index, "Quit")
+end
+
+function SMeny:update(dt)
+	basic_scroll(dt)
+end
+function SMeny:enter()
+	self.index = 0
+	print("entered meny")
+end
+function SMeny:onkey(key, code, down)
+	print(key, down)
+	if down then
+		if meny_isaction(key) then
+			if self.index == 0 then
+				Gamestate.switch(SGame)
+			elseif self.index == 1 then
+				love.event.quit()
+			end
+		else
+			self.index = meny_changeindex(key, self.index, 2)
+		end
+	end
+end
+
 --------------------------------------------------------------------------------
 
 function SPressStart:draw()
@@ -32,7 +66,7 @@ function SPressStart:enter()
 	self.timer = 0
 end
 function SPressStart:onkey()
-	Gamestate.switch(SGame)
+	Gamestate.switch(SMeny)
 end
 
 --------------------------------------------------------------------------------
@@ -82,7 +116,7 @@ function SGame:draw()
 	draw_everything(self.worldtime, true, true, true)
 end
 function SGame:onkey(key, code, down)
-	game_onkey(key, code, down)
+	game_onkey(key, down)
 end
 function SGame:update(dt)
 	self.worldtime = self.worldtime + dt * 0.01

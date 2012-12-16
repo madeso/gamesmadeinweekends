@@ -23,11 +23,11 @@ Gamestate = require "hump.gamestate"
 
 function SetupGamestates(gs)
 	function gs:keypressed(key, unicode)
-		self:onkey(key, true)
+		self:onkey(key, unicode, true)
 	end
 	
 	function gs:keyreleased(key)
-		self:onkey(key, false)
+		self:onkey(key, nil, false)
 	end
 	
 	function gs:joystickpressed( joystick, button )
@@ -105,6 +105,51 @@ function draw_sky(x)
 	end
 	love.graphics.draw(sky.parallax1, 0, 10*ix)
 	love.graphics.draw(sky.front, 0, 0)
+end
+
+MENYWIDTH = 200
+MENYX = 300
+MENYY = 400
+MENYHEIGHT = 25
+
+function draw_meny(total)
+	love.graphics.setColor(0, 0, 0, 255)
+	love.graphics.rectangle('fill', MENYX, MENYY, MENYWIDTH,MENYHEIGHT*total)
+end
+
+function meny_isaction(key)
+	return key == " " or key == "return"
+end
+
+function meny_changeindex(key, index, total)
+	local r = index
+	
+	if key == "up" then
+		r = r - 1
+	end
+	
+	if key == "down" then
+		r = r + 1
+	end
+	
+	if r >= total then
+		r = r - total
+	end
+	
+	if r < 0 then
+		r = r + total
+	end
+	
+	return r
+end
+
+function draw_meny_item(index, selected, text)
+	if index == selected then
+		love.graphics.setColor(255, 0, 0, 255)
+		love.graphics.rectangle('fill', MENYX, MENYY+MENYHEIGHT*index, MENYWIDTH,MENYHEIGHT)
+	end
+	love.graphics.setColor(255, 255, 255, 255)
+	love.graphics.print(text, MENYX, MENYY+MENYHEIGHT*index, 0, 2)
 end
 
 function draw_screen()
@@ -342,7 +387,7 @@ leftkey = false
 rightkey = false
 
 function game_onkey(key, down)
-	print(down, key)
+	--print(down, key)
 	
 	if key == "escape" and down then
 		love.event.quit()
