@@ -70,7 +70,8 @@ function love.load()
 	gametitle = love.graphics.newImage("gfx/title.png")
 	
 	Gamestate.registerEvents()
-	Gamestate.switch(SFadeInToWorld)
+	--Gamestate.switch(SFadeInToWorld)
+	Gamestate.switch(SMeny)
 	newgame()
 end
 
