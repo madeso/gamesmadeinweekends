@@ -91,6 +91,9 @@ function love.draw()
 	cam:attach()
 	draw_world()
 	cam:detach()
+	
+	love.graphics.setColor(255, 255, 255, 255)
+	love.graphics.print("health: " .. tostring(player.health), 0,0)
 end
 
 function draw_world()
@@ -391,7 +394,10 @@ function Player()
 		end
 		if dmg > 0 then
 			self.hurt = 0.25
-			-- todo decrease health and kill
+			self.health = self.health - dmg
+			if self.health <= 0 then
+				newgame()
+			end
 		end
 		self.kickback = 0.3 * power
 		self.charging = false
