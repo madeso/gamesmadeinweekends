@@ -4,6 +4,7 @@ SEnterTitle = SetupGamestates(Gamestate.new())
 SPressStart = SetupGamestates(Gamestate.new())
 SMeny = SetupGamestates(Gamestate.new())
 SMenyToBlack = SetupGamestates(Gamestate.new())
+SFadeIntoGame = SetupGamestates(Gamestate.new())
 
 function basic_scroll(dt)
 	player:move(0.01*dt)
@@ -11,6 +12,28 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+function SFadeIntoGame:draw()
+	draw_everything(0, true, true, true)
+	
+	love.graphics.setColor(0,0,0,255*(1-self.timer))
+	draw_screen()
+end
+
+function SFadeIntoGame:update(dt)
+	basic_scroll(dt)
+	self.timer = self.timer + dt*1
+	if self.timer > 1 then
+		Gamestate.switch(SGame)
+	end
+end
+function SFadeIntoGame:enter()
+	self.timer = 0
+end
+function SFadeIntoGame:onkey(key, code, down)
+end
+
 --------------------------------------------------------------------------------
 
 function SMenyToBlack:draw()
@@ -30,7 +53,7 @@ function SMenyToBlack:update(dt)
 	basic_scroll(dt)
 	self.timer = self.timer + dt*1
 	if self.timer > 1 then
-		Gamestate.switch(SGame)
+		Gamestate.switch(SFadeIntoGame)
 	end
 end
 function SMenyToBlack:enter()
