@@ -68,6 +68,7 @@ function love.load()
 	sky.signal = love.graphics.newImage("gfx/sky-signal.png")
 	
 	gametitle = love.graphics.newImage("gfx/title.png")
+	goat_head = love.graphics.newImage("gfx/goat-head.png")
 	
 	Gamestate.registerEvents()
 	--Gamestate.switch(SFadeInToWorld)
@@ -78,16 +79,28 @@ end
 function newgame()
 	punch = 0
 	blocking = false
-	civcount = 0
 	player = Player()
+	
+	next_level()
+end
+
+function next_level()
+	civcount = 0
 	objects = {}
 	newobjects = {}
 	global_worldtime = 0
 	
 	spawn_civ()
 	
-	--todo remove
-	table.insert(objects, Hero_Dog())
+	can_spawn_dog = true
+	dog_killed = false
+end
+
+function please_spawn_dog()
+	if can_spawn_dog then
+		can_spawn_dog = false
+		table.insert(objects, Hero_Dog())
+	end
 end
 
 function draw_sky(x)
@@ -545,7 +558,7 @@ function Hero_Dog()
 	dog.baseimage = 40
 	dog.obj_update = dog.update
 	dog.timer = 1
-	dog.health = 15
+	dog.health = 10
 	dog.state = 1
 	dog.punchtimer = 0
 	dog.pos = math.random() * 2 * math.pi
@@ -642,6 +655,7 @@ function Hero_Dog()
 			self:setanimation("cry", 0.5, {10,11})
 			if self.timer <= 0 then
 				self.dead = true
+				dog_killed = true
 			end
 		else
 			-- unknown
@@ -663,11 +677,11 @@ function Hero_Dog()
 	end
 	function dog:setPunchBlockorLaugh()
 		local r = math.random()
-		if r < 0.40 then
+		if r < 0.33 then
 			-- punch
 			self.timer = 1+math.random()
 			self.state = 5
-		elseif r < 0.80 then
+		elseif r < 0.66 then
 			-- block
 			self.timer = 1+math.random()
 			self.state = 6
