@@ -87,7 +87,6 @@ function newgame()
 	spawn_civ()
 	
 	--todo remove
-	--table.insert(objects, Civilian())
 	table.insert(objects, Hero_Dog())
 end
 
@@ -535,6 +534,8 @@ function Civilian()
 		self:move(self.mdir * 0.01 * dt)
 		self:obj_update(dt)
 	end
+	
+	civ:update(0)
 	return civ
 end
 
@@ -676,6 +677,8 @@ function Hero_Dog()
 			self.state = 4
 		end
 	end
+	
+	dog:update(0)
 	return dog
 end
 
