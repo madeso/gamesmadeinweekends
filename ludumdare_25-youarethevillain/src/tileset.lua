@@ -1,7 +1,7 @@
 function Tileset(img, size)
 	local self = {}
 	self.quads = {};
-	self.dobatch = false
+	self.dobatch = true
 	
 	self.img = love.graphics.newImage(img)
 	if self.dobatch then
