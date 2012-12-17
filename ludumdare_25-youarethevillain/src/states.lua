@@ -9,6 +9,9 @@ SIngame = SetupGamestates(Gamestate.new())
 SMoveDeadPlayer = SetupGamestates(Gamestate.new())
 SDeadMeny = SetupGamestates(Gamestate.new())
 SDeadFadeToMeny = SetupGamestates(Gamestate.new())
+SDeadFadeToGame = SetupGamestates(Gamestate.new())
+SGameFadeToBlack = SetupGamestates(Gamestate.new())
+SBlackToMeny = SetupGamestates(Gamestate.new())
 
 function basic_scroll(dt)
 	player:move(0.01*dt)
@@ -16,6 +19,87 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+function SBlackToMeny:draw()
+	draw_everything(0, false, false, false)
+	draw_title(1)
+	
+	draw_meny(2)
+	draw_meny_item(0, 0, "New Game")
+	draw_meny_item(1, 0, "Quit")
+	
+	love.graphics.setColor(0,0,0,255 * (1-self.timer))
+	draw_screen()
+end
+
+function SBlackToMeny:update(dt)
+	basic_scroll(dt)
+	self.timer = self.timer + dt
+	if self.timer > 1 then
+		Gamestate.switch(SMeny)
+	end
+end
+function SBlackToMeny:enter()
+	self.timer = 0
+end
+function SBlackToMeny:onkey(key, code, down)
+end
+
+--------------------------------------------------------------------------------
+
+function SGameFadeToBlack:draw()
+	draw_everything(global_worldtime, true, true, true)
+	love.graphics.setColor(0,0,0,100)
+	draw_screen()
+	love.graphics.setColor(255,255,255,255)
+	
+	draw_meny(2)
+	draw_meny_item(0, 1, "Continue")
+	draw_meny_item(1, 1, "Abort")
+	
+	love.graphics.setColor(0,0,0,255 * self.timer)
+	draw_screen()
+end
+
+function SGameFadeToBlack:update(dt)
+	self.timer = self.timer + dt
+	if self.timer > 1 then
+		Gamestate.switch(SBlackToMeny)
+	end
+end
+function SGameFadeToBlack:enter()
+	self.timer = 0
+end
+function SGameFadeToBlack:onkey(key, code, down)
+end
+
+--------------------------------------------------------------------------------
+
+function SDeadFadeToGame:draw()
+	draw_gameover(1)
+	
+	draw_meny(2)
+	draw_meny_item(0, self.index, "New Game")
+	draw_meny_item(1, self.index, "Quit to meny")
+	
+	love.graphics.setColor(0,0,0,255*self.timer)
+	draw_screen()
+end
+
+function SDeadFadeToGame:update(dt)
+	basic_scroll(dt)
+	self.timer = self.timer + dt*1
+	if self.timer > 1 then
+		Gamestate.switch(SFadeIntoGame)
+	end
+end
+function SDeadFadeToGame:enter()
+	self.timer = 0
+end
+function SDeadFadeToGame:onkey(key, code, down)
+end
+
 --------------------------------------------------------------------------------
 
 function SDeadFadeToMeny:draw()
@@ -33,8 +117,7 @@ function SDeadFadeToMeny:update(dt)
 	basic_scroll(dt)
 	self.timer = self.timer + dt*1
 	if self.timer > 1 then
-		-- todo better state
-		Gamestate.switch(SMeny)
+		Gamestate.switch(SBlackToMeny)
 	end
 end
 function SDeadFadeToMeny:enter()
@@ -62,10 +145,8 @@ function SDeadMeny:onkey(key, code, down)
 	if down then
 		if meny_isaction(key) then
 			if self.index == 0 then
-				-- todo better state
-				Gamestate.switch(SFadeIntoGame)
+				Gamestate.switch(SDeadFadeToGame)
 			elseif self.index == 1 then
-				-- todo better state
 				Gamestate.switch(SDeadFadeToMeny)
 			end
 		else
@@ -138,8 +219,7 @@ function SIngame:onkey(key, code, down)
 			if self.index == 0 then
 				Gamestate.switch(SGame)
 			elseif self.index == 1 then
-				-- todo correct state
-				Gamestate.switch(SMeny)
+				Gamestate.switch(SGameFadeToBlack)
 			end
 		else
 			self.index = meny_changeindex(key, self.index, 2)
