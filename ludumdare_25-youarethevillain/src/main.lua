@@ -5,6 +5,17 @@ WORLDYCHANGE = 250
 PUNCHRANGE = 0.15
 CHARGETIME = 0.05
 
+function playSound(s)
+	love.audio.stop(s)
+	love.audio.rewind(s)
+	love.audio.play(s)
+end
+
+function sfx(path)
+	print("loading ", sfx)
+	return love.audio.newSource(path, "static")
+end
+
 TWOPI = 2*math.pi
 
 KEYLEFT = "left"
@@ -66,6 +77,22 @@ function love.load()
 	sky.parallax2 = love.graphics.newImage("gfx/sky-parallax2.png")
 	sky.parallax3 = love.graphics.newImage("gfx/sky-parallax3.png")
 	sky.signal = love.graphics.newImage("gfx/sky-signal.png")
+	
+	sfxui = sfx("sfx/ui.wav")
+	sfxselect = sfx("sfx/select.wav")
+	sfxpunch = sfx("sfx/punch.wav")
+	sfxblocked = sfx("sfx/blockedattack.wav")
+	sfxshield = sfx("sfx/shield.wav")
+	
+	sfxmehurt = sfx("sfx/mehurt.wav")
+	sfxmedie = sfx("sfx/medie.wav")
+	sfxdoghurt = sfx("sfx/doghurt.wav")
+	sfxdogdie = sfx("sfx/dogdie.wav")
+	sfxrabbitdie = sfx("sfx/rabbitdie.wav")
+	
+	sfxgoatheadenter = sfx("sfx/goatheadenter.wav")
+	sfxonstart = sfx("sfx/onstart.wav")
+	sfxtitle = sfx("sfx/title.wav")
 	
 	gametitle = love.graphics.newImage("gfx/title.png")
 	goat_head = love.graphics.newImage("gfx/goat-head.png")
@@ -136,7 +163,11 @@ function draw_meny(total)
 end
 
 function meny_isaction(key)
-	return key == " " or key == "return"
+	local r = key == " " or key == "return"
+	if r then
+		playSound(sfxselect)
+	end
+	return r
 end
 
 function meny_changeindex(key, index, total)
@@ -144,10 +175,12 @@ function meny_changeindex(key, index, total)
 	
 	if key == "up" then
 		r = r - 1
+		playSound(sfxui)
 	end
 	
 	if key == "down" then
 		r = r + 1
+		playSound(sfxui)
 	end
 	
 	if r >= total then
@@ -428,6 +461,7 @@ function game_onkey(key, down)
 	
 	if key == KEYPUNCH and down then
 		punch = punch + 1
+		playSound(sfxpunch)
 		player_punch()
 	end
 	
@@ -487,12 +521,16 @@ function Player()
 		if self.isblocking then
 			power = power * 0.25
 			dmg = 0
+			playSound(sfxblocked)
 		end
 		if dmg > 0 then
 			self.hurt = 0.25
 			self.health = self.health - dmg
 			if self.health <= 0 then
 				Gamestate.switch(SMoveDeadPlayer)
+				playSound(sfxmedie)
+			else
+				playSound(sfxmehurt)
 			end
 		end
 		self.kickback = 0.3 * power
@@ -530,6 +568,7 @@ function Civilian()
 		self.health = self.health -1
 		
 		if self.health <= 0 then
+			playSound(sfxrabbitdie)
 			self.dead = true
 			table.insert(newobjects, Bodypart(self.baseimage, true, self.pos, self.dir))
 			table.insert(newobjects, Bodypart(self.baseimage, false, self.pos, self.dir))
@@ -568,6 +607,7 @@ function Hero_Dog()
 	
 	function dog:onhurt(other)
 		if self.state == 6 then
+			playSound(sfxshield)
 			if other ~= nil then
 				other:onhurt(self)
 			end
@@ -578,8 +618,10 @@ function Hero_Dog()
 					-- dead
 					self.timer = 4
 					self.state = 7
+					playSound(sfxdogdie)
 				else
 					-- hurt
+					playSound(sfxdoghurt)
 					self.timer = 0.5
 					self.state = 3
 				end
@@ -628,8 +670,8 @@ function Hero_Dog()
 			end
 		elseif self.state == 5 then
 			-- punching
-			DOGPUNCHSPEED = 0.10
-			self:setanimation("punching", DOGPUNCHSPEED, {6,7})
+			DOGPUNCHSPEED = 0.20
+			self:setanimation("punching", DOGPUNCHSPEED/2, {6,7})
 			self.punchtimer = self.punchtimer - dt
 			if self.punchtimer <= 0 then
 				self.punchtimer = self.punchtimer + DOGPUNCHSPEED
