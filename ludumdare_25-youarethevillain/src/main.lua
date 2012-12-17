@@ -71,8 +71,8 @@ function love.load()
 	goat_head = love.graphics.newImage("gfx/goat-head.png")
 	
 	Gamestate.registerEvents()
-	--Gamestate.switch(SFadeInToWorld)
-	Gamestate.switch(SGame)
+	Gamestate.switch(SFadeInToWorld)
+	--Gamestate.switch(SGame)
 	newgame()
 end
 
@@ -396,8 +396,10 @@ function game_update(dt)
 end
 
 function spawn_civ()
-	while civcount < 20 do
-		table.insert(objects, Civilian())
+	if global_worldtime <= 0.6 then
+		while civcount < 20 do
+			table.insert(objects, Civilian())
+		end
 	end
 end
 
