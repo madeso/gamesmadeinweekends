@@ -44,6 +44,7 @@ function SDrawhead:update(dt)
 end
 function SDrawhead:enter()
 	self.timer = 0
+	playSound(sfxgoatheadenter)
 end
 function SDrawhead:onkey(key, code, down)
 end
@@ -383,9 +384,11 @@ function SPressStart:update(dt)
 end
 function SPressStart:enter()
 	self.timer = 0
+	playSound(sfxtitle)
 end
 function SPressStart:onkey()
 	Gamestate.switch(SMeny)
+	playSound(sfxonstart)
 end
 
 --------------------------------------------------------------------------------
