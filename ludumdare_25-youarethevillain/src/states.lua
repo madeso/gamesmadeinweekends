@@ -13,6 +13,7 @@ SDeadFadeToGame = SetupGamestates(Gamestate.new())
 SGameFadeToBlack = SetupGamestates(Gamestate.new())
 SBlackToMeny = SetupGamestates(Gamestate.new())
 SNextLevel = SetupGamestates(Gamestate.new())
+SDrawhead = SetupGamestates(Gamestate.new())
 
 function basic_scroll(dt)
 	player:move(0.01*dt)
@@ -21,6 +22,33 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+function SDrawhead:draw()
+	draw_everything(0, false, true, false)
+	love.graphics.setColor(255,255,255,255)
+	local s = 2*math.sin(self.timer*math.pi)
+	love.graphics.draw(goat_head, 400,300, 0, s, s, 400, 300)
+end
+
+function SDrawhead:update(dt)
+	player:move(0.6*dt)
+	player.dir = 6
+	player:update(dt)
+	player:setanimation("charge", 0.12, {12, 13})
+	
+	self.timer = self.timer + dt*0.5
+	if self.timer > 1 then
+		next_level()
+		Gamestate.switch(SGame)
+	end
+end
+function SDrawhead:enter()
+	self.timer = 0
+end
+function SDrawhead:onkey(key, code, down)
+end
+
+-----------------------------------------------------------------------------
 
 function SNextLevel:draw()
 	draw_everything(global_worldtime, false, true, false)
@@ -33,7 +61,7 @@ function SNextLevel:update(dt)
 	player:setanimation("charge", 0.12, {12, 13})
 	global_worldtime = global_worldtime - dt*0.5
 	if global_worldtime < 0 then
-		Gamestate.switch(SGame)
+		Gamestate.switch(SDrawhead)
 		global_worldtime = 0
 	end
 end
@@ -408,15 +436,19 @@ function SGame:draw()
 end
 function SGame:onkey(key, code, down)
 	game_onkey(key, down)
-	
-	if key == "f" then
-		Gamestate.switch(SNextLevel)
-	end
 end
 function SGame:update(dt)
-	global_worldtime = global_worldtime + dt * 0.1
+	global_worldtime = global_worldtime + dt * 0.02
 	if global_worldtime > 1 then
 		global_worldtime = 1
+	end
+	
+	if global_worldtime > 0.6 then
+		please_spawn_dog()
+	end
+	
+	if dog_killed then
+		Gamestate.switch(SNextLevel)
 	end
 	
 	game_update(dt)
