@@ -12,6 +12,7 @@ SDeadFadeToMeny = SetupGamestates(Gamestate.new())
 SDeadFadeToGame = SetupGamestates(Gamestate.new())
 SGameFadeToBlack = SetupGamestates(Gamestate.new())
 SBlackToMeny = SetupGamestates(Gamestate.new())
+SNextLevel = SetupGamestates(Gamestate.new())
 
 function basic_scroll(dt)
 	player:move(0.01*dt)
@@ -19,6 +20,28 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+function SNextLevel:draw()
+	draw_everything(global_worldtime, false, true, false)
+end
+
+function SNextLevel:update(dt)
+	player:move(0.6*dt)
+	player.dir = 6
+	player:update(dt)
+	player:setanimation("charge", 0.12, {12, 13})
+	global_worldtime = global_worldtime - dt*0.5
+	if global_worldtime < 0 then
+		Gamestate.switch(SGame)
+		global_worldtime = 0
+	end
+end
+function SNextLevel:enter()
+end
+function SNextLevel:onkey(key, code, down)
+end
+
 --------------------------------------------------------------------------------
 
 function SBlackToMeny:draw()
@@ -385,9 +408,13 @@ function SGame:draw()
 end
 function SGame:onkey(key, code, down)
 	game_onkey(key, down)
+	
+	if key == "f" then
+		Gamestate.switch(SNextLevel)
+	end
 end
 function SGame:update(dt)
-	global_worldtime = global_worldtime + dt * 0.01
+	global_worldtime = global_worldtime + dt * 0.1
 	if global_worldtime > 1 then
 		global_worldtime = 1
 	end
