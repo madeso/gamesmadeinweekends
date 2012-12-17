@@ -83,7 +83,11 @@ function newgame()
 	objects = {}
 	newobjects = {}
 	global_worldtime = 0
-	table.insert(objects, Civilian())
+	
+	spawn_civ()
+	
+	--todo remove
+	--table.insert(objects, Civilian())
 	table.insert(objects, Hero_Dog())
 end
 
@@ -376,7 +380,11 @@ function game_update(dt)
 	
 	punch = 0
 	
-	if civcount < 20 then
+	spawn_civ()
+end
+
+function spawn_civ()
+	while civcount < 20 do
 		table.insert(objects, Civilian())
 	end
 end
