@@ -7,6 +7,12 @@ package ;
 
 class Rules 
 {
+	public static function IsValidBombColor(c:Color) : Bool
+	{
+		if ( c == Color.None || c == Color.Black ) return false;
+		else return true;
+	}
+	
 	public static function CanPlace(board:Board, index:Int, c:Color):Bool
 	{
 		if ( index == -1 ) return false;
