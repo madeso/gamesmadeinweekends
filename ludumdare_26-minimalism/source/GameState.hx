@@ -28,9 +28,11 @@ import com.eclecticdesignstudio.motion.easing.Quint;
 class GameState  extends FlxState
 {	
 	private static var BLACK : Int = 3;
+	private static var CROSS : Int = 11;
 	
 	private var items : FlxGroup;
 	private var board : Board;
+	private var cross : DarkBox;
 	private var selectionbox : DarkBox;
 	private var topbox : DarkBox;
 	private var placehere : Box;
@@ -43,6 +45,8 @@ class GameState  extends FlxState
 	
 	private var lastColor : Color;
 	
+	private static var CROSSOUT : Int = 500;
+	
 	override public function create():Void
 	{
 		// Game.music("andsoitbegins");
@@ -52,6 +56,7 @@ class GameState  extends FlxState
 		board = new Board();
 		selectionbox = new DarkBox(300, 300, 0, 16, 16, BLACK);
 		topbox = new DarkBox(300, -60, 0.5, 16, 2, BLACK);
+		cross = new DarkBox(570, CROSSOUT, 1, 1, 1, CROSS);
 		placehere = new Box(0, 0, BoxSize.Normal, Color.None, false);
 		placehere.visible = false;
 		
@@ -74,6 +79,7 @@ class GameState  extends FlxState
 		add(selectionbox);
 		add(topbox);
 		add(placehere);
+		add(cross);
 		
 		add(buttonRedBig);
 		add(buttonBlueBig);
@@ -126,6 +132,7 @@ class GameState  extends FlxState
 			Actuate.tween(buttonRedBig, 1, { y: 10 } ).ease(Quint.easeOut).delay(randomDelay());
 			Actuate.tween(buttonBlueBig, 1, { y: 10 } ).ease(Quint.easeOut).delay(randomDelay());
 			Actuate.tween(buttonYellowBig, 1, { y: 10 } ).ease(Quint.easeOut).delay(randomDelay());
+			Actuate.tween(cross, 1, { y: 425 } ).ease(Quint.easeOut);
 		}
 		else
 		{
@@ -135,6 +142,8 @@ class GameState  extends FlxState
 			Actuate.tween(buttonRedBig, 1, { y: -43 } ).ease(Quint.easeOut).delay(randomDelay());
 			Actuate.tween(buttonBlueBig, 1, { y: -43 } ).ease(Quint.easeOut).delay(randomDelay());
 			Actuate.tween(buttonYellowBig, 1, { y: -43 } ).ease(Quint.easeOut).delay(randomDelay());
+			
+			Actuate.tween(cross, 1, { y: CROSSOUT } ).ease(Quint.easeOut);
 		}
 	}
 	
@@ -165,6 +174,11 @@ class GameState  extends FlxState
 				else if ( buttonYellowBig.overlapsPoint(p) )
 				{
 					c = Color.Yellow;
+				}
+				else if ( cross.overlapsPoint(p) )
+				{
+					close = true;
+					Game.sfx("abort");
 				}
 				else if ( lastColor != Color.None )
 				{
