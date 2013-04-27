@@ -97,6 +97,39 @@ class Board extends FlxGroup
 		return return BoxSize.RotatedHalf;
 	}
 	
+	public function getClosestMatch(p:Vec) : Int
+	{
+		var best : Int = -1;
+		var dist : Float = 0;
+		
+		var y : Int = 0;
+		while (y < Height)
+		{
+			var x : Int = 0;
+			while (x < Width)
+			{
+				var i : Int = index(x, y);
+				var b : Vec = boxes[i].getCenter();
+				var l : Float = Vec.Sub(p, b).lenSq();
+				if ( best == -1 || dist > l )
+				{
+					best = i;
+					dist = l;
+				}
+				
+				++x;
+			}
+			++y;
+		}
+		
+		return best;
+	}
+	
+	public function setColor(pos:Int, c: Color)
+	{
+		boxes[pos].setColor(c);
+	}
+	
 	public function index(x:Int, y:Int):Int
 	{
 		if ( x < 0 ) return -1;
