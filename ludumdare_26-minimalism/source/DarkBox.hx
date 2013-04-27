@@ -10,11 +10,11 @@ import org.flixel.FlxObject;
 
 class DarkBox extends FlxSprite
 {
-	public function new(X:Float, Y:Float, f:Float, sx:Float, sy:Float)
+	public function new(X:Float, Y:Float, f:Float, sx:Float, sy:Float, index:Int)
 	{
 		super(X, Y);
 		loadGraphic("assets/items.png", true, true, 40, 40);
-		addAnimation("idle", [3 * 6 + 3]);
+		addAnimation("idle", [index]);
 		play("idle");
 		alpha = f;
 		scale.x = sx;

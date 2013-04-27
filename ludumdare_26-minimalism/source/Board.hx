@@ -23,7 +23,7 @@ class Board extends FlxGroup
 	
 	private var boxes : Array<Box>;
 	
-	public function new(gs:GameState) 
+	public function new() 
 	{
 		super();
 		
@@ -76,7 +76,7 @@ class Board extends FlxGroup
 				var color : Color = Game.RandomColor();
 				//trace("Adding: " + Std.string(xbig) + " & " +  Std.string(ybig) +"->"+ Std.string(size));
 		
-				var b : Box = new Box(STARTX + xbase + 2, STARTY + ybase + 2, size, color, gs);
+				var b : Box = new Box(STARTX + xbase + 2, STARTY + ybase + 2, size, color, true);
 				boxes.push(b);
 				add(b);
 				
@@ -123,6 +123,18 @@ class Board extends FlxGroup
 		}
 		
 		return best;
+	}
+	
+	public function getPosition(i:Int) : Vec
+	{
+		if ( i < 0 ) return new Vec(0, 0);
+		else return new Vec(boxes[i].x, boxes[i].y);
+	}
+	
+	public function getSize(i:Int) : BoxSize
+	{
+		if ( i < 0 ) return BoxSize.Normal;
+		else return boxes[i].getSize();
 	}
 	
 	public function setColor(pos:Int, c: Color)
