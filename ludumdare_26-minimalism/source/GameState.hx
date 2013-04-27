@@ -41,10 +41,13 @@ class GameState  extends FlxState
 	private var buttonBlueBig : Box;
 	private var buttonYellowBig : Box;
 	
+	private var lastColor : Color;
+	
 	override public function create():Void
 	{
 		// Game.music("andsoitbegins");
 		
+		lastColor = Color.None;
 		items = new FlxGroup();
 		board = new Board();
 		selectionbox = new DarkBox(300, 300, 0, 16, 16, BLACK);
@@ -146,7 +149,7 @@ class GameState  extends FlxState
 		{
 			var close : Bool = true;
 			
-			if ( targetindex > 0 )
+			if ( targetindex >= 0 )
 			{
 				close = false;
 				var c : Color = Color.None;
@@ -155,18 +158,28 @@ class GameState  extends FlxState
 				{
 					c = Color.Red;
 				}
-				if ( buttonBlueBig.overlapsPoint(p) )
+				else if ( buttonBlueBig.overlapsPoint(p) )
 				{
 					c = Color.Blue;
 				}
-				if ( buttonYellowBig.overlapsPoint(p) )
+				else if ( buttonYellowBig.overlapsPoint(p) )
 				{
 					c = Color.Yellow;
+				}
+				else if ( lastColor != Color.None )
+				{
+					var index : Int = board.getClosestMatch(point);
+					if ( index == targetindex )
+					{
+						c = lastColor;
+					}
 				}
 				
 				if ( c != Color.None )
 				{
 					board.setColor(targetindex, c);
+					lastColor = c;
+					Game.sfx("enter");
 					close = true;
 				}
 			}
@@ -181,6 +194,7 @@ class GameState  extends FlxState
 			var index : Int = board.getClosestMatch(point);
 			if ( index == -1 ) return;
 			var p : Vec = board.getPosition(index);
+			Game.sfx("select");
 			placehere.x = p.x;
 			placehere.y = p.y;
 			placehere.setSize(board.getSize(index));
