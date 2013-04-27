@@ -17,6 +17,8 @@ import org.flixel.FlxText;
 import org.flixel.FlxTilemap;
 import org.flixel.FlxU;
 
+import com.eclecticdesignstudio.motion.Actuate;
+
 /**
  * ...
  * @author sirGustav
@@ -27,6 +29,8 @@ class GameState  extends FlxState
 	private var items : FlxGroup;
 	private var board : Board;
 	private var selectionbox : DarkBox;
+	private var topbox : DarkBox;
+	private var selectionVisible : Bool = false;
 	private var targetindex : Int = -1;
 		
 	override public function create():Void
@@ -35,12 +39,13 @@ class GameState  extends FlxState
 		
 		items = new FlxGroup();
 		board = new Board(this);
-		selectionbox = new DarkBox(620, 500, 0.5, 33);
-		selectionbox.visible = false;
+		selectionbox = new DarkBox(620, 500, 0, 33, 33);
+		topbox = new DarkBox(620, -20, 0.5, 33, 4);
 		
 		add(board);
 		add(items);
 		add(selectionbox);
+		add(topbox);
 		
 		FlxG.bgColor = 0xfffdfdfd;
 		
@@ -75,23 +80,39 @@ class GameState  extends FlxState
 		}
 	}
 	
+	private function setSelectionVisible(v : Bool) : Void
+	{
+		selectionVisible = v;
+		
+		if ( v )
+		{
+			Actuate.tween (selectionbox, 1, { alpha: 0.5 } );
+			Actuate.tween (topbox, 1, { y: 30 } );
+		}
+		else
+		{
+			Actuate.tween (selectionbox, 1, { alpha: 0.0 } );
+			Actuate.tween (topbox, 1, { y: -20 } );
+		}
+	}
+	
 	private function onClick(point:Vec): Void
 	{
-		if ( selectionbox.visible )
+		if ( selectionVisible )
 		{
 			if ( targetindex > 0 )
 			{
 				board.setColor(targetindex, Color.Red);
 			}
 			
-			selectionbox.visible = false;
+			setSelectionVisible(false);
 		}
 		else
 		{
 			var index : Int = board.getClosestMatch(point);
 			if ( index == -1 ) return;
 			targetindex = index;
-			selectionbox.visible = true;
+			setSelectionVisible(true);
 		}
 	}
 }
