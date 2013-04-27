@@ -177,10 +177,17 @@ class GameState  extends FlxState
 				
 				if ( c != Color.None )
 				{
-					board.setColor(targetindex, c);
-					lastColor = c;
-					Game.sfx("enter");
-					close = true;
+					if ( Rules.CanPlace(board, targetindex, c) == true )
+					{
+						board.setColor(targetindex, c);
+						lastColor = c;
+						Game.sfx("enter");
+						close = true;
+					}
+					else
+					{
+						Game.sfx("bad3");
+					}
 				}
 			}
 			
@@ -193,13 +200,20 @@ class GameState  extends FlxState
 		{
 			var index : Int = board.getClosestMatch(point);
 			if ( index == -1 ) return;
-			var p : Vec = board.getPosition(index);
-			Game.sfx("select");
-			placehere.x = p.x;
-			placehere.y = p.y;
-			placehere.setSize(board.getSize(index));
-			targetindex = index;
-			setSelectionVisible(true);
+			if ( Rules.CanPlace(board, index, Color.None) == true )
+			{
+				var p : Vec = board.getPosition(index);
+				Game.sfx("select");
+				placehere.x = p.x;
+				placehere.y = p.y;
+				placehere.setSize(board.getSize(index));
+				targetindex = index;
+				setSelectionVisible(true);
+			}
+			else
+			{
+				Game.sfx("bad3");
+			}
 		}
 	}
 }

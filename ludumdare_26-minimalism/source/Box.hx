@@ -13,6 +13,7 @@ class Box extends FlxSprite
 	private var gs : GameState;
 	private var size : BoxSize;
 	private var canhide : Bool;
+	private var mycolor : Color;
 
 	public function new(X:Float, Y:Float, s:BoxSize, c : Color, ch : Bool)
 	{
@@ -38,6 +39,11 @@ class Box extends FlxSprite
 	public function getSize() : BoxSize
 	{
 		return size;
+	}
+	
+	public function getColor() : Color
+	{
+		return mycolor;
 	}
 	
 	public function getCenter() : Vec
@@ -88,6 +94,8 @@ class Box extends FlxSprite
 		{
 			visible = true;
 		}
+		
+		mycolor = c;
 	}
 	
 	override public function kill():Void 
