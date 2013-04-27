@@ -16,10 +16,6 @@ import org.flixel.FlxState;
 import org.flixel.FlxText;
 import org.flixel.FlxTilemap;
 import org.flixel.FlxU;
-import org.flixel.tmx.TmxObject;
-import org.flixel.tmx.TmxObjectGroup;
-
-import org.flixel.tmx.TmxMap;
 
 /**
  * ...
@@ -30,6 +26,8 @@ class GameState  extends FlxState
 {	
 	private var items : FlxGroup;
 	private var board : Board;
+	private var selectionbox : DarkBox;
+	private var targetindex : Int = -1;
 		
 	override public function create():Void
 	{
@@ -37,9 +35,12 @@ class GameState  extends FlxState
 		
 		items = new FlxGroup();
 		board = new Board(this);
+		selectionbox = new DarkBox(620, 500, 0.5, 33);
+		selectionbox.visible = false;
 		
 		add(board);
 		add(items);
+		add(selectionbox);
 		
 		FlxG.bgColor = 0xfffdfdfd;
 		
@@ -76,8 +77,21 @@ class GameState  extends FlxState
 	
 	private function onClick(point:Vec): Void
 	{
-		point.x = Math.floor(point.x / 42) * 42;
-		point.y = Math.floor(point.y / 42) * 42;
-		//items.add(new Box(point.x, point.y, BoxSize.Normal, Game.irnd(0,3), this));
+		if ( selectionbox.visible )
+		{
+			if ( targetindex > 0 )
+			{
+				board.setColor(targetindex, Color.Red);
+			}
+			
+			selectionbox.visible = false;
+		}
+		else
+		{
+			var index : Int = board.getClosestMatch(point);
+			if ( index == -1 ) return;
+			targetindex = index;
+			selectionbox.visible = true;
+		}
 	}
 }
