@@ -73,10 +73,9 @@ class Board extends FlxGroup
 			{
 				var xbig : Bool = xsize[x];
 				var size : BoxSize = GetSize(xbig, ybig);
-				var color : Color = Game.RandomColor();
 				//trace("Adding: " + Std.string(xbig) + " & " +  Std.string(ybig) +"->"+ Std.string(size));
 		
-				var b : Box = new Box(STARTX + xbase + 2, STARTY + ybase + 2, size, color, true);
+				var b : Box = new Box(STARTX + xbase + 2, STARTY + ybase + 2, size, Color.None, true);
 				boxes.push(b);
 				add(b);
 				
@@ -86,6 +85,17 @@ class Board extends FlxGroup
 			}
 			ybase += step(ybig);
 			++y;
+		}
+		
+		var c : Int = 0;
+		while (c < 4)
+		{
+			var ri : Int = Std.random(boxes.length);
+			if ( boxes[ri].getColor() == Color.None )
+			{
+				setColor(ri, Color.Black);
+				++c;
+			}
 		}
 	}
 	
@@ -113,8 +123,11 @@ class Board extends FlxGroup
 				var l : Float = Vec.Sub(p, b).lenSq();
 				if ( best == -1 || dist > l )
 				{
-					best = i;
-					dist = l;
+					if ( l < 20*20 )
+					{
+						best = i;
+						dist = l;
+					}
 				}
 				
 				++x;
