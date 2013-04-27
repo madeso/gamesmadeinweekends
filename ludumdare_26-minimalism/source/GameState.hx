@@ -47,6 +47,11 @@ class GameState  extends FlxState
 	
 	private static var CROSSOUT : Int = 500;
 	
+	private var bombindex : Int = -1;
+	private var bombdir : Int = 0;
+	private var bombtimer : Float = 0;
+	private static var BOMBTIME : Float = 0.10;
+	
 	override public function create():Void
 	{
 		// Game.music("andsoitbegins");
@@ -96,26 +101,124 @@ class GameState  extends FlxState
 	{
 		super.destroy();
 	}
+	
+	public static function Right(dir:Int) : Int
+	{
+		if ( dir == 4 ) return 8;
+		if ( dir == 6 ) return 2;
+		if ( dir == 8 ) return 6;
+		if ( dir == 2 ) return 4;
+		return -1;
+	}
+	
+	public static function Left(dir:Int) : Int
+	{
+		if ( dir == 4 ) return 2;
+		if ( dir == 6 ) return 8;
+		if ( dir == 8 ) return 4;
+		if ( dir == 2 ) return 6;
+		return -1;
+	}
+	
 
 	override public function update():Void
 	{
 		super.update();
 		
-		if ( FlxG.mouse.justReleased() )
-		{
-			//var fp : FlxPoint = FlxG.mouse.getWorldPosition();
-			var p : Vec = new Vec(FlxG.mouse.screenX, FlxG.mouse.screenY);//new Vec(fp.x, fp.y);
-			onClick(p);
-		}
-		
-		for (touch in FlxG.touchManager.touches)
-		{
-			if ( touch.justReleased() )
+		if ( bombindex == -1 )
+		{		
+			if ( FlxG.mouse.justReleased() )
 			{
-				var p : Vec = new Vec(touch.screenX, touch.screenY);
+				//var fp : FlxPoint = FlxG.mouse.getWorldPosition();
+				var p : Vec = new Vec(FlxG.mouse.screenX, FlxG.mouse.screenY);//new Vec(fp.x, fp.y);
 				onClick(p);
 			}
+			
+			for (touch in FlxG.touchManager.touches)
+			{
+				if ( touch.justReleased() )
+				{
+					var p : Vec = new Vec(touch.screenX, touch.screenY);
+					onClick(p);
+				}
+			}
 		}
+		else
+		{
+			bombtimer += FlxG.elapsed;
+			if ( bombtimer > BOMBTIME )
+			{
+				bombtimer -= BOMBTIME;
+				Game.sfx("score");
+				// trace("bomb");
+				
+				var p : Bool = false;
+				board.setColor(bombindex, Color.None);
+				var nextindex : Int = board.getIndexFromDir(bombindex, bombdir);
+				var c : Color = board.getColor( nextindex );
+				// trace("investigating " + Std.string(bombdir) + " / " + Std.string(c));
+				if ( Rules.IsValidBombColor(c) )
+				{
+					bombindex = nextindex;
+					// trace("nextindex");
+				}
+				else
+				{
+					var goright : Bool = Rules.IsValidBombColor( board.getColor( board.getIndexFromDir(bombindex, Right(bombdir))));
+					var goleft : Bool = Rules.IsValidBombColor( board.getColor( board.getIndexFromDir(bombindex, Left(bombdir))));
+					if ( goright && goleft )
+					{
+						// trace("choosing");
+						if ( Game.brnd() ) goright = false;
+						else goleft = false;
+					}
+					
+					if ( goright )
+					{
+						// trace("right");
+						bombdir = Right(bombdir);
+						bombindex = board.getIndexFromDir(bombindex, bombdir);
+					}
+					else if ( goleft )
+					{
+						// trace("left");
+						bombdir = Left(bombdir);
+						bombindex = board.getIndexFromDir(bombindex, bombdir);
+					}
+					else
+					{
+						// trace("starting again");
+						if ( canBomb() )
+						{
+							startBombing();
+						}
+						else
+						{
+							// stop bombing
+							bombindex = -1;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	private function canBomb() : Bool
+	{
+		var dirs : Array<BombDir> = board.listBombDirs();
+		return dirs.length != 0;
+	}
+	
+	private function startBombing() : Void
+	{
+		var dirs : Array<BombDir> = board.listBombDirs();
+		if ( dirs.length == 0 ) return;
+		var index : Int = Std.random(dirs.length);
+		//board.setColor(dirs[index].bombindex, Color.None);
+		bombindex = dirs[index].index;
+		bombdir = dirs[index].dir;
+		bombtimer = 0;
+		// trace("starting funny bombing at " + Std.string(bombindex) + " ... " + Std.string(bombdir));
 	}
 	
 	private function setSelectionVisible(v : Bool) : Void
@@ -197,6 +300,11 @@ class GameState  extends FlxState
 						lastColor = c;
 						Game.sfx("enter");
 						close = true;
+						
+						if ( canBomb() )
+						{
+							startBombing();
+						}
 					}
 					else
 					{
