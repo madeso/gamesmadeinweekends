@@ -10,7 +10,11 @@ class Rules
 	public static function CanPlace(board:Board, index:Int, c:Color):Bool
 	{
 		if ( index == -1 ) return false;
-		if ( board.getColor(index) != Color.None ) return false;
+		if ( board.getColor(index) != Color.None )
+		{
+			board.notice(index);
+			return false;
+		}
 		
 		if ( c != Color.None )
 		{
