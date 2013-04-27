@@ -27,11 +27,7 @@ import com.eclecticdesignstudio.motion.easing.Quint;
 
 class GameState  extends FlxState
 {	
-	private static var RED : Int = 0;
-	private static var BLUE : Int = 1;
-	private static var YELLOW : Int = 2;
 	private static var BLACK : Int = 3;
-	private static var WHITE : Int = 16;
 	
 	private var items : FlxGroup;
 	private var board : Board;
@@ -40,6 +36,10 @@ class GameState  extends FlxState
 	private var placehere : Box;
 	private var selectionVisible : Bool = false;
 	private var targetindex : Int = -1;
+	
+	private var buttonRedBig : Box;
+	private var buttonBlueBig : Box;
+	private var buttonYellowBig : Box;
 	
 	override public function create():Void
 	{
@@ -52,11 +52,29 @@ class GameState  extends FlxState
 		placehere = new Box(0, 0, BoxSize.Normal, Color.None, false);
 		placehere.visible = false;
 		
+		var buttonheight : Int = -40;
+		
+		var BASE : Int = 80;
+		var RED : Int = BASE + 20;
+		var BLUE : Int = BASE + 40 * 5;
+		var YELLOW : Int = BASE + 40 * 10;
+		
+		var SPACE : Int = 10;
+		
+		buttonRedBig = new Box(RED + 0, buttonheight, BoxSize.Normal, Color.Red, true);
+		buttonBlueBig = new Box(BLUE + 0, buttonheight, BoxSize.Normal, Color.Blue, true);
+		buttonYellowBig = new Box(YELLOW + 0, buttonheight, BoxSize.Normal, Color.Yellow, true);
+		
+		
 		add(board);
 		add(items);
 		add(selectionbox);
 		add(topbox);
 		add(placehere);
+		
+		add(buttonRedBig);
+		add(buttonBlueBig);
+		add(buttonYellowBig);
 		
 		FlxG.bgColor = 0xfffdfdfd;
 		
@@ -101,24 +119,62 @@ class GameState  extends FlxState
 		{
 			Actuate.tween (selectionbox, 1, { alpha: 0.5 } );
 			Actuate.tween (topbox, 1, { y: 0 } ).ease(Quint.easeOut);
+			
+			Actuate.tween(buttonRedBig, 1, { y: 10 } ).ease(Quint.easeOut).delay(randomDelay());
+			Actuate.tween(buttonBlueBig, 1, { y: 10 } ).ease(Quint.easeOut).delay(randomDelay());
+			Actuate.tween(buttonYellowBig, 1, { y: 10 } ).ease(Quint.easeOut).delay(randomDelay());
 		}
 		else
 		{
 			Actuate.tween (selectionbox, 1, { alpha: 0.0 } );
-			Actuate.tween (topbox, 1, { y: -60 } );
+			Actuate.tween (topbox, 0.75, { y: -60 } ).ease(Quint.easeInOut);
+			
+			Actuate.tween(buttonRedBig, 1, { y: -43 } ).ease(Quint.easeOut).delay(randomDelay());
+			Actuate.tween(buttonBlueBig, 1, { y: -43 } ).ease(Quint.easeOut).delay(randomDelay());
+			Actuate.tween(buttonYellowBig, 1, { y: -43 } ).ease(Quint.easeOut).delay(randomDelay());
 		}
+	}
+	
+	private function randomDelay() : Float
+	{
+		return Game.rnd(0, 0.25);
 	}
 	
 	private function onClick(point:Vec): Void
 	{
 		if ( selectionVisible )
 		{
+			var close : Bool = true;
+			
 			if ( targetindex > 0 )
 			{
-				board.setColor(targetindex, Color.Red);
+				close = false;
+				var c : Color = Color.None;
+				var p : FlxPoint = point.flx();
+				if ( buttonRedBig.overlapsPoint(p) )
+				{
+					c = Color.Red;
+				}
+				if ( buttonBlueBig.overlapsPoint(p) )
+				{
+					c = Color.Blue;
+				}
+				if ( buttonYellowBig.overlapsPoint(p) )
+				{
+					c = Color.Yellow;
+				}
+				
+				if ( c != Color.None )
+				{
+					board.setColor(targetindex, c);
+					close = true;
+				}
 			}
 			
-			setSelectionVisible(false);
+			if ( close )
+			{
+				setSelectionVisible(false);
+			}
 		}
 		else
 		{

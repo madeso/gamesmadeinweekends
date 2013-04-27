@@ -17,6 +17,11 @@ class Vec
 		y = (Y==null)?x:Y;
 	}
 	
+	public function flx() : FlxPoint
+	{
+		return new FlxPoint(x, y);
+	}
+	
 	public function sub(o: Vec) : Vec
 	{
 		return new Vec(x - o.x, y - o.y);
