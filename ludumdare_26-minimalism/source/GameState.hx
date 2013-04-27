@@ -52,6 +52,8 @@ class GameState  extends FlxState
 	private var bombtimer : Float = 0;
 	private static var BOMBTIME : Float = 0.10;
 	
+	private var storedBombs : Array<BombDir>;
+	
 	override public function create():Void
 	{
 		// Game.music("andsoitbegins");
@@ -168,9 +170,17 @@ class GameState  extends FlxState
 					var goleft : Bool = Rules.IsValidBombColor( board.getColor( board.getIndexFromDir(bombindex, Left(bombdir))));
 					if ( goright && goleft )
 					{
-						// trace("choosing");
 						if ( Game.brnd() ) goright = false;
 						else goleft = false;
+						
+						if ( goleft )
+						{
+							storedBombs.push(new BombDir(bombindex, board.getIndexFromDir(bombindex, Right(bombdir)), Right(bombdir)));
+						}
+						else
+						{
+							storedBombs.push(new BombDir(bombindex, board.getIndexFromDir(bombindex, Left(bombdir)), Left(bombdir)));
+						}
 					}
 					
 					if ( goright )
@@ -188,7 +198,7 @@ class GameState  extends FlxState
 					else
 					{
 						// trace("starting again");
-						if ( canBomb() )
+						if ( storedBombs.length != 0 )
 						{
 							startBombing();
 						}
@@ -205,20 +215,20 @@ class GameState  extends FlxState
 	
 	private function canBomb() : Bool
 	{
-		var dirs : Array<BombDir> = board.listBombDirs();
-		return dirs.length != 0;
+		storedBombs = board.listBombDirs();
+		return storedBombs.length != 0;
 	}
 	
 	private function startBombing() : Void
 	{
-		var dirs : Array<BombDir> = board.listBombDirs();
-		if ( dirs.length == 0 ) return;
-		var index : Int = Std.random(dirs.length);
-		//board.setColor(dirs[index].bombindex, Color.None);
-		bombindex = dirs[index].index;
-		bombdir = dirs[index].dir;
+		if ( storedBombs.length == 0 ) return;
+		var index : Int = Std.random(storedBombs.length);
+		board.setColor(storedBombs[index].bombindex, Color.None);
+		bombindex = storedBombs[index].index;
+		bombdir = storedBombs[index].dir;
 		bombtimer = 0;
-		// trace("starting funny bombing at " + Std.string(bombindex) + " ... " + Std.string(bombdir));
+		storedBombs.remove(storedBombs[index]);
+		// trace("boms left " + Std.string(storedBombs.length));
 	}
 	
 	private function setSelectionVisible(v : Bool) : Void
