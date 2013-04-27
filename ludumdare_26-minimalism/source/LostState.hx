@@ -18,7 +18,7 @@ import org.flixel.system.input.FlxTouch;
 import com.eclecticdesignstudio.motion.Actuate;
 import com.eclecticdesignstudio.motion.easing.Quint;
 
-class MenuState extends FlxState
+class LostState extends FlxState
 {
 	override public function create():Void
 	{
@@ -35,7 +35,7 @@ class MenuState extends FlxState
 		text.alignment = "center";
 		text.color = 0xff000000;
 		text.size = 25;
-		add( new Img("assets/main.png"));
+		add( new Img("assets/fail.png"));
 		add(text);
 		
 		Actuate.tween(text, 0.5, { size: 30 } ).repeat().reflect().ease(Quint.easeInOut);

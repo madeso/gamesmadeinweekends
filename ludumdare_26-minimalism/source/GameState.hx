@@ -19,6 +19,7 @@ import org.flixel.FlxU;
 
 import com.eclecticdesignstudio.motion.Actuate;
 import com.eclecticdesignstudio.motion.easing.Quint;
+import com.eclecticdesignstudio.motion.easing.Sine;
 
 /**
  * ...
@@ -29,10 +30,12 @@ class GameState  extends FlxState
 {	
 	private static var BLACK : Int = 3;
 	private static var CROSS : Int = 11;
+	private static var BOMB : Int = 17;
 	
 	private var items : FlxGroup;
 	private var board : Board;
 	private var cross : DarkBox;
+	private var bombButton : DarkBox;
 	private var selectionbox : DarkBox;
 	private var topbox : DarkBox;
 	private var placehere : Box;
@@ -58,12 +61,15 @@ class GameState  extends FlxState
 	{
 		// Game.music("andsoitbegins");
 		
+		storedBombs = new Array<BombDir>();
+		
 		lastColor = Color.None;
 		items = new FlxGroup();
 		board = new Board();
 		selectionbox = new DarkBox(300, 300, 0, 16, 16, BLACK);
 		topbox = new DarkBox(300, -60, 0.5, 16, 2, BLACK);
 		cross = new DarkBox(570, CROSSOUT, 1, 1, 1, CROSS);
+		bombButton = new DarkBox(-40, 420, 1, 1, 1, BOMB);
 		placehere = new Box(0, 0, BoxSize.Normal, Color.None, false);
 		placehere.visible = false;
 		
@@ -80,6 +86,9 @@ class GameState  extends FlxState
 		buttonBlueBig = new Box(BLUE + 0, buttonheight, BoxSize.Normal, Color.Blue, true);
 		buttonYellowBig = new Box(YELLOW + 0, buttonheight, BoxSize.Normal, Color.Yellow, true);
 		
+		bombButton.scale.x = 0.9;
+		bombButton.scale.y = 0.9;
+		
 		
 		add(board);
 		add(items);
@@ -87,6 +96,7 @@ class GameState  extends FlxState
 		add(topbox);
 		add(placehere);
 		add(cross);
+		add(bombButton);
 		
 		add(buttonRedBig);
 		add(buttonBlueBig);
@@ -206,6 +216,15 @@ class GameState  extends FlxState
 						{
 							// stop bombing
 							bombindex = -1;
+							
+							if ( board.hasBoxes() )
+							{
+								FlxG.switchState(new LostState() );
+							}
+							else
+							{
+								FlxG.switchState(new WinState() );
+							}
 						}
 					}
 				}
@@ -267,6 +286,23 @@ class GameState  extends FlxState
 	
 	private function onClick(point:Vec): Void
 	{
+		var p : FlxPoint = point.flx();
+		
+		if ( bombButton.overlapsPoint(p) )
+		{
+			if ( storedBombs.length > 0 )
+			{
+				Game.sfx("enter");
+				startBombing();
+				
+				if ( selectionVisible )
+				{
+					setSelectionVisible(false);
+				}
+				Actuate.tween(bombButton, 1, { x: -40 } ).ease(Quint.easeOut);
+			}
+		}
+				
 		if ( selectionVisible )
 		{
 			var close : Bool = true;
@@ -275,7 +311,6 @@ class GameState  extends FlxState
 			{
 				close = false;
 				var c : Color = Color.None;
-				var p : FlxPoint = point.flx();
 				if ( buttonRedBig.overlapsPoint(p) )
 				{
 					c = Color.Red;
@@ -311,9 +346,24 @@ class GameState  extends FlxState
 						Game.sfx("enter");
 						close = true;
 						
+						var osl : Int = storedBombs.length;
+						
 						if ( canBomb() )
 						{
-							startBombing();
+							if ( storedBombs.length > 0 )
+							{
+								if ( osl == 0 ) // adding a sine multiple times on the same object causes flash to crash
+								{
+									Actuate.tween(bombButton, 1, { x: 10 } ).ease(Quint.easeOut);
+									Actuate.tween(bombButton.scale, 0.5, { x: 1.1 } ).repeat().reflect().ease(Sine.easeInOut).delay(randomDelay());
+									Actuate.tween(bombButton.scale, 0.5, { y: 1.1 } ).repeat().reflect().ease(Sine.easeInOut).delay(randomDelay());
+								}
+							}
+							
+							if ( storedBombs.length == osl )
+							{
+								startBombing();
+							}
 						}
 					}
 					else

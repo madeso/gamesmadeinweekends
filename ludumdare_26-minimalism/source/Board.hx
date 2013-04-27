@@ -172,6 +172,29 @@ class Board extends FlxGroup
 		return r;
 	}
 	
+	public function hasBoxes() : Bool
+	{
+		var y : Int = 0;
+		while (y < Height)
+		{
+			var x : Int = 0;
+			while (x < Width)
+			{
+				var i : Int = index(x, y);
+				
+				if ( getColor(i) != Color.None )
+				{
+					return true;
+				}
+				
+				++x;
+			}
+			++y;
+		}
+		
+		return false;
+	}
+	
 	public function getPosition(i:Int) : Vec
 	{
 		if ( i < 0 ) return new Vec(0, 0);
