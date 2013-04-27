@@ -12,44 +12,32 @@ class Box extends FlxSprite
 {
 	private var gs : GameState;
 	private var size : BoxSize;
-	override public function hurt(Damage:Float):Void 
-	{
-		flicker();
-	}
+	private var canhide : Bool;
 
-	public function new(X:Float, Y:Float, s:BoxSize, c : Color, Parent: GameState)
+	public function new(X:Float, Y:Float, s:BoxSize, c : Color, ch : Bool)
 	{
 		super(X, Y);
-		gs = Parent;
-		size = s;
+		canhide = ch;
 		
 		loadGraphic("assets/items.png", true, true, 40, 40);
-		var base : Int = 0;
-		
-		if ( size == BoxSize.Normal )
-		{
-			base = 0;
-		}
-		else if ( size == BoxSize.Half )
-		{
-			base = 1;
-		}
-		else if ( size == BoxSize.RotatedHalf )
-		{
-			base = 2;
-		}
-		else
-		{
-			base = 3;
-		}
-		
-		addAnimation("None", [base * 6 + 0]); // never visible
-		addAnimation("Red", [base * 6 + 0]);
-		addAnimation("Blue", [base * 6 + 1]);
-		addAnimation("Yellow", [base * 6 + 2]);
-		addAnimation("Black", [base * 6 + 3]);
+		addAnimation("Normal", [0 * 6]);
+		addAnimation("Half", [1 * 6]);
+		addAnimation("RotatedHalf", [2 * 6]);
+		addAnimation("Small", [3 * 6]);
 		
 		setColor(c);
+		setSize(s);
+	}
+	
+	public function setSize(s: BoxSize)
+	{
+		size = s;
+		play(Std.string(size));
+	}
+	
+	public function getSize() : BoxSize
+	{
+		return size;
 	}
 	
 	public function getCenter() : Vec
@@ -71,7 +59,28 @@ class Box extends FlxSprite
 	
 	public function setColor(c:Color):Void
 	{
-		if ( c == Color.None )
+		if ( c == Color.Red )
+		{
+			color = 0xffff0000;
+		}
+		else if ( c == Color.Blue )
+		{
+			color = 0xff0000ff;
+		}
+		else if ( c == Color.Yellow )
+		{
+			color = 0xffffff00;
+		}
+		else if ( c == Color.Black )
+		{
+			color = 0xff000000;
+		}
+		else
+		{
+			color = 0xffffffff;
+		}
+		
+		if ( c == Color.None && canhide)
 		{
 			visible = false;
 		}
@@ -79,7 +88,6 @@ class Box extends FlxSprite
 		{
 			visible = true;
 		}
-		play( Std.string(c) );
 	}
 	
 	override public function kill():Void 
