@@ -131,11 +131,34 @@ class Board extends FlxGroup
 		else return new Vec(boxes[i].x, boxes[i].y);
 	}
 	
+	public function getIndex(base:Int, dx:Int, dy:Int) : Int
+	{
+		var x : Int = base % Width;
+		var start : Int = base - x;
+		var y : Int = Math.floor(start / Width);
+		//trace("starting " + Std.string(base) + " x: " + Std.string(x)+ " y: " + Std.string(y));
+		x += dx;
+		y += dy;
+		return index(x, y);
+	}
+	
+	public function notice(i:Int):Void
+	{
+		boxes[i].flicker();
+	}
+	
 	public function getSize(i:Int) : BoxSize
 	{
 		if ( i < 0 ) return BoxSize.Normal;
 		else return boxes[i].getSize();
 	}
+	
+	public function getColor(i:Int) : Color
+	{
+		if ( i < 0 ) return Color.None;
+		else return boxes[i].getColor();
+	}
+	
 	
 	public function setColor(pos:Int, c: Color)
 	{
