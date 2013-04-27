@@ -27,7 +27,7 @@ class Board extends FlxGroup
 	{
 		super();
 		
-		trace("creating board");
+		//trace("creating board");
 		
 		boxes = new Array<Box>();
 		
@@ -125,6 +125,40 @@ class Board extends FlxGroup
 		return best;
 	}
 	
+	public function listBombDirs() : Array<BombDir>
+	{
+		var r : Array<BombDir> = new Array<BombDir>();
+		
+		var y : Int = 0;
+		while (y < Height)
+		{
+			var x : Int = 0;
+			while (x < Width)
+			{
+				var i : Int = index(x, y);
+				
+				if ( getColor(i) == Color.Black )
+				{
+					var ni : Int = -1;
+					
+					for ( d in [2, 4, 6, 8] )
+					{
+						ni = getIndexFromDir(i, d);
+						if ( Rules.IsValidBombColor( getColor(ni) ) )
+						{
+							r.push(new BombDir(i, ni, d));
+						}
+					}
+				}
+				
+				++x;
+			}
+			++y;
+		}
+		
+		return r;
+	}
+	
 	public function getPosition(i:Int) : Vec
 	{
 		if ( i < 0 ) return new Vec(0, 0);
@@ -140,6 +174,15 @@ class Board extends FlxGroup
 		x += dx;
 		y += dy;
 		return index(x, y);
+	}
+	
+	public function getIndexFromDir(base:Int, dir:Int)
+	{
+		if ( dir == 4 ) return getIndex(base, -1, 0);
+		if ( dir == 6 ) return getIndex(base, 1, 0);
+		if ( dir == 8 ) return getIndex(base, 0, 1);
+		if ( dir == 2 ) return getIndex(base, 0, -1);
+		return -1;
 	}
 	
 	public function notice(i:Int):Void
