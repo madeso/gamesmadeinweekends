@@ -11,15 +11,17 @@ import org.flixel.FlxObject;
 class Box extends FlxSprite
 {
 	private var gs : GameState;
+	private var size : BoxSize;
 	override public function hurt(Damage:Float):Void 
 	{
 		flicker();
 	}
 
-	public function new(X:Float, Y:Float, size:BoxSize, c : Color, Parent: GameState)
+	public function new(X:Float, Y:Float, s:BoxSize, c : Color, Parent: GameState)
 	{
 		super(X, Y);
 		gs = Parent;
+		size = s;
 		
 		loadGraphic("assets/items.png", true, true, 40, 40);
 		var base : Int = 0;
@@ -48,6 +50,23 @@ class Box extends FlxSprite
 		addAnimation("Black", [base * 6 + 3]);
 		
 		setColor(c);
+	}
+	
+	public function getCenter() : Vec
+	{
+		return new Vec(x + getWidth() / 2, y + getHeight() / 2);
+	}
+	
+	public function getWidth() : Float
+	{
+		if ( size == BoxSize.Normal || size == BoxSize.Half ) return 40;
+		else return 20;
+	}
+	
+	public function getHeight() : Float
+	{
+		if ( size == BoxSize.Normal || size == BoxSize.RotatedHalf ) return 40;
+		else return 20;
 	}
 	
 	public function setColor(c:Color):Void
