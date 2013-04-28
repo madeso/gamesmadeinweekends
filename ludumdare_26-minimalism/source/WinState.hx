@@ -31,6 +31,7 @@ class WinState extends FlxState
 		"Hit space to continue"
 		#end
 		, true);
+		text.font = "assets/fonts/La-chata-normal.ttf";
 		
 		text.alignment = "center";
 		text.color = 0xff000000;

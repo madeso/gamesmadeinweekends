@@ -13,6 +13,8 @@ class Game
 	public static var Width : Int = 640;
 	public static var Height : Int = 480;
 	
+	public static var Score : Int = 0;
+	
 	public static inline function rnd(from:Float, to:Float):Float
 	{
 		return from + ((to - from) * Math.random());

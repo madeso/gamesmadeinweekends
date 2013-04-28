@@ -44,6 +44,7 @@
 	<assets path="assets/music" include="*.mp3" if="flash" type="music"/>
 	
 	<assets path="assets/data" include="*.ttf" type="font" />
+	<assets path="assets/fonts" include="*.ttf" type="font" />
 	<assets path="assets" include="*.tmx" type="text" />
 	<assets path="assets" include="*.fgr" type="text" />
 	<assets path="assets" include="*.csv" type="text" />

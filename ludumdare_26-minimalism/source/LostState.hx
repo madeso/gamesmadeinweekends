@@ -20,8 +20,12 @@ import com.eclecticdesignstudio.motion.easing.Quint;
 
 class LostState extends FlxState
 {
+	private var score : Int;
 	override public function create():Void
 	{
+		score = Game.Score;
+		Game.Score = 0;
+		
 		FlxG.bgColor = 0xffffffff;
 		
 		var text : FlxText = new FlxText(0, 360, Game.Width,
@@ -31,6 +35,7 @@ class LostState extends FlxState
 		"Hit space to restart"
 		#end
 		, true);
+		text.font = "assets/fonts/La-chata-normal.ttf";
 		
 		text.alignment = "center";
 		text.color = 0xff000000;
