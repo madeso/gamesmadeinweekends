@@ -329,7 +329,7 @@ class GameState  extends FlxState
 		
 		if ( v )
 		{
-			Actuate.tween (selectionbox, 1, { alpha: 0.5 } );
+			Actuate.tween (selectionbox, 1, { alpha: 0.5 } ).ease(Sine.easeInOut);
 			Actuate.tween (topbox, 1, { y: 0 } ).ease(Quint.easeOut);
 			
 			Actuate.tween(buttonRedBig, 1, { y: 10 } ).ease(Quint.easeOut).delay(randomDelay());
