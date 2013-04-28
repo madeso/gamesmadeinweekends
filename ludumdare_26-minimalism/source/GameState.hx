@@ -53,9 +53,12 @@ class GameState  extends FlxState
 	private var bombindex : Int = -1;
 	private var bombdir : Int = 0;
 	private var bombtimer : Float = 0;
-	private static var BOMBTIME : Float = 0.10;
+	private static var BOMBTIME : Float = 0.30;
 	
 	private var storedBombs : Array<BombDir>;
+	
+	private var scoreMulti : Int = 1;
+	private var scoreDisplay : FlxText;
 	
 	override public function create():Void
 	{
@@ -89,9 +92,16 @@ class GameState  extends FlxState
 		bombButton.scale.x = 0.9;
 		bombButton.scale.y = 0.9;
 		
+		scoreDisplay = new FlxText(10, 10, Game.Width-20, "[score]", 25);
+		scoreDisplay.font = "assets/fonts/La-chata-normal.ttf";
+		scoreDisplay.alignment = "right";
+		scoreDisplay.color = 0xff000000;
+		
+		updateScoreDisplay();
 		
 		add(board);
 		add(items);
+		add(scoreDisplay);
 		add(selectionbox);
 		add(topbox);
 		add(placehere);
@@ -132,6 +142,18 @@ class GameState  extends FlxState
 		return -1;
 	}
 	
+	private function updateScore(id:Int):Void
+	{
+		Game.Score += scoreMulti;
+		updateScoreDisplay();
+		Actuate.tween(scoreDisplay, 0.10, { size: 50 } ).repeat(1).reflect().ease(Quint.easeInOut);
+		FlxG.shake(0.05, 0.1);
+	}
+	
+	private function updateScoreDisplay() : Void
+	{
+		scoreDisplay.text = Std.string(Game.Score);
+	}
 
 	override public function update():Void
 	{
@@ -162,6 +184,7 @@ class GameState  extends FlxState
 			{
 				bombtimer -= BOMBTIME;
 				Game.sfx("score");
+				updateScore(bombindex);
 				// trace("bomb");
 				
 				var p : Bool = false;
@@ -191,16 +214,19 @@ class GameState  extends FlxState
 						{
 							storedBombs.push(new BombDir(bombindex, board.getIndexFromDir(bombindex, Left(bombdir)), Left(bombdir)));
 						}
+						++scoreMulti;
 					}
 					
 					if ( goright )
 					{
+						++scoreMulti;
 						// trace("right");
 						bombdir = Right(bombdir);
 						bombindex = board.getIndexFromDir(bombindex, bombdir);
 					}
 					else if ( goleft )
 					{
+						++scoreMulti;
 						// trace("left");
 						bombdir = Left(bombdir);
 						bombindex = board.getIndexFromDir(bombindex, bombdir);
