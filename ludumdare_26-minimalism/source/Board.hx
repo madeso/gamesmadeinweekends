@@ -91,7 +91,27 @@ class Board extends FlxGroup
 		while (c < 4)
 		{
 			var ri : Int = Std.random(boxes.length);
-			if ( boxes[ri].getColor() == Color.None )
+			var canplace : Bool = true;
+			if ( boxes[ri].getColor() != Color.None )
+			{
+				canplace = false;
+			}
+			
+			var d: Int = 0;
+			for ( d in [2, 4, 6, 8] )
+			{
+				var ni : Int = getIndexFromDir(ri, d);
+				if ( ni >= 0 )
+				{
+					if ( boxes[ni].getColor() != Color.None )
+					{
+						canplace = false;
+					}
+				}
+			}
+			
+			
+			if ( canplace )
 			{
 				setColor(ri, Color.Black);
 				++c;
