@@ -26,9 +26,9 @@ class LostState extends FlxState
 		
 		var text : FlxText = new FlxText(0, 360, Game.Width,
 		#if android
-		"Touch to start"
+		"Touch to restart"
 		#else
-		"Hit space to start"
+		"Hit space to restart"
 		#end
 		, true);
 		
