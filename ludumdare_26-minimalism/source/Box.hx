@@ -65,26 +65,7 @@ class Box extends FlxSprite
 	
 	public function setColor(c:Color):Void
 	{
-		if ( c == Color.Red )
-		{
-			color = 0xffff0000;
-		}
-		else if ( c == Color.Blue )
-		{
-			color = 0xff0000ff;
-		}
-		else if ( c == Color.Yellow )
-		{
-			color = 0xffffff00;
-		}
-		else if ( c == Color.Black )
-		{
-			color = 0xff000000;
-		}
-		else
-		{
-			color = 0xffffffff;
-		}
+		color = Game.CalcColor(c);
 		
 		if ( c == Color.None && canhide)
 		{

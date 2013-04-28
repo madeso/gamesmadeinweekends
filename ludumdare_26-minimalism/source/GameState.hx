@@ -175,11 +175,27 @@ class GameState  extends FlxState
 	private function addScoreToWorld(id:Int, score:Int):Void
 	{
 		var pos : Vec = board.getCenter(id);
+		
+		var c : Color = board.getColor(id);
+		if ( c != Color.None )
+		{
+			var bang : DarkBox = new DarkBox(pos.x, pos.y, 1.0, 1.0, 1.0, 1);
+			items.add(bang);
+			bang.color = Game.CalcColor(c);
+			
+			var TIMEFX : Float = 0.5;
+			var SCALE : Float = 8;
+			
+			Actuate.tween(bang.scale, TIMEFX, { x: SCALE } ).ease(Quint.easeOut);
+			Actuate.tween(bang.scale, TIMEFX, { y: SCALE } ).ease(Quint.easeOut);
+			Actuate.tween(bang, TIMEFX, { alpha: 0 } ).ease(Quint.easeOut);
+		}
+		
 		var t : FlxText = new FlxText(pos.x - 50, pos.y, 100, Std.string(score), 20);
 		t.alignment = "center";
 		t.color = 0xff000000;
 		t.size = 25;
-		var TIME : Float = 1.0;
+		var TIME : Float = 1.5;
 		Actuate.tween(t, TIME, { size: 40 } ).ease(Quint.easeOut);
 		Actuate.tween(t, TIME, { y: t.y - 80 } ).ease(Quint.easeOut);
 		Actuate.tween(t, TIME, { alpha: 0 } ).ease(Quint.easeOut);

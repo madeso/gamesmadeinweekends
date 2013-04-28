@@ -31,6 +31,30 @@ class Game
 		else return false;
 	}
 	
+	public static function CalcColor(c:Color)
+	{
+		if ( c == Color.Red )
+		{
+			return 0xffff0000;
+		}
+		else if ( c == Color.Blue )
+		{
+			return 0xff0000ff;
+		}
+		else if ( c == Color.Yellow )
+		{
+			return 0xffffff00;
+		}
+		else if ( c == Color.Black )
+		{
+			return 0xff000000;
+		}
+		else
+		{
+			return 0xffffffff;
+		}
+	}
+	
 	public static function RandomColor() : Color
 	{
 		var i : Int = irnd(0, 4);
