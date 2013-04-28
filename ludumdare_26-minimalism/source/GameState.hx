@@ -356,6 +356,11 @@ class GameState  extends FlxState
 		return Game.rnd(0, 0.25);
 	}
 	
+	private function hideBombButton() : Void
+	{
+		Actuate.tween(bombButton, 1, { x: -40 } ).ease(Quint.easeOut);
+	}
+	
 	private function onClick(point:Vec): Void
 	{
 		if ( continuetext.visible )
@@ -384,7 +389,7 @@ class GameState  extends FlxState
 					{
 						setSelectionVisible(false);
 					}
-					Actuate.tween(bombButton, 1, { x: -40 } ).ease(Quint.easeOut);
+					hideBombButton();
 				}
 			}
 					
@@ -448,6 +453,7 @@ class GameState  extends FlxState
 								if ( storedBombs.length == osl )
 								{
 									startBombing();
+									hideBombButton();
 								}
 							}
 						}
