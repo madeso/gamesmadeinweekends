@@ -192,8 +192,9 @@ class GameState  extends FlxState
 			Actuate.tween(bang, TIMEFX, { alpha: 0 } ).ease(Quint.easeOut);
 		}
 		
-		var t : FlxText = new FlxText(pos.x - 50, pos.y, 100, Std.string(score), 20);
+		var t : FlxText = new FlxText(pos.x - 50, pos.y, 100, Std.string(score)+"00", 20);
 		t.alignment = "center";
+		t.font = "assets/fonts/La-chata-normal.ttf";
 		t.color = 0xff000000;
 		t.size = 25;
 		var TIME : Float = 1.5;
@@ -205,7 +206,14 @@ class GameState  extends FlxState
 	
 	private function updateScoreDisplay() : Void
 	{
-		scoreDisplay.text = Std.string(Game.Score);
+		if ( Game.Score > 0 )
+		{
+			scoreDisplay.text = Std.string(Game.Score) + "00";
+		}
+		else
+		{
+			scoreDisplay.text = "0";
+		}
 	}
 
 	override public function update():Void
