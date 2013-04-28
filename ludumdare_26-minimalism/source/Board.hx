@@ -221,6 +221,12 @@ class Board extends FlxGroup
 		else return new Vec(boxes[i].x, boxes[i].y);
 	}
 	
+	public function getCenter(i:Int) : Vec
+	{
+		if ( i < 0 ) return new Vec(0, 0);
+		else return boxes[i].getCenter();
+	}
+	
 	public function getIndex(base:Int, dx:Int, dy:Int) : Int
 	{
 		var x : Int = base % Width;
