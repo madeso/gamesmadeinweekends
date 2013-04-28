@@ -60,6 +60,8 @@ class GameState  extends FlxState
 	private var scoreMulti : Int = 1;
 	private var scoreDisplay : FlxText;
 	
+	var continuetext : FlxText;
+	
 	override public function create():Void
 	{
 		// Game.music("andsoitbegins");
@@ -75,6 +77,21 @@ class GameState  extends FlxState
 		bombButton = new DarkBox(-40, 420, 1, 1, 1, BOMB);
 		placehere = new Box(0, 0, BoxSize.Normal, Color.None, false);
 		placehere.visible = false;
+		
+		continuetext = new FlxText(0, 360, Game.Width,
+		#if android
+		"Touch to continue"
+		#else
+		"Hit space to continue"
+		#end
+		, true);
+		continuetext.font = "assets/fonts/La-chata-normal.ttf";
+		
+		continuetext.alignment = "center";
+		continuetext.color = 0xff000000;
+		continuetext.size = 25;
+		continuetext.visible = false;
+		Actuate.tween(continuetext, 0.5, { size: 30 } ).repeat().reflect().ease(Quint.easeInOut);
 		
 		var buttonheight : Int = -40;
 		
@@ -112,6 +129,8 @@ class GameState  extends FlxState
 		add(buttonBlueBig);
 		add(buttonYellowBig);
 		
+		add(continuetext);
+		
 		FlxG.bgColor = 0xfffdfdfd;
 		
 		#if flash
@@ -145,9 +164,26 @@ class GameState  extends FlxState
 	private function updateScore(id:Int):Void
 	{
 		Game.Score += scoreMulti;
+		
+		addScoreToWorld(id, scoreMulti);
+		
 		updateScoreDisplay();
 		Actuate.tween(scoreDisplay, 0.10, { size: 50 } ).repeat(1).reflect().ease(Quint.easeInOut);
-		FlxG.shake(0.05, 0.1);
+		FlxG.shake(0.02, 0.1);
+	}
+	
+	private function addScoreToWorld(id:Int, score:Int):Void
+	{
+		var pos : Vec = board.getCenter(id);
+		var t : FlxText = new FlxText(pos.x - 50, pos.y, 100, Std.string(score), 20);
+		t.alignment = "center";
+		t.color = 0xff000000;
+		t.size = 25;
+		var TIME : Float = 1.0;
+		Actuate.tween(t, TIME, { size: 40 } ).ease(Quint.easeOut);
+		Actuate.tween(t, TIME, { y: t.y - 80 } ).ease(Quint.easeOut);
+		Actuate.tween(t, TIME, { alpha: 0 } ).ease(Quint.easeOut);
+		items.add(t);
 	}
 	
 	private function updateScoreDisplay() : Void
@@ -161,7 +197,7 @@ class GameState  extends FlxState
 		
 		if ( bombindex == -1 )
 		{		
-			if ( FlxG.mouse.justReleased() )
+			if ( FlxG.mouse.justReleased() || FlxG.keys.justPressed("SPACE") )
 			{
 				//var fp : FlxPoint = FlxG.mouse.getWorldPosition();
 				var p : Vec = new Vec(FlxG.mouse.screenX, FlxG.mouse.screenY);//new Vec(fp.x, fp.y);
@@ -243,14 +279,7 @@ class GameState  extends FlxState
 							// stop bombing
 							bombindex = -1;
 							
-							if ( board.hasBoxes() )
-							{
-								FlxG.switchState(new LostState() );
-							}
-							else
-							{
-								FlxG.switchState(new WinState() );
-							}
+							continuetext.visible = true;
 						}
 					}
 				}
@@ -312,115 +341,129 @@ class GameState  extends FlxState
 	
 	private function onClick(point:Vec): Void
 	{
-		var p : FlxPoint = point.flx();
-		
-		if ( bombButton.overlapsPoint(p) )
+		if ( continuetext.visible )
 		{
-			if ( storedBombs.length > 0 )
+			if ( board.hasBoxes() )
 			{
-				Game.sfx("enter");
-				startBombing();
-				
-				if ( selectionVisible )
-				{
-					setSelectionVisible(false);
-				}
-				Actuate.tween(bombButton, 1, { x: -40 } ).ease(Quint.easeOut);
+				FlxG.switchState(new LostState() );
 			}
-		}
-				
-		if ( selectionVisible )
-		{
-			var close : Bool = true;
-			
-			if ( targetindex >= 0 )
+			else
 			{
-				close = false;
-				var c : Color = Color.None;
-				if ( buttonRedBig.overlapsPoint(p) )
-				{
-					c = Color.Red;
-				}
-				else if ( buttonBlueBig.overlapsPoint(p) )
-				{
-					c = Color.Blue;
-				}
-				else if ( buttonYellowBig.overlapsPoint(p) )
-				{
-					c = Color.Yellow;
-				}
-				else if ( cross.overlapsPoint(p) )
-				{
-					close = true;
-					Game.sfx("abort");
-				}
-				else if ( lastColor != Color.None )
-				{
-					var index : Int = board.getClosestMatch(point);
-					if ( index == targetindex )
-					{
-						c = lastColor;
-					}
-				}
-				
-				if ( c != Color.None )
-				{
-					if ( Rules.CanPlace(board, targetindex, c) == true )
-					{
-						board.setColor(targetindex, c);
-						lastColor = c;
-						Game.sfx("enter");
-						close = true;
-						
-						var osl : Int = storedBombs.length;
-						
-						if ( canBomb() )
-						{
-							if ( storedBombs.length > 0 )
-							{
-								if ( osl == 0 ) // adding a sine multiple times on the same object causes flash to crash
-								{
-									Actuate.tween(bombButton, 1, { x: 10 } ).ease(Quint.easeOut);
-									Actuate.tween(bombButton.scale, 0.5, { x: 1.1 } ).repeat().reflect().ease(Sine.easeInOut).delay(randomDelay());
-									Actuate.tween(bombButton.scale, 0.5, { y: 1.1 } ).repeat().reflect().ease(Sine.easeInOut).delay(randomDelay());
-								}
-							}
-							
-							if ( storedBombs.length == osl )
-							{
-								startBombing();
-							}
-						}
-					}
-					else
-					{
-						Game.sfx("bad3");
-					}
-				}
-			}
-			
-			if ( close )
-			{
-				setSelectionVisible(false);
+				FlxG.switchState(new WinState() );
 			}
 		}
 		else
 		{
-			var index : Int = board.getClosestMatch(point);
-			if ( index == -1 ) return;
-			if ( Rules.CanPlace(board, index, Color.None) == true )
+			var p : FlxPoint = point.flx();
+			
+			if ( bombButton.overlapsPoint(p) )
 			{
-				var p : Vec = board.getPosition(index);
-				Game.sfx("select");
-				placehere.x = p.x;
-				placehere.y = p.y;
-				placehere.setSize(board.getSize(index));
-				targetindex = index;
-				setSelectionVisible(true);
+				if ( storedBombs.length > 0 )
+				{
+					Game.sfx("enter");
+					startBombing();
+					
+					if ( selectionVisible )
+					{
+						setSelectionVisible(false);
+					}
+					Actuate.tween(bombButton, 1, { x: -40 } ).ease(Quint.easeOut);
+				}
+			}
+					
+			if ( selectionVisible )
+			{
+				var close : Bool = true;
+				
+				if ( targetindex >= 0 )
+				{
+					close = false;
+					var c : Color = Color.None;
+					if ( buttonRedBig.overlapsPoint(p) )
+					{
+						c = Color.Red;
+					}
+					else if ( buttonBlueBig.overlapsPoint(p) )
+					{
+						c = Color.Blue;
+					}
+					else if ( buttonYellowBig.overlapsPoint(p) )
+					{
+						c = Color.Yellow;
+					}
+					else if ( cross.overlapsPoint(p) )
+					{
+						close = true;
+						Game.sfx("abort");
+					}
+					else if ( lastColor != Color.None )
+					{
+						var index : Int = board.getClosestMatch(point);
+						if ( index == targetindex )
+						{
+							c = lastColor;
+						}
+					}
+					
+					if ( c != Color.None )
+					{
+						if ( Rules.CanPlace(board, targetindex, c) == true )
+						{
+							board.setColor(targetindex, c);
+							lastColor = c;
+							Game.sfx("enter");
+							close = true;
+							
+							var osl : Int = storedBombs.length;
+							
+							if ( canBomb() )
+							{
+								if ( storedBombs.length > 0 )
+								{
+									if ( osl == 0 ) // adding a sine multiple times on the same object causes flash to crash
+									{
+										Actuate.tween(bombButton, 1, { x: 10 } ).ease(Quint.easeOut);
+										Actuate.tween(bombButton.scale, 0.5, { x: 1.1 } ).repeat().reflect().ease(Sine.easeInOut).delay(randomDelay());
+										Actuate.tween(bombButton.scale, 0.5, { y: 1.1 } ).repeat().reflect().ease(Sine.easeInOut).delay(randomDelay());
+									}
+								}
+								
+								if ( storedBombs.length == osl )
+								{
+									startBombing();
+								}
+							}
+						}
+						else
+						{
+							Game.sfx("bad3");
+						}
+					}
+				}
+				
+				if ( close )
+				{
+					setSelectionVisible(false);
+				}
 			}
 			else
 			{
-				Game.sfx("bad3");
+				var index : Int = board.getClosestMatch(point);
+				if ( index == -1 ) return;
+				if ( Rules.CanPlace(board, index, Color.None) == true )
+				{
+					var p : Vec = board.getPosition(index);
+					Game.sfx("select");
+					placehere.x = p.x;
+					placehere.y = p.y;
+					placehere.setSize(board.getSize(index));
+					targetindex = index;
+					setSelectionVisible(true);
+				}
+				else
+				{
+					Game.sfx("bad3");
+				}
 			}
 		}
 	}

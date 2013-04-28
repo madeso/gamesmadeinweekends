@@ -58,6 +58,19 @@ class MenuState extends FlxState
 			next = true;
 		}
 		
+		if ( FlxG.mouse.justReleased() )
+		{
+			next = true;
+		}
+		
+		for (touch in FlxG.touchManager.touches)
+		{
+			if ( touch.justReleased() )
+			{
+				next = true;
+			}
+		}
+		
 		var touch:FlxTouch;
 		for (touch in FlxG.touchManager.touches)
 		{
