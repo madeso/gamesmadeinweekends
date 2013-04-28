@@ -61,6 +61,8 @@ class GameState  extends FlxState
 	private var scoreMulti : Int = 1;
 	private var scoreDisplay : FlxText;
 	
+	private var lastColors : Array<Color>;
+	
 	var continuetext : FlxText;
 	
 	override public function create():Void
@@ -68,6 +70,8 @@ class GameState  extends FlxState
 		// Game.music("andsoitbegins");
 		
 		storedBombs = new Array<BombDir>();
+		
+		lastColors = new Array<Color>();
 		
 		lastColor = Color.None;
 		items = new FlxGroup();
@@ -164,16 +168,61 @@ class GameState  extends FlxState
 	
 	private function updateScore(id:Int):Void
 	{
-		Game.Score += scoreMulti;
+		var c : Color = board.getColor(id);
+		if ( c != Color.None && c!=Color.Black )
+		{
+			lastColors.push(c);
+		}
+		while (lastColors.length > 4)
+		{
+			lastColors.shift();
+		}
 		
-		addScoreToWorld(id, scoreMulti);
+		var sb : Int = getScoreBase();
+		
+		Game.Score += scoreMulti * sb;
+		addScoreToWorld(id, scoreMulti*sb, sb>1?"x4":"");
 		
 		updateScoreDisplay();
 		Actuate.tween(scoreDisplay, 0.10, { size: 50 } ).repeat(1).reflect().ease(Quint.easeInOut);
 		FlxG.shake(0.02, 0.1);
 	}
 	
-	private function addScoreToWorld(id:Int, score:Int):Void
+	private function getScoreBase() : Int
+	{
+		var red : Bool = false;
+		var blue : Bool = false;
+		var yellow : Bool = false;
+		
+		for (c in lastColors)
+		{
+			if ( c == Color.Red ) red = true;
+			if ( c == Color.Blue ) blue = true;
+			if ( c == Color.Yellow ) yellow = true;
+		}
+		
+		var base : Int = 0;
+		if ( red )
+		{
+			++base;
+		}
+		if ( blue )
+		{
+			++base;
+		}
+		if ( yellow )
+		{
+			++base;
+		}
+		
+		if ( base <= 2 ) return 1;
+		else
+		{
+			return 4;
+		}
+	}
+	
+	private function addScoreToWorld(id:Int, score:Int, x:String):Void
 	{
 		var pos : Vec = board.getCenter(id);
 		
@@ -192,7 +241,7 @@ class GameState  extends FlxState
 			Actuate.tween(bang, TIMEFX, { alpha: 0 } ).ease(Quint.easeOut);
 		}
 		
-		var t : FlxText = new FlxText(pos.x - 50, pos.y, 100, Std.string(score)+"00", 20);
+		var t : FlxText = new FlxText(pos.x - 50, pos.y, 100, Std.string(score)+"00"+x, 20);
 		t.alignment = "center";
 		t.font = "assets/fonts/La-chata-normal.ttf";
 		t.color = 0xff000000;
