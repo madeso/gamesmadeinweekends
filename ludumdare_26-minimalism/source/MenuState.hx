@@ -31,6 +31,7 @@ class MenuState extends FlxState
 		"Hit space to start"
 		#end
 		, true);
+		text.font = "assets/fonts/La-chata-normal.ttf";
 		
 		text.alignment = "center";
 		text.color = 0xff000000;
