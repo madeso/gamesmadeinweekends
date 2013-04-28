@@ -15,11 +15,12 @@ class Rules
 	
 	public static function CanPlace(board:Board, index:Int, c:Color):Bool
 	{
+		var ret : Bool = true;
 		if ( index == -1 ) return false;
 		if ( board.getColor(index) != Color.None )
 		{
 			board.notice(index);
-			return false;
+			ret = false;
 		}
 		
 		if ( c != Color.None )
@@ -30,7 +31,7 @@ class Rules
 				if ( board.getColor(i) == c ) 
 				{
 					board.notice(i);
-					return false;
+					ret = false;
 				}
 			}
 			
@@ -40,7 +41,7 @@ class Rules
 				if ( board.getColor(i) == c ) 
 				{
 					board.notice(i);
-					return false;
+					ret = false;
 				}
 			}
 			
@@ -50,7 +51,7 @@ class Rules
 				if ( board.getColor(i) == c ) 
 				{
 					board.notice(i);
-					return false;
+					ret = false;
 				}
 			}
 			
@@ -60,11 +61,11 @@ class Rules
 				if ( board.getColor(i) == c ) 
 				{
 					board.notice(i);
-					return false;
+					ret = false;
 				}
 			}
 		}
 		
-		return true;
+		return ret;
 	}
 }
