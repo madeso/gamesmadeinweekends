@@ -20,6 +20,7 @@ import org.flixel.FlxU;
 import com.eclecticdesignstudio.motion.Actuate;
 import com.eclecticdesignstudio.motion.easing.Quint;
 import com.eclecticdesignstudio.motion.easing.Sine;
+import com.eclecticdesignstudio.motion.easing.Bounce;
 
 /**
  * ...
@@ -332,9 +333,9 @@ class GameState  extends FlxState
 			Actuate.tween (selectionbox, 1, { alpha: 0.5 } ).ease(Sine.easeInOut);
 			Actuate.tween (topbox, 1, { y: 0 } ).ease(Quint.easeOut);
 			
-			Actuate.tween(buttonRedBig, 1, { y: 10 } ).ease(Quint.easeOut).delay(randomDelay());
-			Actuate.tween(buttonBlueBig, 1, { y: 10 } ).ease(Quint.easeOut).delay(randomDelay());
-			Actuate.tween(buttonYellowBig, 1, { y: 10 } ).ease(Quint.easeOut).delay(randomDelay());
+			Actuate.tween(buttonRedBig, 1, { y: 10 } ).ease(Bounce.easeOut).delay(randomDelay());
+			Actuate.tween(buttonBlueBig, 1, { y: 10 } ).ease(Bounce.easeOut).delay(randomDelay());
+			Actuate.tween(buttonYellowBig, 1, { y: 10 } ).ease(Bounce.easeOut).delay(randomDelay());
 			Actuate.tween(cross, 1, { y: 425 } ).ease(Quint.easeOut);
 		}
 		else
