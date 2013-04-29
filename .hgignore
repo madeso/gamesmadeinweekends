@@ -21,3 +21,5 @@ syntax: glob
 ludumdare_25-youarethevillain/src/*.png
 ludumdare_25-youarethevillain/*.png
 ludumdare_25-youarethevillain/release/*.love
+ludumdare_26-minimalism/export/*
+ludumdare_26-minimalism/bin/*
