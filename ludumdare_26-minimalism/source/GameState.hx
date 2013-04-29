@@ -139,6 +139,8 @@ class GameState  extends FlxState
 		FlxG.bgColor = 0xfffdfdfd;
 		
 		#if flash
+		//FlxGame.useSystemCursor = true;
+		//FlxG.mouse.useSystemCursor = true;
 		FlxG.mouse.show();
 		#end
 		
