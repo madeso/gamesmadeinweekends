@@ -281,11 +281,11 @@ class GameState  extends FlxState
 		
 		if ( bombindex == -1 )
 		{		
-			if ( FlxG.mouse.justReleased() || FlxG.keys.justPressed("SPACE") )
+			if ( FlxG.mouse.justReleased() )
 			{
 				//var fp : FlxPoint = FlxG.mouse.getWorldPosition();
 				var p : Vec = new Vec(FlxG.mouse.screenX, FlxG.mouse.screenY);//new Vec(fp.x, fp.y);
-				onClick(p);
+				onClick(p, Command.None);
 			}
 			
 			for (touch in FlxG.touchManager.touches)
@@ -293,9 +293,30 @@ class GameState  extends FlxState
 				if ( touch.justReleased() )
 				{
 					var p : Vec = new Vec(touch.screenX, touch.screenY);
-					onClick(p);
+					onClick(p, Command.None);
 				}
 			}
+			
+			var away: Vec = new Vec( -100, -100);
+			
+			if ( FlxG.keys.justReleased("ENTER") ) onClick(away, Command.StartBombing);
+			
+			if ( FlxG.keys.justReleased("R") ) onClick(away, Command.Red);
+			if ( FlxG.keys.justReleased("Y") ) onClick(away, Command.Blue);
+			if ( FlxG.keys.justReleased("B") ) onClick(away, Command.Yellow);
+			
+			if ( FlxG.keys.justReleased("A") ) onClick(away, Command.Red);
+			if ( FlxG.keys.justReleased("S") ) onClick(away, Command.Blue);
+			if ( FlxG.keys.justReleased("W") ) onClick(away, Command.Blue);
+			if ( FlxG.keys.justReleased("D") ) onClick(away, Command.Yellow);
+			
+			if ( FlxG.keys.justReleased("ONE") ) onClick(away, Command.Red);
+			if ( FlxG.keys.justReleased("TWO") ) onClick(away, Command.Blue);
+			if ( FlxG.keys.justReleased("THREE") ) onClick(away, Command.Yellow);
+			
+			if ( FlxG.keys.justReleased("ESCAPE") ) onClick(away, Command.Close);
+			
+			if ( FlxG.keys.justReleased("SPACE") ) onClick(away, Command.Keep);
 		}
 		else
 		{
@@ -430,7 +451,7 @@ class GameState  extends FlxState
 		Actuate.tween(bombButton, 1, { x: -40 } ).ease(Quint.easeOut);
 	}
 	
-	private function onClick(point:Vec): Void
+	private function onClick(apoint:Vec, cmd:Command): Void
 	{
 		if ( continuetext.visible )
 		{
@@ -445,9 +466,9 @@ class GameState  extends FlxState
 		}
 		else
 		{
-			var p : FlxPoint = point.flx();
+			var fp : FlxPoint = apoint.flx();
 			
-			if ( bombButton.overlapsPoint(p) )
+			if ( cmd == Command.StartBombing || bombButton.overlapsPoint(fp) )
 			{
 				if ( storedBombs.length > 0 )
 				{
@@ -461,7 +482,7 @@ class GameState  extends FlxState
 					hideBombButton();
 				}
 			}
-					
+			
 			if ( selectionVisible )
 			{
 				var close : Bool = true;
@@ -470,27 +491,27 @@ class GameState  extends FlxState
 				{
 					close = false;
 					var c : Color = Color.None;
-					if ( buttonRedBig.overlapsPoint(p) )
+					if ( cmd == Command.Red || buttonRedBig.overlapsPoint(fp) )
 					{
 						c = Color.Red;
 					}
-					else if ( buttonBlueBig.overlapsPoint(p) )
+					else if ( cmd == Command.Blue || buttonBlueBig.overlapsPoint(fp) )
 					{
 						c = Color.Blue;
 					}
-					else if ( buttonYellowBig.overlapsPoint(p) )
+					else if ( cmd == Command.Yellow || buttonYellowBig.overlapsPoint(fp) )
 					{
 						c = Color.Yellow;
 					}
-					else if ( cross.overlapsPoint(p) )
+					else if ( cmd == Command.Close || cross.overlapsPoint(fp) )
 					{
 						close = true;
 						Game.sfx("abort");
 					}
 					else if ( lastColor != Color.None )
 					{
-						var index : Int = board.getClosestMatch(point);
-						if ( index == targetindex )
+						var index : Int = board.getClosestMatch(apoint);
+						if ( cmd == Command.Keep || index == targetindex )
 						{
 							c = lastColor;
 						}
@@ -541,7 +562,7 @@ class GameState  extends FlxState
 			}
 			else
 			{
-				var index : Int = board.getClosestMatch(point);
+				var index : Int = board.getClosestMatch(apoint);
 				if ( index == -1 ) return;
 				if ( Rules.CanPlace(board, index, Color.None) == true )
 				{
