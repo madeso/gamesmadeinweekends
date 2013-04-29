@@ -43,6 +43,12 @@ class LostState extends FlxState
 		add( new Img("assets/fail.png"));
 		add(text);
 		
+		var tscore : FlxText = new FlxText(0, 330, Game.Width, "Score: " + Std.string(score) + "00", 25);  
+		tscore.font = "assets/fonts/La-chata-normal.ttf";
+		tscore.alignment = "center";
+		tscore.color = 0xff000000;
+		add(tscore);
+		
 		Actuate.tween(text, 0.5, { size: 30 } ).repeat().reflect().ease(Quint.easeInOut);
 	}
 	
