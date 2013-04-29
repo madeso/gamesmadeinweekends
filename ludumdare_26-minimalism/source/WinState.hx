@@ -36,8 +36,15 @@ class WinState extends FlxState
 		text.alignment = "center";
 		text.color = 0xff000000;
 		text.size = 25;
+		
 		add( new Img("assets/win.png"));
 		add(text);
+		
+		var tscore : FlxText = new FlxText(0, 240, Game.Width, "Score: " + Std.string(Game.Score) + "00", 25);
+		tscore.font = "assets/fonts/La-chata-normal.ttf";
+		tscore.alignment = "center";
+		tscore.color = 0xff000000;
+		add(tscore);
 		
 		Actuate.tween(text, 0.5, { size: 30 } ).repeat().reflect().ease(Quint.easeInOut);
 	}
