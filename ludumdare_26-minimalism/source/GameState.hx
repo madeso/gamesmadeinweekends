@@ -303,7 +303,7 @@ class GameState  extends FlxState
 			if ( bombtimer > BOMBTIME )
 			{
 				bombtimer -= BOMBTIME;
-				Game.sfx("score");
+				Game.sfx("bang");
 				updateScore(bombindex);
 				// trace("bomb");
 				
@@ -340,6 +340,7 @@ class GameState  extends FlxState
 					if ( goright )
 					{
 						++scoreMulti;
+						Game.sfx("score");
 						// trace("right");
 						bombdir = Right(bombdir);
 						bombindex = board.getIndexFromDir(bombindex, bombdir);
@@ -347,6 +348,7 @@ class GameState  extends FlxState
 					else if ( goleft )
 					{
 						++scoreMulti;
+						Game.sfx("score");
 						// trace("left");
 						bombdir = Left(bombdir);
 						bombindex = board.getIndexFromDir(bombindex, bombdir);
