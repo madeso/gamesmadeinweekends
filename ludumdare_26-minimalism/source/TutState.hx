@@ -18,17 +18,18 @@ import org.flixel.system.input.FlxTouch;
 import com.eclecticdesignstudio.motion.Actuate;
 import com.eclecticdesignstudio.motion.easing.Quint;
 
-class MenuState extends FlxState
+class TutState extends FlxState
 {
+	private var tut : Img;
 	override public function create():Void
 	{
 		FlxG.bgColor = 0xffffffff;
 		
 		var text : FlxText = new FlxText(0, 360, Game.Width,
 		#if android
-		"Touch to start"
+		"Touch to continue"
 		#else
-		"Hit space to start"
+		"Hit space to continue"
 		#end
 		, true);
 		text.font = "assets/fonts/La-chata-normal.ttf";
@@ -36,7 +37,10 @@ class MenuState extends FlxState
 		text.alignment = "center";
 		text.color = 0xff000000;
 		text.size = 25;
-		add( new Img("assets/main.png"));
+		tut = new Img("assets/tut2.png");
+		tut.visible = false;
+		add(new Img("assets/tut1.png"));
+		add( tut );
 		add(text);
 		
 		Actuate.tween(text, 0.5, { size: 30 } ).repeat().reflect().ease(Quint.easeInOut);
@@ -82,8 +86,14 @@ class MenuState extends FlxState
 		
 		if ( next )
 		{
-			FlxG.switchState(new TutState());
-			
+			if ( tut.visible )
+			{
+				FlxG.switchState(new GameState());
+			}
+			else
+			{
+				tut.visible = true;
+			}
 		}
 	}	
 }
