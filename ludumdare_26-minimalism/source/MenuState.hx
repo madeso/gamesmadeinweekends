@@ -24,6 +24,12 @@ class MenuState extends FlxState
 	{
 		FlxG.bgColor = 0xffffffff;
 		
+		#if flash
+		//FlxGame.useSystemCursor = true;
+		//FlxG.mouse.useSystemCursor = true;
+		FlxG.mouse.show();
+		#end
+		
 		var text : FlxText = new FlxText(0, 360, Game.Width,
 		#if android
 		"Touch to start"
