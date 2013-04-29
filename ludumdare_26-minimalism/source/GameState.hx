@@ -76,7 +76,7 @@ class GameState  extends FlxState
 		lastColor = Color.None;
 		items = new FlxGroup();
 		board = new Board();
-		selectionbox = new DarkBox(300, 300, 0, 16, 16, BLACK);
+		selectionbox = new DarkBox(300, 300, 0, 16, 16, 0);
 		topbox = new DarkBox(300, -60, 0.5, 16, 2, BLACK);
 		cross = new DarkBox(570, CROSSOUT, 1, 1, 1, CROSS);
 		bombButton = new DarkBox(-40, 420, 1, 1, 1, BOMB);
@@ -141,6 +141,16 @@ class GameState  extends FlxState
 		#if flash
 		FlxG.mouse.show();
 		#end
+		
+		updateTintOnLastSelection();
+	}
+	
+	private function updateTintOnLastSelection()
+	{
+		selectionbox.color = 0xff000000;
+		if ( lastColor == Color.Red ) selectionbox.color = 0xff400000;
+		if ( lastColor == Color.Blue ) selectionbox.color = 0xff000040;
+		if ( lastColor == Color.Yellow ) selectionbox.color = 0xff404000;
 	}
 	
 	override public function destroy():Void
@@ -490,6 +500,7 @@ class GameState  extends FlxState
 						{
 							board.setColor(targetindex, c);
 							lastColor = c;
+							updateTintOnLastSelection();
 							Game.sfx("enter");
 							close = true;
 							
